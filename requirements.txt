@@ -1,8 +1,8 @@
 certifi==2019.11.28
 cffi==1.14.0
 future==0.18.2
-mkl-fft==1.0.15
-mkl-random==1.1.0
+mkl_fft==1.0.15
+mkl_random==1.1.0
 mkl-service==2.3.0
 numpy==1.16.6
 olefile==0.46
