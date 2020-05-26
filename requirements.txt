@@ -3,7 +3,7 @@ six==1.13.0
 mkl_random==1.1.0
 numpy==1.16.6
 pycparser==2.20
-mkl==service==2.3.0
+mkl_service==2.3.0
 cffi==1.14.0
 xz==5.2.5
 intel-openmp==2020.1
