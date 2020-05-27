@@ -16,10 +16,14 @@ class SampleListener(Leap.Listener):
 
     def on_init(self, controller):
         self.f = open("nothing.csv", "w")
+        self.f.write("frame_id,timestamp,hand_position_x,hand_position_y,hand_position_z,pitch,roll,yaw,arm_x,arm_y,arm_z,wrist_x,wrist_y,wrist_z,elbow_x,elbow_y,elbow_z,thumb_metacarpal_start_x,thumb_metacarpal_start_y,thumb_metacarpal_start_z,thumb_metacarpal_end_x,thumb_metacarpal_end_y,thumb_metacarpal_end_z,thumb_metacarpal_direction_x,thumb_metacarpal_direction_y,thumb_metacarpal_direction_z,thumb_proximal_start_x,thumb_proximal_start_y,thumb_proximal_start_z,thumb_proximal_end_x,thumb_proximal_end_y,thumb_proximal_end_z,thumb_proximal_direction_x,thumb_proximal_direction_y,thumb_proximal_direction_z,thumb_intermediate_start_x,thumb_intermediate_start_y,thumb_intermediate_start_z,thumb_intermediate_end_x,thumb_intermediate_end_y,thumb_intermediate_end_z,thumb_intermediate_direction_x,thumb_intermediate_direction_y,thumb_intermediate_direction_z,thumb_distal_start_x,thumb_distal_start_y,thumb_distal_start_z,thumb_distal_end_x,thumb_distal_end_y,thumb_distal_end_z,thumb_distal_direction_x,thumb_distal_direction_y,thumb_distal_direction_z,index_metacarpal_start_x,index_metacarpal_start_y,index_metacarpal_start_z,index_metacarpal_end_x,index_metacarpal_end_y,index_metacarpal_end_z,index_metacarpal_direction_x,index_metacarpal_direction_y,index_metacarpal_direction_z,index_proximal_start_x,index_proximal_start_y,index_proximal_start_z,index_proximal_end_x,index_proximal_end_y,index_proximal_end_z,index_proximal_direction_x,index_proximal_direction_y,index_proximal_direction_z,index_intermediate_start_x,index_intermediate_start_y,index_intermediate_start_z,index_intermediate_end_x,index_intermediate_end_y,index_intermediate_end_z,index_intermediate_direction_x,index_intermediate_direction_y,index_intermediate_direction_z,index_distal_start_x,index_distal_start_y,index_distal_start_z,index_distal_end_x,index_distal_end_y,index_distal_end_z,index_distal_direction_x,index_distal_direction_y,index_distal_direction_z,middle_metacarpal_start_x,middle_metacarpal_start_y,middle_metacarpal_start_z,middle_metacarpal_end_x,middle_metacarpal_end_y,middle_metacarpal_end_z,middle_metacarpal_direction_x,middle_metacarpal_direction_y,middle_metacarpal_direction_z,middle_proximal_start_x,middle_proximal_start_y,middle_proximal_start_z,middle_proximal_end_x,middle_proximal_end_y,middle_proximal_end_z,middle_proximal_direction_x,middle_proximal_direction_y,middle_proximal_direction_z,middle_intermediate_start_x,middle_intermediate_start_y,middle_intermediate_start_z,middle_intermediate_end_x,middle_intermediate_end_y,middle_intermediate_end_z,middle_intermediate_direction_x,middle_intermediate_direction_y,middle_intermediate_direction_z,middle_distal_start_x,middle_distal_start_y,middle_distal_start_z,middle_distal_end_x,middle_distal_end_y,middle_distal_end_z,middle_distal_direction_x,middle_distal_direction_y,middle_distal_direction_z,ring_metacarpal_start_x,ring_metacarpal_start_y,ring_metacarpal_start_z,ring_metacarpal_end_x,ring_metacarpal_end_y,ring_metacarpal_end_z,ring_metacarpal_direction_x,ring_metacarpal_direction_y,ring_metacarpal_direction_z,ring_proximal_start_x,ring_proximal_start_y,ring_proximal_start_z,ring_proximal_end_x,ring_proximal_end_y,ring_proximal_end_z,ring_proximal_direction_x,ring_proximal_direction_y,ring_proximal_direction_z,ring_intermediate_start_x,ring_intermediate_start_y,ring_intermediate_start_z,ring_intermediate_end_x,ring_intermediate_end_y,ring_intermediate_end_z,ring_intermediate_direction_x,ring_intermediate_direction_y,ring_intermediate_direction_z,ring_distal_start_x,ring_distal_start_y,ring_distal_start_z,ring_distal_end_x,ring_distal_end_y,ring_distal_end_z,ring_distal_direction_x,ring_distal_direction_y,ring_distal_direction_z,pinky_metacarpal_start_x,pinky_metacarpal_start_y,pinky_metacarpal_start_z,pinky_metacarpal_end_x,pinky_metacarpal_end_y,pinky_metacarpal_end_z,pinky_metacarpal_direction_x,pinky_metacarpal_direction_y,pinky_metacarpal_direction_z,pinky_proximal_start_x,pinky_proximal_start_y,pinky_proximal_start_z,pinky_proximal_end_x,pinky_proximal_end_y,pinky_proximal_end_z,pinky_proximal_direction_x,pinky_proximal_direction_y,pinky_proximal_direction_z,pinky_intermediate_start_x,pinky_intermediate_start_y,pinky_intermediate_start_z,pinky_intermediate_end_x,pinky_intermediate_end_y,pinky_intermediate_end_z,pinky_intermediate_direction_x,pinky_intermediate_direction_y,pinky_intermediate_direction_z,pinky_distal_start_x,pinky_distal_start_y,pinky_distal_start_z,pinky_distal_end_x,pinky_distal_end_y,pinky_distal_end_z,pinky_distal_direction_x,pinky_distal_direction_y,pinky_distal_direction_z")
         print("Initialized")
 
     def on_connect(self, controller):
         print("Connected")
+        print("Click enter once to start recording. Click enter twice to stop.")
+        sys.stdin.readline()
+        print("Recording")
 
     def on_disconnect(self, controller):
         # Note: not dispatched when running in a debugger.
@@ -31,9 +35,9 @@ class SampleListener(Leap.Listener):
     def on_frame(self, controller):
         # Get the most recent frame and report some basic information
         frame = controller.frame()
+        #print(str(self.record))
 
-        print("Frame id: %d, timestamp: %d, hands: %d, fingers: %d, tools: %d, gestures: %d" % (
-              frame.id, frame.timestamp, len(frame.hands), len(frame.fingers), len(frame.tools), len(frame.gestures())))
+        #print("Frame id: %d, timestamp: %d, hands: %d, fingers: %d, tools: %d, gestures: %d" % (frame.id, frame.timestamp, len(frame.hands), len(frame.fingers), len(frame.tools), len(frame.gestures())))
 
         # Get hands
         for hand in frame.hands:
@@ -45,8 +49,11 @@ class SampleListener(Leap.Listener):
                 return
             # else continue
 
+            # frame ID and timestamp
+            self.f.write("\n" + str(frame.id) + "," + str(frame.timestamp) + ",")
+
             # write the palm coordinates
-            self.f.write("\n" + "{:.4f}".format(hand.palm_position[0]) + "," + "{:.4f}".format(hand.palm_position[1]) + "," + "{:.4f}".format(hand.palm_position[2]) + ",")
+            self.f.write("{:.4f}".format(hand.palm_position[0]) + "," + "{:.4f}".format(hand.palm_position[1]) + "," + "{:.4f}".format(hand.palm_position[2]) + ",")
 
             # Get the hand's normal vector and direction
             normal = hand.palm_normal
@@ -56,11 +63,12 @@ class SampleListener(Leap.Listener):
             self.f.write("{:.4f}".format(direction.pitch) + "," + "{:.4f}".format(normal.roll) + "," + "{:.4f}".format(direction.yaw) + ",")
 
             # arm positions
+            arm = hand.arm
             self.f.write("{:.4f}".format(arm.direction[0]) + "," + "{:.4f}".format(arm.direction[1]) + "," + "{:.4f}".format(arm.direction[2]) + ",")
 
             # wrist positions
             self.f.write("{:.4f}".format(arm.wrist_position[0]) + "," + "{:.4f}".format(arm.wrist_position[1]) + "," + "{:.4f}".format(arm.wrist_position[2]) + ",")
-
+            
             # elbow positions
             self.f.write("{:.4f}".format(arm.elbow_position[0]) + "," + "{:.4f}".format(arm.elbow_position[1]) + "," + "{:.4f}".format(arm.elbow_position[2]) + ",")
 
@@ -100,7 +108,9 @@ def main():
     print("Press Enter to quit...")
     try:
         sys.stdin.readline()
+        sys.stdin.readline()
     except KeyboardInterrupt:
+        listener.f.close()
         pass
     finally:
         # Remove the sample listener when done
