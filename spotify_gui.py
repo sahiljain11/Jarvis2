@@ -61,7 +61,10 @@ class MainWindow(qtw.QWidget):
         self.backward.clicked.connect(self.previous_state)
         self.layout.addWidget(self.backward)
         #Spotify Displays Song
-        #self.song_display = qtw.
+        #self.song_display = qtw.QLabel(self.display_current_song())
+        #self.layout.addWidget(self.song_display)
+        #https: // www.youtube.com / watch?v = xewHDkCKVoQ
+        #Hopefully can get song title to move like on spotify
 
 
     #creates a spotify object with token provided
