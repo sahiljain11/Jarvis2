@@ -7,9 +7,17 @@ import spotipy as spy
 import spotipy.util as util
 from os import environ
 
+#Notes: Widgets work independently- play/pause needs to be pressed down when pressing skip
+#button or else GUI fails when play/pause button is pressed afterwards
+
+#Note: https://pypi.org/project/qtwidgets/
+# The widgets here look clean af and I am interesting in creating something like that- Matt
+
 
 # allows API to access user stuffs
-scope = 'user-library-read user-read-playback-state streaming user-modify-playback-state'
+scope = 'user-library-read user-read-playback-state streaming' \
+        ' user-modify-playback-state playlist-modify-private ' \
+        'user-read-playback-position user-read-currently-playing'
 
 #checks for number of arguments from script- arguments used in token auth
 if len(sys.argv) > 1:
@@ -36,30 +44,61 @@ class MainWindow(qtw.QWidget):
         #Sets the layout type
         self.layout = qtw.QVBoxLayout()
         self.setLayout(self.layout)
-        #Spotify Button Code
-        self.button = qtw.QPushButton("Push Me", self, checkable=True, shortcut=qtg.QKeySequence('='))
+        #Spotify Play/Pause Code
+        self.button = qtw.QPushButton("Play/Pause Me", self, checkable=True, shortcut=qtg.QKeySequence('='))
         self.button.clicked.connect(self.but_state)
         self.layout.addWidget(self.button)
         #Spotify Slider
-        self.slider = qtw.QSlider(minimum=0, maximum =100,orientation=qtc.Qt.Horizontal)
+        self.slider = qtw.QSlider(minimum=0, maximum =100, orientation=qtc.Qt.Horizontal)
         self.slider.valueChanged.connect(self.slider_state)
         self.layout.addWidget(self.slider)
-    
+        #Spotify Move Forward
+        self.forward = qtw.QPushButton("Next Song", self, checkable=False)
+        self.forward.clicked.connect(self.next_state)
+        self.layout.addWidget(self.forward)
+        #Spotify Move Backward
+        self.backward = qtw.QPushButton("Previous Song", self, checkable=False)
+        self.backward.clicked.connect(self.previous_state)
+        self.layout.addWidget(self.backward)
+        #Spotify Displays Song
+        #self.song_display = qtw.
+
+
+    #creates a spotify object with token provided
+    def set_token(self):
+        if token:
+            authorized_user = spy.Spotify(auth=token)
+        return authorized_user
+
     # PLACE CODE FOR BUTTON LOGIC IN HERE
     def but_state(self):
         if(self.button.isChecked()):
             print("You pressed the button")
 
-            sp = spy.Spotify(auth=token)
-            results = sp.current_user_saved_tracks()
+            results = self.set_token().current_user_saved_tracks()
 
-            # need device id and permissions
-            sp.start_playback()
+
+            self.set_token().start_playback()
 
         else:
             print("Released button")
-            sp = spy.Spotify(auth=token)
-            sp.pause_playback()
+
+            self.set_token().pause_playback()
+    #allows user to go to next song in queue
+    def next_state(self):
+
+        self.set_token().next_track()
+        print("SKIP")
+
+    #allows user to go to previous song in queue
+    def previous_state(self):
+
+        self.set_token().previous_track()
+        print("Back one")
+
+    def display_current_song(self):
+        print(self.set_token().current_playback())
+
 
     #PLACE CODE FOR SLIDER LOGIC IN HERE
     #Sets the volume variable to the slider position
@@ -70,6 +109,8 @@ class MainWindow(qtw.QWidget):
         sp.volume(volume_percent)
         print("Volume: ", volume_percent)
 
+
+#intializes gui- exit by closing GUI
 if __name__ == '__main__':
     app = qtw.QApplication(sys.argv)
     mw = MainWindow()
