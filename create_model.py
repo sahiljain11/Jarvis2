@@ -4,6 +4,19 @@ import torch.optim as optim
 import torch.nn.functional as F
 import os
 
+# 0 - No gesture
+# 1 - Pinch zoom in
+# 2 - Pinch zoom out
+# 3 - Swipe up
+# 4 - Swipe down
+# 5 - Swipe left
+# 6 - Swipe right
+# 7 - grab to fist
+# 8 - fist to grab
+# 9 - peace sign to exit
+# 10 - 2 fingers for "selecting" button
+# 11 - 1 finger to act as mouse
+
 basedir = os.path.abspath(os.path.dirname(__file__))
 data_file = os.path.join(basedir, 'nothing.csv')
 

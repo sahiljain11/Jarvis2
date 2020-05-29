@@ -8,15 +8,57 @@
 
 import Leap, sys, thread, time
 from Leap import CircleGesture, KeyTapGesture, ScreenTapGesture, SwipeGesture
+import os
 
 class SampleListener(Leap.Listener):
-    finger_names = ['Thumb', 'Index', 'Middle', 'Ring', 'Pinky']
-    bone_names = ['Metacarpal', 'Proximal', 'Intermediate', 'Distal']
+    finger_names = ['thumb', 'index', 'middle', 'ring', 'pinky']
+    bone_names = ['metacarpal', 'proximal', 'intermediate', 'distal']
     state_names = ['STATE_INVALID', 'STATE_START', 'STATE_UPDATE', 'STATE_END']
 
     def on_init(self, controller):
-        self.f = open("nothing.csv", "w")
-        self.f.write("frame_id,timestamp,hand_position_x,hand_position_y,hand_position_z,pitch,roll,yaw,arm_x,arm_y,arm_z,wrist_x,wrist_y,wrist_z,elbow_x,elbow_y,elbow_z,thumb_metacarpal_start_x,thumb_metacarpal_start_y,thumb_metacarpal_start_z,thumb_metacarpal_end_x,thumb_metacarpal_end_y,thumb_metacarpal_end_z,thumb_metacarpal_direction_x,thumb_metacarpal_direction_y,thumb_metacarpal_direction_z,thumb_proximal_start_x,thumb_proximal_start_y,thumb_proximal_start_z,thumb_proximal_end_x,thumb_proximal_end_y,thumb_proximal_end_z,thumb_proximal_direction_x,thumb_proximal_direction_y,thumb_proximal_direction_z,thumb_intermediate_start_x,thumb_intermediate_start_y,thumb_intermediate_start_z,thumb_intermediate_end_x,thumb_intermediate_end_y,thumb_intermediate_end_z,thumb_intermediate_direction_x,thumb_intermediate_direction_y,thumb_intermediate_direction_z,thumb_distal_start_x,thumb_distal_start_y,thumb_distal_start_z,thumb_distal_end_x,thumb_distal_end_y,thumb_distal_end_z,thumb_distal_direction_x,thumb_distal_direction_y,thumb_distal_direction_z,index_metacarpal_start_x,index_metacarpal_start_y,index_metacarpal_start_z,index_metacarpal_end_x,index_metacarpal_end_y,index_metacarpal_end_z,index_metacarpal_direction_x,index_metacarpal_direction_y,index_metacarpal_direction_z,index_proximal_start_x,index_proximal_start_y,index_proximal_start_z,index_proximal_end_x,index_proximal_end_y,index_proximal_end_z,index_proximal_direction_x,index_proximal_direction_y,index_proximal_direction_z,index_intermediate_start_x,index_intermediate_start_y,index_intermediate_start_z,index_intermediate_end_x,index_intermediate_end_y,index_intermediate_end_z,index_intermediate_direction_x,index_intermediate_direction_y,index_intermediate_direction_z,index_distal_start_x,index_distal_start_y,index_distal_start_z,index_distal_end_x,index_distal_end_y,index_distal_end_z,index_distal_direction_x,index_distal_direction_y,index_distal_direction_z,middle_metacarpal_start_x,middle_metacarpal_start_y,middle_metacarpal_start_z,middle_metacarpal_end_x,middle_metacarpal_end_y,middle_metacarpal_end_z,middle_metacarpal_direction_x,middle_metacarpal_direction_y,middle_metacarpal_direction_z,middle_proximal_start_x,middle_proximal_start_y,middle_proximal_start_z,middle_proximal_end_x,middle_proximal_end_y,middle_proximal_end_z,middle_proximal_direction_x,middle_proximal_direction_y,middle_proximal_direction_z,middle_intermediate_start_x,middle_intermediate_start_y,middle_intermediate_start_z,middle_intermediate_end_x,middle_intermediate_end_y,middle_intermediate_end_z,middle_intermediate_direction_x,middle_intermediate_direction_y,middle_intermediate_direction_z,middle_distal_start_x,middle_distal_start_y,middle_distal_start_z,middle_distal_end_x,middle_distal_end_y,middle_distal_end_z,middle_distal_direction_x,middle_distal_direction_y,middle_distal_direction_z,ring_metacarpal_start_x,ring_metacarpal_start_y,ring_metacarpal_start_z,ring_metacarpal_end_x,ring_metacarpal_end_y,ring_metacarpal_end_z,ring_metacarpal_direction_x,ring_metacarpal_direction_y,ring_metacarpal_direction_z,ring_proximal_start_x,ring_proximal_start_y,ring_proximal_start_z,ring_proximal_end_x,ring_proximal_end_y,ring_proximal_end_z,ring_proximal_direction_x,ring_proximal_direction_y,ring_proximal_direction_z,ring_intermediate_start_x,ring_intermediate_start_y,ring_intermediate_start_z,ring_intermediate_end_x,ring_intermediate_end_y,ring_intermediate_end_z,ring_intermediate_direction_x,ring_intermediate_direction_y,ring_intermediate_direction_z,ring_distal_start_x,ring_distal_start_y,ring_distal_start_z,ring_distal_end_x,ring_distal_end_y,ring_distal_end_z,ring_distal_direction_x,ring_distal_direction_y,ring_distal_direction_z,pinky_metacarpal_start_x,pinky_metacarpal_start_y,pinky_metacarpal_start_z,pinky_metacarpal_end_x,pinky_metacarpal_end_y,pinky_metacarpal_end_z,pinky_metacarpal_direction_x,pinky_metacarpal_direction_y,pinky_metacarpal_direction_z,pinky_proximal_start_x,pinky_proximal_start_y,pinky_proximal_start_z,pinky_proximal_end_x,pinky_proximal_end_y,pinky_proximal_end_z,pinky_proximal_direction_x,pinky_proximal_direction_y,pinky_proximal_direction_z,pinky_intermediate_start_x,pinky_intermediate_start_y,pinky_intermediate_start_z,pinky_intermediate_end_x,pinky_intermediate_end_y,pinky_intermediate_end_z,pinky_intermediate_direction_x,pinky_intermediate_direction_y,pinky_intermediate_direction_z,pinky_distal_start_x,pinky_distal_start_y,pinky_distal_start_z,pinky_distal_end_x,pinky_distal_end_y,pinky_distal_end_z,pinky_distal_direction_x,pinky_distal_direction_y,pinky_distal_direction_z")
+        # determine what file number to write to
+        file_to_write = "pinch_in"
+        count = 0
+
+        # get all the files within the data directory
+        basedir = os.path.abspath(os.path.dirname(__file__))
+        data_dir = os.path.join(basedir, 'csv_data/')
+        files = os.listdir(data_dir)
+        file_hash = {}
+
+        # turn the file data into a hash for O(1)
+        for i in range(0, len(files)):
+            file_hash[files[i]] = 0
+
+        # determine what count number this is
+        test_string = file_to_write + str(count) + ".csv"
+        while True:
+            if test_string in file_hash:
+                count += 1
+                test_string = file_to_write + str(count) + ".csv"
+            else:
+                break
+
+        # create a file there
+        data_file = os.path.join(data_dir, test_string)
+        self.f = open(data_file, "w")
+        self.f.write("frame_id,timestamp,")
+        self.f.write("hand_position_x,hand_position_y,hand_position_z,")
+        self.f.write("pitch,roll,yaw,arm_x,arm_y,arm_z,wrist_x,wrist_y,wrist_z,")
+        self.f.write("elbow_x,elbow_y,elbow_z,")
+
+        for finger in self.finger_names:
+            for bone in self.bone_names:
+                self.f.write(finger + "_" + bone + "_" + "start_x,")
+                self.f.write(finger + "_" + bone + "_" + "start_y,")
+                self.f.write(finger + "_" + bone + "_" + "start_z,")
+                self.f.write(finger + "_" + bone + "_" + "end_x,")
+                self.f.write(finger + "_" + bone + "_" + "end_y,")
+                self.f.write(finger + "_" + bone + "_" + "end_z,")
+                self.f.write(finger + "_" + bone + "_" + "direction_x,")
+                self.f.write(finger + "_" + bone + "_" + "direction_y,")
+                self.f.write(finger + "_" + bone + "_" + "direction_z,")
+
         print("Initialized")
 
     def on_connect(self, controller):
