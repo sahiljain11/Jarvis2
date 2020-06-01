@@ -41,7 +41,7 @@ app = QtGui.QApplication([])
 #mw.resize(800,800)
 
 win = pg.GraphicsWindow(title="North America and the World, COVID-19")
-win.resize(1200,700)
+win.resize(1000,700)
 
 
 x1 = df_canada['Confirmed'].tolist()
@@ -65,15 +65,15 @@ y7 = df_domrep['Date'].tolist()
 p2 = win.addPlot(title="North America Confirmed Cases")
 p2.setWindowTitle('Legend') #you can drag and move the legend, and zoom the graph
 p2.addLegend()
-p2.setLabel('left', "Days since January 22, 2020")
-p2.setLabel('bottom', "Number of Confirmed Cases")
-p2.plot(x1, y1, pen=(255,0,0), name="Canada") # Just for testing
-p2.plot(x2, y2, pen=(255,127,0), name="USA")
-p2.plot(x3, y3, pen=(255, 255,0), name="Mexico")
-p2.plot(x4, y4, pen=(0,255,0), name="Guatemala")
-p2.plot(x5, y5, pen=(0,0,255), name="Cuba")
-p2.plot(x6, y6, pen=(75,0,130), name="Haiti")
-p2.plot(x7, y7, pen=(143,0,255), name="Dominican Republic")
+p2.setLabel('left', "Number of Confirmed Cases")
+p2.setLabel('bottom', "Days since January 22, 2020")
+p2.plot(y1, x1, pen=(255,0,0), name="Canada") # Just for testing
+p2.plot(y2, x2, pen=(255,127,0), name="USA")
+p2.plot(y3, x3, pen=(255, 255,0), name="Mexico")
+p2.plot(y4, x4, pen=(0,255,0), name="Guatemala")
+p2.plot(y5, x5, pen=(0,255,255), name="Cuba")
+p2.plot(y6, x6, pen=(255,235,205), name="Haiti")
+p2.plot(y7, x7, pen=(143,0,255), name="Dominican Republic")
 
 
 
@@ -110,16 +110,16 @@ y12 = df_china['Date'].tolist()
 
 #create plot
 p6 = win.addPlot(title="USA and the World, Confirmed Cases")
-p6.resize(1200,700)
+p6.resize(1000,700)
 p6.setWindowTitle('Legend') #you can drag and move the legend, and zoom the graph
 p6.addLegend()
-p6.setLabel('left', "Days since January 22, 2020")
-p6.setLabel('bottom', "Number of Confirmed Cases")
-p6.plot(x8, y8, pen=(255,0,0), name="USA") # Just for testing
-p6.plot(x9, y9, pen=(255,127,0), name="Brazil")
-p6.plot(x10, y10, pen=(255, 255,0), name="Russia")
-p6.plot(x11, y11, pen=(0,255,0), name="United Kingdom")
-p6.plot(x12, y12, pen=(0,0,255), name="China")
+p6.setLabel('left', "Number of Confirmed Cases")
+p6.setLabel('bottom', "Days since January 22, 2020")
+p6.plot(y8, x8, pen=(255,0,0), name="USA") # Just for testing
+p6.plot(y9, x9, pen=(255,127,0), name="Brazil")
+p6.plot(y10, x10, pen=(255, 255,0), name="Russia")
+p6.plot(y11, x11, pen=(0,255,0), name="United Kingdom")
+p6.plot(y12, x12, pen=(0,255,255), name="China")
 
 
 
