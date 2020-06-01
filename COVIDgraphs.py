@@ -7,14 +7,31 @@ from pyqtgraph.Qt import QtGui, QtCore
 import numpy as np
 import pyqtgraph as pg
 import pandas as pd
+
+#read data
 URL_DATASET = r'https://raw.githubusercontent.com/datasets/covid-19/master/data/countries-aggregated.csv'
-df1 = pd.read_csv(URL_DATASET)
+df1 = pd.read_csv(URL_DATASET, parse_dates=['Date'])
+first_date = df1.loc[0, 'Date']
+df1['Date'] = (df1['Date'] - first_date).dt.days
+
+#obtain data for countries
+
 df_canada = df1[df1['Country'] == 'Canada']
-
+df_canada = df_canada.tail(20)
 df_us = df1[df1['Country'] == 'US']
-
+df_us = df_us.tail(20)
 df_mexico = df1[df1['Country'] == 'Mexico']
-list_dates = df1['Date'].unique()
+df_mexico = df_mexico.tail(20)
+df_guat = df1[df1['Country'] == 'Guatemala']
+df_guat = df_guat.tail(20)
+df_cuba = df1[df1['Country'] == 'Cuba']
+df_cuba = df_cuba.tail(20)
+df_haiti = df1[df1['Country'] == 'Haiti']
+df_haiti = df_haiti.tail(20)
+df_domrep = df1[df1['Country'] == 'Dominican Republic']
+df_domrep = df_domrep.tail(20)
+
+
 
 
 
@@ -24,47 +41,89 @@ app = QtGui.QApplication([])
 #mw.resize(800,800)
 
 win = pg.GraphicsWindow(title="North America and the World, COVID-19")
-win.resize(1000,600)
+win.resize(1200,700)
 
 
-x1 = df_canada['Confirmed']
-# x2 = df_us['Confirmed']
-# x3 = df_mexico['Confirmed']
-df_canada['Date'] = df_canada['Date'].map(lambda x: x.lstrip('-'))
+x1 = df_canada['Confirmed'].tolist()
+x2 = df_us['Confirmed'].tolist()
+x3 = df_mexico['Confirmed'].tolist()
+x4 = df_guat['Confirmed'].tolist()
+x5 = df_cuba['Confirmed'].tolist()
+x6 = df_haiti['Confirmed'].tolist()
+x7 = df_domrep['Confirmed'].tolist()
 
-# y2 = df_us['Date']
-# y3 = df_mexico['Date']
+
+y1 = df_canada['Date'].tolist()
+y2 = df_us['Date'].tolist()
+y3 = df_mexico['Date'].tolist()
+y4 = df_guat['Date'].tolist()
+y5 = df_cuba['Date'].tolist()
+y6 = df_haiti['Date'].tolist()
+y7 = df_domrep['Date'].tolist()
+
 
 p2 = win.addPlot(title="North America Confirmed Cases")
-p2.plot(x1, df_canada['Date']) # Just for testing
-# p2.plot(x2, y2)
-# p2.plot(x3, y3)
+p2.setWindowTitle('Legend') #you can drag and move the legend, and zoom the graph
+p2.addLegend()
+p2.setLabel('left', "Days since January 22, 2020")
+p2.setLabel('bottom', "Number of Confirmed Cases")
+p2.plot(x1, y1, pen=(255,0,0), name="Canada") # Just for testing
+p2.plot(x2, y2, pen=(255,127,0), name="USA")
+p2.plot(x3, y3, pen=(255, 255,0), name="Mexico")
+p2.plot(x4, y4, pen=(0,255,0), name="Guatemala")
+p2.plot(x5, y5, pen=(0,0,255), name="Cuba")
+p2.plot(x6, y6, pen=(75,0,130), name="Haiti")
+p2.plot(x7, y7, pen=(143,0,255), name="Dominican Republic")
 
 
 
-# p2 = win.addPlot(title="North America Confirmed Cases")
-# p2.plot(x1, y1)
-# p2.plot(x2, y2)
-# p2.plot(x3, y3)
+
+
+win.nextRow()
+
+#next graph
+
+#extract data
+df_us = df1[df1['Country'] == 'US']
+df_us = df_us.tail(200)
+df_brazil = df1[df1['Country'] == 'Brazil']
+df_brazil = df_brazil.tail(200)
+df_russia = df1[df1['Country'] == 'Russia']
+df_russia = df_russia.tail(200)
+df_uk = df1[df1['Country'] == 'United Kingdom']
+df_uk = df_uk.tail(200)
+df_china = df1[df1['Country'] == 'China']
+df_china = df_china.tail(200)
+
+#load to variables as list
+x8 = df_us['Confirmed'].tolist()
+x9 = df_brazil['Confirmed'].tolist()
+x10 = df_russia['Confirmed'].tolist()
+x11 = df_uk['Confirmed'].tolist()
+x12 = df_china['Confirmed'].tolist()
+
+y8 = df_us['Date'].tolist()
+y9 = df_brazil['Date'].tolist()
+y10 = df_russia['Date'].tolist()
+y11 = df_uk['Date'].tolist()
+y12 = df_china['Date'].tolist()
+
+#create plot
+p6 = win.addPlot(title="USA and the World, Confirmed Cases")
+p6.resize(1200,700)
+p6.setWindowTitle('Legend') #you can drag and move the legend, and zoom the graph
+p6.addLegend()
+p6.setLabel('left', "Days since January 22, 2020")
+p6.setLabel('bottom', "Number of Confirmed Cases")
+p6.plot(x8, y8, pen=(255,0,0), name="USA") # Just for testing
+p6.plot(x9, y9, pen=(255,127,0), name="Brazil")
+p6.plot(x10, y10, pen=(255, 255,0), name="Russia")
+p6.plot(x11, y11, pen=(0,255,0), name="United Kingdom")
+p6.plot(x12, y12, pen=(0,0,255), name="China")
 
 
 
-# p6 = win.addPlot(title="Live World Confirmed Cases")
-# curve = p6.plot(pen='y')
-# data = np.random.normal(size=(10,1000))
-# ptr = 0
-# def update():
-#     global curve, data, ptr, p6
-#     curve.setData(data[ptr%10])
-#     if ptr == 0:
-#         p6.enableAutoRange('xy', False)  ## stop auto-scaling after the first data set is plotted
-#     ptr += 1
-# timer = QtCore.QTimer()
-# timer.timeout.connect(update)
-# timer.start(50)
 
-
-# win.nextRow()
 
 
 
