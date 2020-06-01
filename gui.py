@@ -119,8 +119,8 @@ class MainWindow(qtw.QWidget):
                 return
             widget1, widget2 = max(self.source, drag_target), min(self.source, drag_target)
             pos1, pos2 = self.layout.getItemPosition(widget1), self.layout.getItemPosition(widget2)
-            self.layout.addItem(self.layout.takeAt(widget1), *pos_2)
-            self.layout.addItem(self.layout.takeAt(widget2), *pos_1)
+            self.layout.addItem(self.layout.takeAt(widget1), *pos2)
+            self.layout.addItem(self.layout.takeAt(widget2), *pos1)
 
 # Dummy widget class with just box 
 class DummyWidget(qtw.QLabel):
