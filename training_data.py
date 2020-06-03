@@ -17,7 +17,7 @@ class SampleListener(Leap.Listener):
 
     def on_init(self, controller):
         # determine what file number to write to
-        file_to_write = "pinch_in"
+        file_to_write = "pointing"
         count = 0
 
         # get all the files within the data directory
@@ -37,6 +37,7 @@ class SampleListener(Leap.Listener):
                 count += 1
                 test_string = file_to_write + str(count) + ".csv"
             else:
+                self.file_count = count
                 break
 
         # create a file there
@@ -65,7 +66,7 @@ class SampleListener(Leap.Listener):
         print("Connected")
         print("Click enter once to start recording. Click enter twice to stop.")
         sys.stdin.readline()
-        print("Recording")
+        print("Recording: " + str(self.file_count))
 
     def on_disconnect(self, controller):
         # Note: not dispatched when running in a debugger.
