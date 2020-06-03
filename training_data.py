@@ -17,7 +17,7 @@ class SampleListener(Leap.Listener):
 
     def on_init(self, controller):
         # determine what file number to write to
-        file_to_write = "pointing"
+        file_to_write = "none"
         count = 0
 
         # get all the files within the data directory
