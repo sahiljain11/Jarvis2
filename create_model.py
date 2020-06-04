@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 import os
+import time
 
 # 0 - No gesture
 # 1 - Pinch zoom in
@@ -49,8 +50,6 @@ def create_training_tensor(data_file):
 
     # convert to a pytorch tensor
     training_tensor = torch.FloatTensor(file_contents)
-    print(training_tensor)
-    print("Training tensor shape: " + str(training_tensor.shape))
     return training_tensor
 
 # LSTM model
@@ -60,7 +59,7 @@ class JarvisLSTM(nn.Module):
         super(JarvisLSTM, self).__init__()
 
         self.seq_length = seq_len
-        
+       
         # create the LSTM network
         self.lstm = nn.LSTM(input_size, hidden_dim, batch_first=False)
 
@@ -68,7 +67,6 @@ class JarvisLSTM(nn.Module):
         self.hidden2gesture = nn.Linear(hidden_dim, gesture_size)
 
     def forward(self, seq_batch_input):
-        print("forwarding...")
         # run the lstm model
         lstm_out, _ = self.lstm(seq_batch_input)
 
@@ -77,13 +75,14 @@ class JarvisLSTM(nn.Module):
 
         # apply softmax function to normalize the values
         # double check dimension. prob wrong
-        gesture_probabilities = F.log_softmax(gesture_out, dim=1)
+        gesture_probabilities = F.log_softmax(gesture_out, dim=2)
         return gesture_probabilities
 
-def train_model(model, training_data, batch_size, loss_function, optimizer, seq_length, num_features):
+def train_model(model, training_data, batch_size, loss_function, optimizer, seq_length, num_features, targets):
 
     # increment by batch_size
-    for i in range(seq_length, len(training_data), batch_size):
+    for i in range(seq_length, len(training_data) - batch_size, batch_size):
+        
         # clear the accumulated gradients
         model.zero_grad()
 
@@ -92,6 +91,7 @@ def train_model(model, training_data, batch_size, loss_function, optimizer, seq_
         sectioned_data = training_data[inner_bound:i, :]
         sectioned_data = torch.unsqueeze(sectioned_data, dim=1)
 
+        # concatenate the matrix together to be the proper size
         for j in range(1, batch_size):
             inner_bound += 1
             temp_matrix = training_data[inner_bound:i + j, :]
@@ -100,50 +100,53 @@ def train_model(model, training_data, batch_size, loss_function, optimizer, seq_
 
         # sectioned_data = seq_length x batch x input_size)
         # or time frames, training batch, number of input joint coordinates
-        torch.reshape(sectioned_data, (seq_length, batch_size, num_features)) # temporary
+        sectioned_data = torch.reshape(sectioned_data, (batch_size, seq_length, num_features)) # temporary
 
         # run forward pass
         resulting_scores = model(sectioned_data)
-
-        print("Resulting_scores: " + str(resulting_scores.shape))
-        
         # compute loss and backward propogate
         loss = loss_function(resulting_scores, targets)
         loss.backward()
 
         optimizer.step()
-    
+   
 loss_function = nn.NLLLoss()
 lstm_model = JarvisLSTM(number_of_hidden, number_of_features, number_of_gestures, sequence_length)
 optimizer = optim.Adam(lstm_model.parameters(), lr=learning_rate)
+start_time = time.time()
 
 # traverse through all of the 12 gesture training data
 for i in range(0, number_of_gestures):
     name = folder_name[i]
+
+    print("Training " + name + "...")
+
     basedir = os.path.abspath(os.path.dirname(__file__))
     data_dir = os.path.join(basedir, 'csv_data/' + name + '/')
     files = os.listdir(data_dir)
     file_hash = {}
 
     # turn the file data into a hash for O(1)
-    for i in range(0, len(files)):
-        file_hash[files[i]] = 0
+    for j in range(0, len(files)):
+        file_hash[files[j]] = 0
 
     count = 0
-        
+
+    # batch_size x seq_length x num_gestures
+    target = i * torch.ones(batch_size, number_of_gestures, dtype=torch.long)
+
     # determine what count number this is
-    data_dir = os.path.join(basedir, 'csv_data/' + name + '/')
     test_string = name + str(count) + ".csv"
     while True:
         if test_string in file_hash:
             # csv file exists. therefore train with it
             training_file = os.path.join(data_dir, test_string)
             training_tensor = create_training_tensor(training_file)
-            train_model(lstm_model, training_tensor, batch_size, loss_function, optimizer, sequence_length, number_of_features)
+            train_model(lstm_model, training_tensor, batch_size, loss_function,
+                        optimizer, sequence_length, number_of_features, target)
             count += 1
-            test_string = file_to_write + str(count) + ".csv"
+            test_string = name + str(count) + ".csv"
         else:
             break
 
-print("Finished")
-
+print("Finished: " + str(time.time() - start_time))
