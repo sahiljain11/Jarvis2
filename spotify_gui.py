@@ -1,9 +1,9 @@
-import numpy as np
+
 import sys
-from PyQt5 import QtWidgets as qtw
-from PyQt5 import QtGui as qtg
-from PyQt5 import QtCore as qtc
-from PyQt5.QtCore import Qt
+from PySide2 import QtWidgets as qtw
+from PySide2 import QtGui as qtg
+from PySide2 import QtCore as qtc
+from PySide2.QtCore import Qt
 import spotipy as spy
 import spotipy.util as util
 from os import environ
@@ -72,6 +72,8 @@ class MainWindow(qtw.QWidget):
         self.how_you_feel.setAlignment(Qt.AlignHCenter)
         self.layout.addWidget(self.how_you_feel)
 
+
+
         self.search_bar = qtw.QLineEdit(self)
         self.search_bar.setFont(qtg.QFont("Sanserif",15))
         self.search_bar.setAlignment(Qt.AlignHCenter)
@@ -93,8 +95,8 @@ class MainWindow(qtw.QWidget):
     def but_state(self):
         if self.button.isChecked():
             print("You pressed the button")
+            print(self.set_token().currently_playing().keys())
 
-            results = self.set_token().current_user_saved_tracks()
 
 
             self.set_token().start_playback()
@@ -140,24 +142,18 @@ class MainWindow(qtw.QWidget):
     def find_music(self):
         #print(self.search_bar.text())
         string_inputted = self.search_bar.text()
-        search_query =string_inputted.replace(" ", "%20")
-        print(self.set_token().search(search_query,1,0,'track'))
-        #b =self.set_token().search(search_query, 1, 0, 'track').get()
-        #print(type(b))
-        #print(self.set_token().search(search_query, 1, 0, 'track').values())
-        a =(self.set_token().search(search_query, 1, 0, 'track').values())
-        print(len(a))
-        print(type(a))
-        for p in a:
-            print(p)
-            print(type(p))
-        #print(self.set_token().search(search_query, 1, 0, 'track').keys(self.set_token().search(search_query, 1, 0, 'track').keys()))
-        #print(search_query)
+        search_query = string_inputted.replace(" ", "%20")
 
+
+        b = (self.set_token().search(search_query,1,0,'track'))
+
+        song = b['tracks']['items'][0]['uri']
+
+        sp = spy.Spotify(auth=token)
+        sp.add_to_queue(song)
 
         self.search_bar.setText('')
-        #print(self.set_token().current_user_playing_track())
-        #I want to access both individual songs and playlists/albums
+
 
 
 #intializes gui- exit by closing GUI
