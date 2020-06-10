@@ -27,8 +27,8 @@ number_of_hidden   = 100  # size of hidden layer
 number_of_gestures = 12   # output size
 sequence_length    = 20   # refers to the amount of timeframes to check
 batch_size         = 5    # how many different files to compute
-learning_rate      = 0.001
-num_epoch          = 50
+learning_rate      = 0.01
+num_epoch          = 3
 folder_name = ["none", "pinch_in", "pinch_out", "swipe_up", "swipe_down", "swipe_left", "swipe_right",
                "grab2fist", "fist2grab", "peace", "2fingers", "pointing"]
 
@@ -48,8 +48,6 @@ def create_training_tensor(data_file):
     outer = middle + int(math.ceil(number_of_lines * portion_of_data / 2))
 
     file_contents = []
-
-    #print(str(inner) + " " + str(middle) + " " + str(outer))
 
     for row_num in range(inner, outer):
         if row_num == 0:
@@ -80,6 +78,7 @@ def create_training_tensor(data_file):
 
 # PREPROCCESSING
 file_tensors = [None] * number_of_gestures
+num_files = 0
 with IncrementalBar("Preprocessing...", max=number_of_gestures) as increment_bar:
     for i in range(0, number_of_gestures):
         # navigate to subfolder
@@ -98,6 +97,7 @@ with IncrementalBar("Preprocessing...", max=number_of_gestures) as increment_bar
             # convert them to tensors
             training_tensor = create_training_tensor(training_file)
             file_tensors[i].append(training_tensor)
+            num_files += 1
         increment_bar.next()
     
 
@@ -117,9 +117,9 @@ class JarvisLSTM(nn.Module):
         # linear space maps between hidden layer and output layer
         self.hidden2gesture = nn.Linear(hidden_dim, gesture_size)
 
-    def forward(self, seq_batch_input, hc):
+    def forward(self, seq_batch_input):
         # run the lstm model
-        lstm_out, _ = self.lstm(seq_batch_input, hc)
+        lstm_out, _ = self.lstm(seq_batch_input)
 
         # convert to the proper output dimensions
         gesture_out = self.hidden2gesture(lstm_out)
@@ -132,7 +132,7 @@ class JarvisLSTM(nn.Module):
 
 def train_model(model, training_data, batch_size, loss_function, optimizer, seq_length, num_features, targets, hidden_dim):
 
-    running_loss = 0.0
+    last_loss = 0.0
     count = 0
 
     # iterate through the data
@@ -152,49 +152,58 @@ def train_model(model, training_data, batch_size, loss_function, optimizer, seq_
 
         # sectioned_data = seq_length x batch x input_size)
         # or time frames, training batch, number of input joint coordinates
-        sectioned_data = torch.reshape(sectioned_data, (batch_size, seq_length, num_features)) # temporary
+        sectioned_data = sectioned_data.view(seq_length, batch_size, num_features)
 
-        h = torch.randn(seq_length, hidden_dim).view(1, seq_length, hidden_dim)
-        c = torch.randn(seq_length, hidden_dim).view(1, seq_length, hidden_dim)
+        #h = torch.randn(seq_length, hidden_dim).view(1, seq_length, hidden_dim)
+        #c = torch.randn(seq_length, hidden_dim).view(1, seq_length, hidden_dim)
 
         # run forward pass
-        resulting_scores = model(sectioned_data, (h, c))
+        #resulting_scores = model(sectioned_data, (h, c))
+        resulting_scores = model(sectioned_data)
+        resulting_scores = resulting_scores.view(batch_size, -1, seq_length)
 
         # clear the accumulated gradients
         model.zero_grad()
         optimizer.zero_grad()
 
         # compute loss and backward propogate
+        #print(str(resulting_scores.shape) + "   " + str(targets.shape))
         loss = loss_function(resulting_scores, targets)
-        print(str(loss) + " " + str(loss.item()))
+        if count % 10 == 0:
+            print(loss.item())
+        #print(str(loss) + " " + str(loss.item()))
         loss.backward()
 
         optimizer.step()
         count += 1
-        running_loss += loss.item()
+        last_loss = loss.item()
         #print(str(list(model.parameters())[0].grad))
 
     if (count == 0):
         return 0
-    return running_loss
+    return last_loss
    
 def epoch(folder_name, number_of_gestures, batch_size, lstm_model, loss_function, optimizer, sequence_length, number_of_features, epoch_num, hidden_dim):
     avg_total_loss = []
     
     # traverse through all of the 12 gesture training data
-    with IncrementalBar("Training " + str(epoch_num) + "...", max=number_of_gestures) as increment_bar:
+    with IncrementalBar("Training " + str(epoch_num) + "...", max=num_files) as increment_bar:
         for i in range(0, number_of_gestures):
             # batch_size x seq_length x num_gestures
-            target = i * torch.ones(batch_size, number_of_gestures, dtype=torch.long)
 
+            #target = torch.zeros(batch_size, number_of_gestures, dtype=torch.long)
+            #target[:,i] = 1
+            target = i * torch.ones(batch_size, sequence_length, dtype=torch.long)
+            return_loss = 0
+            
             # traverse through each file and train
             for j in range(0, len(file_tensors[i])):
-                return_loss = train_model(lstm_model, file_tensors[i][j], batch_size, loss_function,
+                return_loss += train_model(lstm_model, file_tensors[i][j], batch_size, loss_function,
                                           optimizer, sequence_length, number_of_features, target, hidden_dim)
+                increment_bar.next()
 
             # add the loss at the end and increment the progress bar
-            avg_total_loss.append(return_loss)
-            increment_bar.next()
+            avg_total_loss.append(return_loss / len(file_tensors[i]))
             
     print("Loss: " + str((avg_total_loss)))
     increment_bar.finish()
@@ -205,13 +214,44 @@ optimizer = optim.Adam(lstm_model.parameters(), lr=learning_rate)
 start_time = time.time()
 
 with IncrementalBar("Epoch...", max=num_epoch, suffix='%(percent).1f%% - %(eta)ds') as bar:
-    lstm_model.train()
-    for i in range (0, num_epoch):
-        epoch(folder_name, number_of_gestures, batch_size, lstm_model, loss_function, optimizer, sequence_length, number_of_features, i, number_of_hidden)
-        bar.next()
+   lstm_model.train()
+   for i in range (0, num_epoch):
+       epoch(folder_name, number_of_gestures, batch_size, lstm_model, loss_function, optimizer, sequence_length, number_of_features, i, number_of_hidden)
+       bar.next()
 
 STORAGE_PATH = "state_dict_model.pt"
-
 torch.save(lstm_model.state_dict(), STORAGE_PATH)
 
+lstm_model.eval()
+
+correct = 0
+count = 0
+
+# evaluate the model to come up with an accuracy
+with IncrementalBar("Evaluating...", max=number_of_gestures) as increment_bar:
+    for i in range(0, number_of_gestures):
+        # batch_size x seq_length x num_gestures
+        target = i * torch.ones(1, dtype=torch.long)
+
+        # traverse through each file and train
+        for j in range(0, len(file_tensors[i]) / 10):
+            #h = torch.randn(sequence_length, number_of_hidden).view(1, sequence_length, number_of_hidden)
+            #c = torch.randn(sequence_length, number_of_hidden).view(1, sequence_length, number_of_hidden)
+
+            for k in range(sequence_length, file_tensors[i][j].shape[0]):
+
+                resulting_tensor = lstm_model(file_tensors[i][j][k - sequence_length:k, :].view(sequence_length, 1, number_of_features))
+
+                last_item = resulting_tensor.view(sequence_length, number_of_gestures)
+                last_item = last_item[number_of_gestures - 1, :]
+                last_item = torch.argmax(last_item)
+
+                if i == last_item.item():
+                    correct += 1
+                count += 1
+
+        # add the loss at the end and increment the progress bar
+        increment_bar.next()
+
+print("Accuracy: " + str(correct) + "/" + str(count) + "=" + str(float(correct) / float(count) * 100)+ "%")
 print("Finished: " + str(time.time() - start_time))
