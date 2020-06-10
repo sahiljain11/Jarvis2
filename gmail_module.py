@@ -15,8 +15,10 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 
 # If modifying these scopes, delete the file token.pickle.
-SCOPES = ['https://www.googleapis.com/gmail/v1/users https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.compose']
-
+SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
+if os.path.exists('token.pickle'):
+    with open('token.pickle', 'rb') as token:
+        creds = pickle.load(token)
 def labels():
     """Shows basic usage of the Gmail API.
     Lists the user's Gmail labels.
@@ -78,12 +80,33 @@ def messages():
     emails = service.users().messages().list(userId='me').execute()
     for email in range(0,len(emails['messages'])):
         print(emails['messages'][email])
-    message = service.users().messages().get(userId= 'me', id = "1728287b8bd9b203", format='raw').execute()
-    msg_str = base64.urlsafe_b64decode(message['raw'].encode('ASCII'))
-
 
 from apiclient import errors
 
+def GetMessage(service, user_id, msg_id):
+  """Get a Message with given ID.
+
+  Args:
+    service: Authorized Gmail API service instance.
+    user_id: User's email address. The special value "me"
+    can be used to indicate the authenticated user.
+    msg_id: The ID of the Message required.
+
+  Returns:
+    A Message.
+  """
+  try:
+    message = service.users().messages().get(userId=user_id, id=msg_id,format='full').execute()
+    #print(message['snippet'])
+    raw_msg=message['payload']['parts'][0]['body']['data']
+    msg_str = base64.urlsafe_b64decode(raw_msg.encode('ASCII'))
+
+    print(msg_str)
+    #print ('Message snippet: %s' % message['payload']['body']['data'])
+
+    return message
+  except errors.HttpError as error:
+    print('An error occurred: %s' % error)
 
 def SendMessage(service, user_id, message):
   """Send an email message.
@@ -102,8 +125,8 @@ def SendMessage(service, user_id, message):
                .execute())
     print ('Message Id: %s' % message['id'])
     return message
-  except errors.HttpError, error:
-    print ('An error occurred: %s' % error)
+  except errors.HttpError as error:
+     print ('An error occurred: %s' % error)
 
 
 def CreateMessage(sender, to, subject, message_text):
@@ -179,5 +202,7 @@ def CreateMessageWithAttachment(sender, to, subject, message_text, file_dir,
 
 
 if __name__ == '__main__':
+    service = build('gmail', 'v1', credentials=creds)
     labels()
     messages()
+    GetMessage(service,'me','1729468f38803eb0')
