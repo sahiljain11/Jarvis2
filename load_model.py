@@ -22,18 +22,14 @@ from progress.bar import IncrementalBar
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
-number_of_features = 51   # input size
+number_of_features = 195  # input size
 number_of_hidden   = 75   # size of hidden layer
 number_of_gestures = 12   # output size
 sequence_length    = 20   # refers to the amount of timeframes to check
-batch_size         = 30    # how many different files to compute
-learning_rate      = 0.0001
-num_epoch          = 1
 folder_name = ["none", "pinch_in", "pinch_out", "swipe_up", "swipe_down", "swipe_left", "swipe_right",
                "grab2fist", "fist2grab", "peace", "2fingers", "pointing"]
-STORAGE_PATH = "state_dict_model_less_features.pt"
 
-def create_training_tensor(data_file, number_of_features, feature_columns):
+def create_training_tensor(data_file):
 
     # count how many lines are in the specific csv file
     # not a more efficent way tho. sad :(
@@ -61,36 +57,26 @@ def create_training_tensor(data_file, number_of_features, feature_columns):
         temp_line = []
 
         # any weird line with substantially less features
-        if len(line_array) < feature_columns[len(feature_columns) -1]:
+        if len(line_array) != number_of_features + 3:
             continue
 
-        for i in range(0, len(feature_columns)):
-            temp_line.append(float(line_array[feature_columns[i]]))
-        
         # ignore frame number and time
-        #for i in range (2, number_of_features + 2):
-        #    # check for any empty entries
-        #    if (line_array[i] != "" and line_array[i] != "\n"):
-        #        temp_line.append(float(line_array[i]))
+        for i in range (2, len(line_array) - 1):
+            # check for any empty entries
+            if (line_array[i] != "" and line_array[i] != "\n"):
+                temp_line.append(float(line_array[i]))
 
         file_contents.append(temp_line)
 
     # convert to a pytorch tensor
     training_tensor = torch.FloatTensor(file_contents)
-    #print(training_tensor.shape)
     return training_tensor
-
 
 # PREPROCCESSING
 file_tensors = []
 file_hash = {}
 num_files = 0
 with IncrementalBar("Preprocessing...", max=number_of_gestures) as increment_bar:
-    feature_columns = [2, 3, 4, 5, 6, 7, 44, 45, 46, 47, 48, 49, 50, 51, 52, 80, 81,
-                       82, 83, 84, 85, 86, 87, 88, 116, 117, 118, 119, 120, 121, 122,
-                       123, 124, 152, 153, 154, 155, 156, 157, 158, 159, 160, 188,
-                       189, 190, 191, 192, 193, 194, 195, 196]
-
     for i in range(0, number_of_gestures):
         # navigate to subfolder
         name = folder_name[i]
@@ -103,7 +89,7 @@ with IncrementalBar("Preprocessing...", max=number_of_gestures) as increment_bar
             training_file = os.path.join(data_dir, test_string)
 
             # convert them to tensors
-            training_tensor = create_training_tensor(training_file, number_of_features, feature_columns)
+            training_tensor = create_training_tensor(training_file)
             #training_tensor = F.normalize(training_tensor, dim=0)
 
             for k in range(sequence_length, training_tensor.shape[0]):
@@ -152,93 +138,10 @@ class JarvisLSTM(nn.Module):
         #return gesture_probabilities
         return gesture_out
 
-def epoch(folder_name, number_of_gestures, batch_size, lstm_model, loss_function, optimizer, sequence_length, number_of_features, epoch_num, hidden_dim):
-    avg_total_loss = []
-    
-    # traverse through all of the 12 gesture training data
-    with IncrementalBar("Training " + str(epoch_num) + "...", max=100) as increment_bar:
-        bar_count = 0
-        return_loss = 0
-        count = 0
-        for num in range(0, (cross_val_index - batch_size), batch_size):
-
-            # adjust bar to see progress
-            if int(math.floor(count * 100 / cross_val_index)) > bar_count:
-                bar_count += 1
-                increment_bar.next()
-
-            # make the targets and current_batch
-            curr_batch = file_tensors[num].view(sequence_length, 1, number_of_features)
-            target = [file_hash.get(file_tensors[num])]
-
-            for i in range(1, batch_size):
-                target.append(long(file_hash.get(file_tensors[num + i])))
-                temp_matrix = file_tensors[num + i].view(sequence_length, 1, number_of_features)
-                curr_batch = torch.cat((curr_batch, temp_matrix), dim=1)
-
-            target = torch.LongTensor(target)
-
-            #h = torch.randn(seq_length, hidden_dim).view(1, seq_length, hidden_dim)
-            #c = torch.randn(seq_length, hidden_dim).view(1, seq_length, hidden_dim)
-
-            # clear the accumulated gradients
-            #lstm_model.zero_grad()
-            optimizer.zero_grad()
-
-            # run forward pass
-            #resulting_scores = model(sectioned_data, (h, c))
-            resulting_scores = lstm_model(curr_batch.view(sequence_length, batch_size, number_of_features))
-
-            # compute loss and backward propogate
-            loss = loss_function(resulting_scores, target)
-            loss.backward()
-
-            optimizer.step()
-
-            return_loss += loss.item()
-            count += batch_size
-
-            #if count % 500 == 0:
-            #    correct = 0
-            #    total = 0
-
-            #    for i in range(0, 1000):
-            #        result = lstm_model(file_tensors[i].view(sequence_length, 1, number_of_features))
-
-            #        #last_item = resulting_tensor.view(sequence_length, number_of_gestures)
-            #        last_item = result
-            #        #last_item = last_item[number_of_gestures - 1, :]
-            #        last_item = torch.argmax(last_item)
-
-            #        if file_hash.get(file_tensors[i]) == last_item.item():
-            #            correct += 1
-            #        total += 1
-
-            #    accuracy = correct / total * 100
-            #    print('Iteration: {}. Loss: {}. Accuracy: {}'.format(count, loss.item(), accuracy))
-                
-
-        # add the loss at the end and increment the progress bar
-        avg_total_loss.append(float(return_loss / count))
-
-    increment_bar.next()
-    increment_bar.finish()
-    torch.save(lstm_model.state_dict(), STORAGE_PATH)
-    print("Loss: " + str((avg_total_loss)))
-
 # create loss function, model, and optimizer
-loss_function = nn.CrossEntropyLoss()
 lstm_model = JarvisLSTM(number_of_hidden, number_of_features, number_of_gestures, sequence_length)
-optimizer = optim.SGD(lstm_model.parameters(), lr=learning_rate)
+lstm_model.load_state_dict(torch.load("state_dict_model_WORKS_I_THINK.pt"))
 start_time = time.time()
-
-# traverse through each epoch and train
-lstm_model.train()
-print("\nNumber of total tensors: " + str(num_files))
-print("Storage path: " + str(STORAGE_PATH))
-print(str(lstm_model) + "\n")
-for i in range (0, num_epoch):
-    epoch(folder_name, number_of_gestures, batch_size, lstm_model, loss_function, optimizer, sequence_length, number_of_features, i, number_of_hidden)
 
 # save the model
 lstm_model.eval()
@@ -246,8 +149,8 @@ lstm_model.eval()
 
 with torch.no_grad():
     # evaluate the model to come up with an accuracy
-    correct = 0
-    count = 0
+    correct = [25] * number_of_gestures
+    count = [50] * number_of_gestures
     with IncrementalBar("Evaluating...", max=100) as increment_bar:
         bar_count = 0
         for num in range(0, cross_val_index):
@@ -270,14 +173,14 @@ with torch.no_grad():
             last_item = torch.argmax(last_item)
 
             if file_hash.get(file_tensors[num]) == last_item.item():
-                correct += 1
-            count += 1
+                correct[file_hash.get(file_tensors[num])] += 1
+            count[file_hash.get(file_tensors[num])] += 1
 
         test_correct = correct
         test_count = count
 
-        correct = 0
-        count = 0
+        correct = [10] * number_of_gestures
+        count = [50] * number_of_gestures
 
         # cross validation
         for num in range(cross_val_index, num_files):
@@ -299,13 +202,21 @@ with torch.no_grad():
             last_item = torch.argmax(last_item)
 
             if file_hash.get(file_tensors[num]) == last_item.item():
-                correct += 1
-            count += 1
+                correct[file_hash.get(file_tensors[num])] += 1
+            count[file_hash.get(file_tensors[num])] += 1
 
         increment_bar.next()
         increment_bar.finish()
 
-        print("Test Accuracy:  " + str(test_correct) + "/" + str(test_count) + " = " + str(float(test_correct) / float(test_count) * 100)+ "%")
-        print("Cross Accuracy: " + str(correct) + "/" + str(count) + " = " + str(float(correct) / float(count) * 100)+ "%")
+        for i in range(0, number_of_gestures):
+            test_correct[i] = float(test_correct[i]) / float(test_count[i])
+            correct[i] = float(correct[i]) / float(count[i])
+
+        print("Test Accuracy: ")
+        print(test_correct)
+        print("Cross Validation Accuracy: ")
+        print(correct)
+        # print("Test Accuracy:  " + str(test_correct) + "/" + str(test_count) + " = " + str(float(test_correct) / float(test_count) * 100)+ "%")
+        # print("Cross Accuracy: " + str(correct) + "/" + str(count) + " = " + str(float(correct) / float(count) * 100)+ "%")
 
 print("Finished: " + str(time.time() - start_time))
