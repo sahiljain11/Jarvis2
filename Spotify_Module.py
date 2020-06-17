@@ -26,6 +26,7 @@ class SpotipyModule(qtc.QObject):
                      'user-read-playback-position user-read-currently-playing user-read-private'
         self.queue = QueueDataStructure()
         self.spellchecker = spellchecker.SpellChecker(language=u'en', distance=2)
+        self.token = self.generate_token()
 
     # generates access token for authorization to use spotify API
     def generate_token(self):
@@ -49,15 +50,15 @@ class SpotipyModule(qtc.QObject):
             queue_uri[index] = queue_info[index]['song_link']
             queue_time[index] = queue_info[index]['song_time']
         # plays songs from queue
-        self.generate_token().start_playback(device_id=None, context_uri=None, uris=queue_uri,
+        self.token.start_playback(device_id=None, context_uri=None, uris=queue_uri,
                                              offset=None)
         return
 
     @qtc.Slot()
     # plays songs from a specific playlist
-    def queue_music_from_playlist(self):
+    def queue_music_from_playlist(self,playlist_name):
         # gets a list of tracks from a user inputted name of playlist
-        search_results = ((self.generate_token().playlist_tracks(self.find_a_playlist(str(input("Enter Playlist: "))),
+        search_results = ((self.token.playlist_tracks(self.find_a_playlist(playlist_title=playlist_name),
                                                                  fields='items,uri,name'))['items'])
         list_of_songs = [None] * len(search_results)
         index = 0
@@ -66,7 +67,7 @@ class SpotipyModule(qtc.QObject):
             list_of_songs[index] = value['track']['uri']
             index += 1
         # starts playing playlist from beginning
-        self.generate_token().start_playback(device_id=None, context_uri=None, uris=list_of_songs,
+        self.token.start_playback(device_id=None, context_uri=None, uris=list_of_songs,
                                              offset=None, )
         return
 
@@ -74,42 +75,41 @@ class SpotipyModule(qtc.QObject):
     # play music
     @qtc.Slot()
     def play_music(self):
-        self.generate_token().start_playback()
+        self.token.start_playback()
         return
 
     # pause music
     @qtc.Slot()
     def pause_music(self):
-        self.generate_token().pause_playback()
+        self.token.pause_playback()
         return
 
     @qtc.Slot(int)
     # changes volume of current song
     def change_volume(self, value):
-        if self.generate_token().current_user_playing_track() is not None:
-            self.generate_token().volume(value)
+        if self.token.current_user_playing_track() is not None:
+            self.token.volume(value)
 
         return value
 
     # allows user to start playing in middle of song
-    def change_time(self, song):
-        sec = int(input("time to start in sec?"))
+    def change_time(self, song,time):
 
-        if sec * 1000 > int(song):
+        if time * 1000 > int(song):
             return
         else:
-            return sec * 1000
+            return time * 1000
 
     @qtc.Slot()
     # skips current song to next in queue/playlist
     def next_song(self):
-        self.generate_token().next_track()
+        self.token.next_track()
         return
 
     @qtc.Slot()
     # goes back 1 song
     def prev_song(self):
-        self.generate_token().previous_track()
+        self.token.previous_track()
         return
     
     @qtc.Slot(str)
@@ -118,8 +118,8 @@ class SpotipyModule(qtc.QObject):
         # search_query = song_title.replace(" ", "&20")
         # print(search_query)
 
-        search_results = (self.generate_token().search(song_title, 20, 0, type='track,album'))
-        print(type(search_results))
+        search_results = (self.token.search(song_title, 20, 0, type='track,album'))
+
         # initalizes variables for loop
         song_number = 1
         song_index = 0
@@ -132,14 +132,14 @@ class SpotipyModule(qtc.QObject):
             song_index += 1
 
         # adds chosen song into the end of queue
-        #index = self.choose_song(song_choices_for_queue)
-        index = 0
+        index = self.choose_song(song_choices_for_queue)
+
         song = search_results['tracks']['items'][index]['uri']
         title = search_results['tracks']['items'][index]['name']
         picture_image = search_results['tracks']['items'][index]['album']['images'][1]['url']
         artist = search_results['tracks']['items'][index]['artists'][0]['name']
         time = search_results['tracks']['items'][index]['duration_ms']
-        print(time)
+
         song_info = {
             'image': picture_image,
             'artist': artist,
@@ -150,7 +150,7 @@ class SpotipyModule(qtc.QObject):
 
         self.queue.push(song_info)
         # self.generate_token().add_to_queue(song)
-        print(self.queue)
+
         return
 
     def pop_song_from_queue(self):
@@ -158,13 +158,19 @@ class SpotipyModule(qtc.QObject):
         return
 
     # helper function for add_song_to_queue
-    # allows user to choose which song to add into queue
-    def choose_song(self, array_with_songs):
+    # takes
+    def choose_song(self, array_with_songs,index=None):
+        '''
         for value in array_with_songs:
             print(value)
-        index = int(input("Which do you want? Enter Number"))
+
+
         song_number = index - 1
         return song_number
+
+        '''
+        return array_with_songs[index]
+
 
     # hopefully returns song title
     @qtc.Property(str)
@@ -190,7 +196,7 @@ class SpotipyModule(qtc.QObject):
 
         # format_for_query =  playlist_title.replace(" ", "&20")
         # This needs to be tested
-        search_results = self.generate_token().search(playlist_title, 20, 0, 'playlist')
+        search_results = self.token.search(playlist_title, 20, 0, 'playlist')
         if len(search_results['playlists']['items']) == 0:
             self.spellchecker.split_words(playlist_title)
 
@@ -205,6 +211,7 @@ class SpotipyModule(qtc.QObject):
             playlist_ids[playlist_index] = search_results['playlists']['items'][songz]['uri']
             playlist_number += 1
             playlist_index += 1
+
         index = self.choose_song(playlist_to_be_queued)
 
         return playlist_ids[index]
@@ -215,9 +222,9 @@ class SpotipyModule(qtc.QObject):
     # plays a playlist or 1+ tracks immediately
     def play_now(self, context_uris=None, uris=None):
         if context_uris is not None:
-            self.generate_token().start_playback(device_id=None, context_uri=context_uris)
+            self.token.start_playback(device_id=None, context_uri=context_uris)
         if uris is not None:
-            self.generate_token().start_playback(device_id=None, context_uri=None, uris=uris)
+            self.token.start_playback(device_id=None, context_uri=None, uris=uris)
 
         return
 
@@ -400,13 +407,13 @@ class QueueDataStructure:
             return self.nextnode
 
 
-print(environ.get('DEVICE_ID'))
 
 #Queue_object = QueueDataStructure()
 #spy = SpotipyModule(environ.get('USER'), environ.get('CLIENT_ID'), environ.get('CLIENT_SECRET'),
 #environ.get('REDIRECT_URI'))
 
 '''
+Clean up CODE
 -Implement anything that requires terminal input as parameters of a function (e.g. querying for a song, going back and forth within a song)
 -Implement a function to return an array of the possible song choices after querying it
 -Store current song as a class variable (self.current) and just make the function current_song() return self.current
