@@ -9,10 +9,25 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import mimetypes
 import os
+from multipledispatch import dispatch
 
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
+from apiclient import errors
+
+''' 
+Gmail Module Functionality Description
+
+-allows user to log in
+-get labels from a users account
+-gets a list of most recent messages (in terms of id)
+-get a information from message (input is message id)
+-list message ids based on label search
+-list message ids based on a query search
+-create messages with or without attachments
+-send these messages to another email 
+'''
 
 
 class GmailModule:
@@ -22,7 +37,10 @@ class GmailModule:
         self.scopes = ['https://mail.google.com/']
         self.service = self.use_token_pickle_to_get_service()
 
-
+    '''
+    Accesses a file to gain saved credentials
+    if no file exists the file is generated and user is asked to put in creds
+    '''
     def use_token_pickle_to_get_service(self):
         creds = None
         # The file token.pickle stores the user's access and refresh tokens, and is
@@ -37,7 +55,7 @@ class GmailModule:
                 creds.refresh(Request())
             else:
                 flow = InstalledAppFlow.from_client_secrets_file(
-                    'credentials.json', SCOPES)
+                    'credentials.json', self.scopes)
                 creds = flow.run_local_server(port=0)
             # Save the credentials for the next run
             with open('token.pickle', 'wb') as token:
@@ -46,7 +64,9 @@ class GmailModule:
         service = build('gmail', 'v1', credentials=creds)
 
         return service
-
+    '''
+    gets a list of labels from email account
+    '''
     def get_labels(self):
         results = self.service.users().labels().list(userId='me').execute()
 
@@ -54,20 +74,21 @@ class GmailModule:
         if not labels:
             return
         else:
-            label_list = [None]*len(labels)
+            label_list = [None] * len(labels)
             label_list_index = 0
             for label in labels:
                 label_list[label_list_index] = (label['name'])
                 label_list_index += 1
             return label_list
 
+
     def get_list_of_users_message_ids(self):
 
         emails = self.service.users().messages().list(userId='me').execute()
-        list_of_msg_ids = [None]*len(emails['messages'])
+        list_of_msg_ids = [None] * len(emails['messages'])
         index = 0
         for email in range(0, len(emails['messages'])):
-            list_of_msg_ids[index]= (emails['messages'][email])
+            list_of_msg_ids[index] = (emails['messages'][email])
             index += 1
 
         return list_of_msg_ids
@@ -91,7 +112,7 @@ class GmailModule:
 
         try:
             response = self.service.users().messages().list(userId=user_id,
-                                                       q=query).execute()
+                                                            q=query).execute()
             messages = []
             if 'messages' in response:
                 messages.extend(response['messages'])
@@ -99,7 +120,7 @@ class GmailModule:
             while 'nextPageToken' in response:
                 page_token = response['nextPageToken']
                 response = self.service.users().messages().list(userId=user_id, q=query,
-                                                           pageToken=page_token).execute()
+                                                                pageToken=page_token).execute()
                 messages.extend(response['messages'])
 
             return messages
@@ -107,7 +128,8 @@ class GmailModule:
             return
 
     def ListMessagesWithLabels(self, user_id, label_ids=''):
-        """List all Messages of the user's mailbox with label_ids applied.
+        """
+        List all Messages of the user's mailbox with label_ids applied.
 
         Args:
           service: Authorized Gmail API service instance.
@@ -120,16 +142,17 @@ class GmailModule:
           returned list contains Message IDs, you must use get with the
           appropriate id to get the details of a Message.
         """
+
         try:
             response = self.service.users().messages().list(userId=user_id,
-                                                       labelIds=label_ids).execute()
+                                                            labelIds=label_ids).execute()
             messagess = []
             if 'messages' in response:
                 messagess.extend(response['messages'])
 
             while 'nextPageToken' in response:
                 page_token = response['nextPageToken']
-                response = service.users().messages().list(userId=user_id,
+                response = self.service.users().messages().list(userId=user_id,
                                                            labelIds=label_ids,
                                                            pageToken=page_token).execute()
                 messagess.extend(response['messages'])
@@ -138,26 +161,97 @@ class GmailModule:
         except errors.HttpError as error:
             print('An error occurred: %s' % error)
 
+    def get_messages_from_query(self, user_id, query=''):
+        try:
+            response = self.service.users().messages().list(userId=user_id,
+                                                            q=query).execute()
+            messages = []
+            if 'messages' in response:
+                messages.extend(response['messages'])
+
+            while 'nextPageToken' in response:
+                page_token = response['nextPageToken']
+                response = self.service.users().messages().list(userId=user_id, q=query,
+                                                                pageToken=page_token).execute()
+                messages.extend(response['messages'])
+
+            return messages
+        except errors.HttpError as error:
+            return
+
+    def list_message_ids(self):
+        emails = self.service.users().messages().list(userId='me').execute()
+
+        return emails
+
+    @dispatch(str, str, str, str, str, str)
+    def create_email(self, sender, to, subject, message_text, file_dir, filename):
+        message = MIMEMultipart()
+        message['to'] = to
+        message['from'] = sender
+        message['subject'] = subject
+
+        msg = MIMEText(message_text)
+        message.attach(msg)
+
+        path = os.path.join(file_dir, filename)
+        content_type, encoding = mimetypes.guess_type(path)
+
+        if content_type is None or encoding is not None:
+            content_type = 'application/octet-stream'
+        main_type, sub_type = content_type.split('/', 1)
+        if main_type == 'text':
+            fp = open(path, 'rb')
+            msg = MIMEText(fp.read(), _subtype=sub_type)
+            fp.close()
+        elif main_type == 'image':
+            fp = open(path, 'rb')
+            msg = MIMEImage(fp.read(), _subtype=sub_type)
+            fp.close()
+        elif main_type == 'audio':
+            fp = open(path, 'rb')
+            msg = MIMEAudio(fp.read(), _subtype=sub_type)
+            fp.close()
+        else:
+            fp = open(path, 'rb')
+            msg = MIMEBase(main_type, sub_type)
+            msg.set_payload(fp.read())
+            fp.close()
+
+        msg.add_header('Content-Disposition', 'attachment', filename=filename)
+        message.attach(msg)
+
+        return {'raw': base64.urlsafe_b64encode(message.as_string())}
 
 
 
+    @dispatch(str, str, str, str)
+    # create email- use message returned as input for send_message
+    def create_email(self, sender, to, subject, message_text):
+        message = MIMEText(message_text)
+        message['to'] = to
+        message['from'] = sender
+        message['subject'] = subject
+        return {'raw': base64.urlsafe_b64encode((message.as_bytes())).decode()}
 
+    def send_message(self, user_id, message):
+        try:
+            message = (self.service.users().messages().send(userId=user_id, body=message)
+                       .execute())
 
+            return message
+        except errors.HttpError as error:
+            return
 
-
-
-
-
-
-
-
-
+'''
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://mail.google.com/']
-#https://www.googleapis.com/auth/gmail.compose'
+# https://www.googleapis.com/auth/gmail.compose'
 if os.path.exists('token.pickle'):
     with open('token.pickle', 'rb') as token:
         creds = pickle.load(token)
+
+
 def labels():
     """Shows basic usage of the Gmail API.
     Lists the user's Gmail labels.
@@ -187,14 +281,7 @@ def labels():
     results = service.users().labels().list(userId='me').execute()
     print(results['labels'][1]['id'])
     labels = results.get('labels', [])
-    '''
-    if not labels:
-        print('No labels found.')
-    else:
-        print('Labels:')
-        for label in labels:
-            print(label['name'])
-    '''
+
 def messages():
     """Lists Users messages
         """
@@ -220,7 +307,7 @@ def messages():
     service = build('gmail', 'v1', credentials=creds)
 
     emails = service.users().messages().list(userId='me').execute()
-    for email in range(0,len(emails['messages'])):
+    for email in range(0, len(emails['messages'])):
         print(emails['messages'][email])
 
 
@@ -228,7 +315,7 @@ from apiclient import errors
 
 
 def ListMessagesMatchingQuery(service, user_id, query=''):
-  """List all Messages of the user's mailbox matching the query.
+    """List all Messages of the user's mailbox matching the query.
 
   Args:
     service: Authorized Gmail API service instance.
@@ -242,26 +329,26 @@ def ListMessagesMatchingQuery(service, user_id, query=''):
     returned list contains Message IDs, you must use get with the
     appropriate ID to get the details of a Message.
   """
-  try:
-    response = service.users().messages().list(userId=user_id,
-                                               q=query).execute()
-    messages = []
-    if 'messages' in response:
-      messages.extend(response['messages'])
+    try:
+        response = service.users().messages().list(userId=user_id,
+                                                   q=query).execute()
+        messages = []
+        if 'messages' in response:
+            messages.extend(response['messages'])
 
-    while 'nextPageToken' in response:
-      page_token = response['nextPageToken']
-      response = service.users().messages().list(userId=user_id, q=query,
-                                         pageToken=page_token).execute()
-      messages.extend(response['messages'])
-    print(messages)
-    return messages
-  except errors.HttpError as error:
-     print('An error occurred: %s' % error)
+        while 'nextPageToken' in response:
+            page_token = response['nextPageToken']
+            response = service.users().messages().list(userId=user_id, q=query,
+                                                       pageToken=page_token).execute()
+            messages.extend(response['messages'])
+        print(messages)
+        return messages
+    except errors.HttpError as error:
+        print('An error occurred: %s' % error)
 
 
 def ListMessagesWithLabels(service, user_id, label_ids='SENT'):
-  """List all Messages of the user's mailbox with label_ids applied.
+    """List all Messages of the user's mailbox with label_ids applied.
 
   Args:
     service: Authorized Gmail API service instance.
@@ -274,30 +361,31 @@ def ListMessagesWithLabels(service, user_id, label_ids='SENT'):
     returned list contains Message IDs, you must use get with the
     appropriate id to get the details of a Message.
   """
-  try:
-    response = service.users().messages().list(userId=user_id,
-                                               labelIds=label_ids).execute()
-    print(response)
-    messagess = []
-    if 'messages' in response:
-      messagess.extend(response['messages'])
+    try:
+        response = service.users().messages().list(userId=user_id,
+                                                   labelIds=label_ids).execute()
+        print(response)
+        messagess = []
+        if 'messages' in response:
+            messagess.extend(response['messages'])
 
-    while 'nextPageToken' in response:
-      page_token = response['nextPageToken']
-      response = service.users().messages().list(userId=user_id,
-                                                 labelIds=label_ids,
-                                                 pageToken=page_token).execute()
-      messagess.extend(response['messages'])
-    print(messagess)
-    return messagess
-  except errors.HttpError as error:
-    print ('An error occurred: %s' % error)
+        while 'nextPageToken' in response:
+            page_token = response['nextPageToken']
+            response = service.users().messages().list(userId=user_id,
+                                                       labelIds=label_ids,
+                                                       pageToken=page_token).execute()
+            messagess.extend(response['messages'])
+        print(messagess)
+        return messagess
+    except errors.HttpError as error:
+        print('An error occurred: %s' % error)
 
 
 from apiclient import errors
 
+
 def GetMessage(service, user_id, msg_id):
-  """Get a Message with given ID.
+    """Get a Message with given ID.
 
   Args:
     service: Authorized Gmail API service instance.
@@ -308,21 +396,22 @@ def GetMessage(service, user_id, msg_id):
   Returns:
     A Message.
   """
-  try:
-    message = service.users().messages().get(userId=user_id, id=msg_id,format='full').execute()
-    #print(message['snippet'])
-    raw_msg=message['payload']['parts'][0]['body']['data']
-    msg_str = base64.urlsafe_b64decode(raw_msg.encode('ASCII'))
+    try:
+        message = service.users().messages().get(userId=user_id, id=msg_id, format='full').execute()
+        # print(message['snippet'])
+        raw_msg = message['payload']['parts'][0]['body']['data']
+        msg_str = base64.urlsafe_b64decode(raw_msg.encode('ASCII'))
 
-    print('MESSAGE STRING',msg_str)
-    #print ('Message snippet: %s' % message['payload']['body']['data'])
+        print('MESSAGE STRING', msg_str)
+        # print ('Message snippet: %s' % message['payload']['body']['data'])
 
-    return message
-  except errors.HttpError as error:
-    print('An error occurred: %s' % error)
+        return message
+    except errors.HttpError as error:
+        print('An error occurred: %s' % error)
+
 
 def SendMessage(service, user_id, message):
-  """Send an email message.
+    """Send an email message.
 
   Args:
     service: Authorized Gmail API service instance.
@@ -333,17 +422,17 @@ def SendMessage(service, user_id, message):
   Returns:
     Sent Message.
   """
-  try:
-    message = (service.users().messages().send(userId=user_id, body=message)
-               .execute())
-    print ('Message Id: %s' % message['id'])
-    return message
-  except errors.HttpError as error:
-     print ('An error occurred: %s' % error)
+    try:
+        message = (service.users().messages().send(userId=user_id, body=message)
+                   .execute())
+        print('Message Id: %s' % message['id'])
+        return message
+    except errors.HttpError as error:
+        print('An error occurred: %s' % error)
 
 
 def CreateMessage(sender, to, subject, message_text):
-  """Create a message for an email.
+    """Create a message for an email.
 
   Args:
     sender: Email address of the sender.
@@ -354,16 +443,16 @@ def CreateMessage(sender, to, subject, message_text):
   Returns:
     An object containing a base64url encoded email object.
   """
-  message = MIMEText(message_text)
-  message['to'] = to
-  message['from'] = sender
-  message['subject'] = subject
-  return {'raw': base64.urlsafe_b64encode((message.as_bytes())).decode()}
+    message = MIMEText(message_text)
+    message['to'] = to
+    message['from'] = sender
+    message['subject'] = subject
+    return {'raw': base64.urlsafe_b64encode((message.as_bytes())).decode()}
 
 
 def CreateMessageWithAttachment(sender, to, subject, message_text, file_dir,
                                 filename):
-  """Create a message for an email.
+    """Create a message for an email.
 
   Args:
     sender: Email address of the sender.
@@ -376,45 +465,46 @@ def CreateMessageWithAttachment(sender, to, subject, message_text, file_dir,
   Returns:
     An object containing a base64url encoded email object.
   """
-  message = MIMEMultipart()
-  message['to'] = to
-  message['from'] = sender
-  message['subject'] = subject
+    message = MIMEMultipart()
+    message['to'] = to
+    message['from'] = sender
+    message['subject'] = subject
 
-  msg = MIMEText(message_text)
-  message.attach(msg)
+    msg = MIMEText(message_text)
+    message.attach(msg)
 
-  path = os.path.join(file_dir, filename)
-  content_type, encoding = mimetypes.guess_type(path)
+    path = os.path.join(file_dir, filename)
+    content_type, encoding = mimetypes.guess_type(path)
 
-  if content_type is None or encoding is not None:
-    content_type = 'application/octet-stream'
-  main_type, sub_type = content_type.split('/', 1)
-  if main_type == 'text':
-    fp = open(path, 'rb')
-    msg = MIMEText(fp.read(), _subtype=sub_type)
-    fp.close()
-  elif main_type == 'image':
-    fp = open(path, 'rb')
-    msg = MIMEImage(fp.read(), _subtype=sub_type)
-    fp.close()
-  elif main_type == 'audio':
-    fp = open(path, 'rb')
-    msg = MIMEAudio(fp.read(), _subtype=sub_type)
-    fp.close()
-  else:
-    fp = open(path, 'rb')
-    msg = MIMEBase(main_type, sub_type)
-    msg.set_payload(fp.read())
-    fp.close()
+    if content_type is None or encoding is not None:
+        content_type = 'application/octet-stream'
+    main_type, sub_type = content_type.split('/', 1)
+    if main_type == 'text':
+        fp = open(path, 'rb')
+        msg = MIMEText(fp.read(), _subtype=sub_type)
+        fp.close()
+    elif main_type == 'image':
+        fp = open(path, 'rb')
+        msg = MIMEImage(fp.read(), _subtype=sub_type)
+        fp.close()
+    elif main_type == 'audio':
+        fp = open(path, 'rb')
+        msg = MIMEAudio(fp.read(), _subtype=sub_type)
+        fp.close()
+    else:
+        fp = open(path, 'rb')
+        msg = MIMEBase(main_type, sub_type)
+        msg.set_payload(fp.read())
+        fp.close()
 
-  msg.add_header('Content-Disposition', 'attachment', filename=filename)
-  message.attach(msg)
+    msg.add_header('Content-Disposition', 'attachment', filename=filename)
+    message.attach(msg)
 
-  return {'raw': base64.urlsafe_b64encode(message.as_string())}
+    return {'raw': base64.urlsafe_b64encode(message.as_string())}
+
 
 def send_message(service, user_id, message):
-  """Send an email message.
+    """Send an email message.
 
   Args:
     service: Authorized Gmail API service instance.
@@ -425,21 +515,21 @@ def send_message(service, user_id, message):
   Returns:
     Sent Message.
   """
-  try:
-    message = (service.users().messages().send(userId=user_id, body=message)
-               .execute())
-    print ('Message Id: %s' % message['id'])
-    return message
-  except errors.HttpError as error:
-    print ('An error occurred: %s' % error)
-
+    try:
+        message = (service.users().messages().send(userId=user_id, body=message)
+                   .execute())
+        print('Message Id: %s' % message['id'])
+        return message
+    except errors.HttpError as error:
+        print('An error occurred: %s' % error)
+'''
 
 if __name__ == '__main__':
-    service = build('gmail', 'v1', credentials=creds)
-    labels()
-    messages()
+    gmail = GmailModule()
+    gmail.get_labels()
+    gmail.GetMessage()
     print("\n \n \n")
-    #ListMessagesMatchingQuery(service,'me','it\'s time to refresh')
-    ListMessagesWithLabels(service,'me','SENT')
+    # ListMessagesMatchingQuery(service,'me','it\'s time to refresh')
+    ListMessagesWithLabels(service, 'me', 'SENT')
     print("\n \n \n")
-    GetMessage(service,'me','1729468f38803eb0')
+    GetMessage(service, 'me', '1729468f38803eb0')
