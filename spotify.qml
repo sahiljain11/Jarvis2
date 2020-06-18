@@ -13,6 +13,7 @@ ApplicationWindow{
     height: 600
     title: qsTr("Spotify")
 
+    //background
     Image{
         id: grad
         source: "images/grad.png"
@@ -26,7 +27,6 @@ ApplicationWindow{
         //Load fonts
         FontLoader { id: nidsans; source: "./fonts/Nidsans.ttf"}
         FontLoader{ id: astro; source: "./fonts/AstroSpace.ttf"}
-        FontLoader{ id: outageCut; source: "./fonts/Outage-cut.ttf"}
     
         //custom properties
         property var scaleVal: 1
@@ -35,12 +35,12 @@ ApplicationWindow{
         height: 550/1.5
 
         //defaults
-        //state: "DRAGGING"
+        state: "BASE"
         scale: scaleVal
 
         states: [
             State {
-                name: "BASE"; when: key
+                name: "BASE"
                 PropertyChanges {target: mouseArea; drag.target: undefined}
             },
 
@@ -224,7 +224,6 @@ ApplicationWindow{
             
             //First Line
             Text{
-
                 //Positioning
                 anchors{
                     top: parent.top
@@ -279,27 +278,30 @@ ApplicationWindow{
 
 
         //Volume
-        Picture{
+        Volume{
             id: volume
-            image: "./images/volume_bar.png"
-
             anchors {
                 
-                left: skip_forward.right
-                leftMargin: parent.width/25
-                bottom: skip_forward.bottom
-                top: song_icon.bottom 
-                
+                //For vertical
                 
                 //left: skip_forward.right
                 //leftMargin: parent.width/25
                 //bottom: skip_forward.bottom
-                //top: skip_forward.top
+                //top: song_icon.bottom 
+                
+                //For horizontal
+
+                left: skip_forward.right
+                leftMargin: parent.width/25
+                bottom: skip_forward.bottom
+                top: skip_forward.top
 
             }
 
-            //width: parent.width/10
-            width: parent.width/30
+            width: parent.width/10
+            
+            //Vertical Rotation
+            //transform: Rotation {origin.x: x; origin.y: y; angle: -90}
         }
 
         //Text input for spotify
@@ -313,7 +315,7 @@ ApplicationWindow{
                 rightMargin: parent.width/10
             }
             font.family: astro.name
-            width: parent.widhth/10
+            width: parent.width/10
             height: parent.height/10
         }
 
@@ -367,7 +369,6 @@ ApplicationWindow{
             if(event.key == Qt.Key_Shift){
                 state = "BASE"
             }
-
         }
     }
 }
