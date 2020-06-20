@@ -7,6 +7,7 @@ import time
 import math
 import random
 from progress.bar import IncrementalBar
+from sklearn.metrics import confusion_matrix
 
 # 0 - No gesture
 # 1 - Pinch zoom in
@@ -16,22 +17,23 @@ from progress.bar import IncrementalBar
 # 5 - Swipe left
 # 6 - Swipe right
 # 7 - grab to fist
+# 8 - fist to grab
 # 9 - peace sign to exit
 # 10 - 2 fingers for "selecting" button
 # 11 - 1 finger to act as mouse
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
-number_of_features = 51   # input size
-number_of_hidden   = 75   # size of hidden layer
+#number_of_features = 209  # input size
+number_of_hidden   = 32   # size of hidden layer
 number_of_gestures = 12   # output size
 sequence_length    = 20   # refers to the amount of timeframes to check
-batch_size         = 30    # how many different files to compute
-learning_rate      = 0.0001
+batch_size         = 1    # how many different files to compute
+learning_rate      = 0.01
 num_epoch          = 1
 folder_name = ["none", "pinch_in", "pinch_out", "swipe_up", "swipe_down", "swipe_left", "swipe_right",
                "grab2fist", "fist2grab", "peace", "2fingers", "pointing"]
-STORAGE_PATH = "state_dict_model_less_features.pt"
+STORAGE_PATH = "state_dict_model_new_features_with_prev.pt"
 
 def create_training_tensor(data_file, number_of_features, feature_columns):
 
@@ -61,14 +63,15 @@ def create_training_tensor(data_file, number_of_features, feature_columns):
         temp_line = []
 
         # any weird line with substantially less features
-        if len(line_array) < feature_columns[len(feature_columns) -1]:
+        #if len(line_array) < feature_columns[len(feature_columns) - 1]:
+        if len(line_array) - 1 < number_of_features:
             continue
 
         for i in range(0, len(feature_columns)):
             temp_line.append(float(line_array[feature_columns[i]]))
         
         # ignore frame number and time
-        #for i in range (2, number_of_features + 2):
+        #for i in range (2, len(line_array)):
         #    # check for any empty entries
         #    if (line_array[i] != "" and line_array[i] != "\n"):
         #        temp_line.append(float(line_array[i]))
@@ -77,26 +80,36 @@ def create_training_tensor(data_file, number_of_features, feature_columns):
 
     # convert to a pytorch tensor
     training_tensor = torch.FloatTensor(file_contents)
+
     #print(training_tensor.shape)
     return training_tensor
 
 
 # PREPROCCESSING
+get_cols = os.path.join(basedir, 'csv_data/feature_cols.csv')
+col_file = open(get_cols, "r")
+col_data = col_file.readlines()[1].split(",")
+
+feature_columns = []
+
+for i in range(0, len(col_data)):
+    if col_data[i] == "1":
+        feature_columns.append(i)
+
+number_of_features = len(feature_columns)
+
 file_tensors = []
 file_hash = {}
 num_files = 0
 with IncrementalBar("Preprocessing...", max=number_of_gestures) as increment_bar:
-    feature_columns = [2, 3, 4, 5, 6, 7, 44, 45, 46, 47, 48, 49, 50, 51, 52, 80, 81,
-                       82, 83, 84, 85, 86, 87, 88, 116, 117, 118, 119, 120, 121, 122,
-                       123, 124, 152, 153, 154, 155, 156, 157, 158, 159, 160, 188,
-                       189, 190, 191, 192, 193, 194, 195, 196]
-
     for i in range(0, number_of_gestures):
         # navigate to subfolder
         name = folder_name[i]
         data_dir = os.path.join(basedir, 'csv_data/' + name + '/')
         files = os.listdir(data_dir)
 
+        count = 0
+        
         for j in range(0, len(files)):
             # traverse through each file in each sub folder
             test_string = name + str(j) + ".csv"
@@ -107,7 +120,13 @@ with IncrementalBar("Preprocessing...", max=number_of_gestures) as increment_bar
             #training_tensor = F.normalize(training_tensor, dim=0)
 
             for k in range(sequence_length, training_tensor.shape[0]):
-                
+                if training_tensor.shape[1] != number_of_features:
+                    break
+
+                count += 1
+                if count > 50: #1322
+                    break
+
                 portion_tensor = training_tensor[k - sequence_length:k, :]
 
                 file_tensors.append(portion_tensor)
@@ -133,17 +152,29 @@ class JarvisLSTM(nn.Module):
         self.seq_length = seq_len
        
         # create the LSTM network
-        self.lstm = nn.LSTM(input_size, hidden_dim, seq_len, batch_first=False)
+
+        # SEQUENCE LENGTH IS NOT RIGHT I THINK
+
+        # input size is the sequence length since each feature
+        
+        self.lstm = nn.LSTM(input_size, hidden_dim, batch_first=False)
 
         # linear space maps between hidden layer and output layer
         self.hidden2gesture = nn.Linear(hidden_dim, gesture_size)
 
     def forward(self, seq_batch_input):
+
+        batch_size = list(seq_batch_input.size())[1]
+
+        h = torch.rand(self.seq_length, batch_size, self.hidden_dim)
+        c = torch.rand(self.seq_length, batch_size, self.hidden_dim)
+
         # run the lstm model
-        lstm_out, _ = self.lstm(seq_batch_input)
+        lstm_out, (ht, ct) = self.lstm(seq_batch_input, (h, c))
 
         # convert to the proper output dimensions
         gesture_out = self.hidden2gesture(lstm_out)
+        #gesture_out = self.hidden2gesture(ht)
         gesture_out = gesture_out[-1, :, :]
 
         # apply softmax function to normalize the values
@@ -177,7 +208,6 @@ def epoch(folder_name, number_of_gestures, batch_size, lstm_model, loss_function
                 curr_batch = torch.cat((curr_batch, temp_matrix), dim=1)
 
             target = torch.LongTensor(target)
-
             #h = torch.randn(seq_length, hidden_dim).view(1, seq_length, hidden_dim)
             #c = torch.randn(seq_length, hidden_dim).view(1, seq_length, hidden_dim)
 
@@ -222,14 +252,13 @@ def epoch(folder_name, number_of_gestures, batch_size, lstm_model, loss_function
         avg_total_loss.append(float(return_loss / count))
 
     increment_bar.next()
-    increment_bar.finish()
     torch.save(lstm_model.state_dict(), STORAGE_PATH)
-    print("Loss: " + str((avg_total_loss)))
+    print("\nLoss: " + str((avg_total_loss)))
 
 # create loss function, model, and optimizer
 loss_function = nn.CrossEntropyLoss()
 lstm_model = JarvisLSTM(number_of_hidden, number_of_features, number_of_gestures, sequence_length)
-optimizer = optim.SGD(lstm_model.parameters(), lr=learning_rate)
+optimizer = optim.Adam(lstm_model.parameters(), lr=learning_rate)
 start_time = time.time()
 
 # traverse through each epoch and train
@@ -243,6 +272,8 @@ for i in range (0, num_epoch):
 # save the model
 lstm_model.eval()
 
+labels = []
+predictions = []
 
 with torch.no_grad():
     # evaluate the model to come up with an accuracy
@@ -259,15 +290,15 @@ with torch.no_grad():
             # batch_size x seq_length x num_gestures
             target = file_hash.get(file_tensors[num]) * torch.ones(1, dtype=torch.long)
 
-            #h = torch.randn(sequence_length, number_of_hidden).view(1, sequence_length, number_of_hidden)
-            #c = torch.randn(sequence_length, number_of_hidden).view(1, sequence_length, number_of_hidden)
-
             resulting_tensor = lstm_model(file_tensors[num].view(sequence_length, 1, number_of_features))
 
             #last_item = resulting_tensor.view(sequence_length, number_of_gestures)
             last_item = resulting_tensor
             #last_item = last_item[number_of_gestures - 1, :]
             last_item = torch.argmax(last_item)
+
+            predictions.append(last_item.item())
+            labels.append(file_hash.get(file_tensors[num]))
 
             if file_hash.get(file_tensors[num]) == last_item.item():
                 correct += 1
@@ -288,15 +319,15 @@ with torch.no_grad():
             # batch_size x seq_length x num_gestures
             target = file_hash.get(file_tensors[num]) * torch.ones(1, dtype=torch.long)
 
-            #h = torch.randn(sequence_length, number_of_hidden).view(1, sequence_length, number_of_hidden)
-            #c = torch.randn(sequence_length, number_of_hidden).view(1, sequence_length, number_of_hidden)
-
             resulting_tensor = lstm_model(file_tensors[num].view(sequence_length, 1, number_of_features))
 
             #last_item = resulting_tensor.view(sequence_length, number_of_gestures)
             last_item = resulting_tensor
             #last_item = last_item[number_of_gestures - 1, :]
             last_item = torch.argmax(last_item)
+
+            predictions.append(last_item.item())
+            labels.append(file_hash.get(file_tensors[num]))
 
             if file_hash.get(file_tensors[num]) == last_item.item():
                 correct += 1
@@ -308,4 +339,5 @@ with torch.no_grad():
         print("Test Accuracy:  " + str(test_correct) + "/" + str(test_count) + " = " + str(float(test_correct) / float(test_count) * 100)+ "%")
         print("Cross Accuracy: " + str(correct) + "/" + str(count) + " = " + str(float(correct) / float(count) * 100)+ "%")
 
-print("Finished: " + str(time.time() - start_time))
+conf_mat = confusion_matrix(labels, predictions)
+print(str(conf_mat))

@@ -26,8 +26,9 @@ number_of_features = 195  # input size
 number_of_hidden   = 75   # size of hidden layer
 number_of_gestures = 12   # output size
 sequence_length    = 20   # refers to the amount of timeframes to check
-folder_name = ["none", "pinch_in", "pinch_out", "swipe_up", "swipe_down", "swipe_left", "swipe_right",
-               "grab2fist", "fist2grab", "peace", "2fingers", "pointing"]
+folder_name = ["none", "pinch_in", "pinch_out", "swipe_up", "swipe_down",
+               "swipe_left", "swipe_right", "grab2fist", "fist2grab", "peace",
+               "2fingers", "pointing"]
 
 def create_training_tensor(data_file):
 
