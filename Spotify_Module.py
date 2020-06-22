@@ -27,6 +27,8 @@ class SpotipyModule(qtc.QObject):
         self.queue = QueueDataStructure()
         self.spellchecker = spellchecker.SpellChecker(language=u'en', distance=2)
         self.token = self.generate_token()
+        self.playlist_ids = None
+        self.playlist_names = None
 
     # generates access token for authorization to use spotify API
     def generate_token(self):
@@ -211,10 +213,10 @@ class SpotipyModule(qtc.QObject):
             playlist_ids[playlist_index] = search_results['playlists']['items'][songz]['uri']
             playlist_number += 1
             playlist_index += 1
+        self.playlist_ids = playlist_ids
+        self.playlist_names = playlist_to_be_queued
 
-        index = self.choose_song(playlist_to_be_queued)
-
-        return playlist_ids[index]
+        return
 
     def current_queue(self):
         return self.queue
@@ -316,7 +318,7 @@ class QueueDataStructure:
     def insert(self, value, index):
         # checks to see if index is valid
         if index > self.number_of_nodes or index < 0:
-            return "Index is out of range"
+            return
         # inserts when only header is present
         if self.number_of_nodes == 0:
             node_to_be_inserted = self.Node(value, self.header_node, self.header_node)
