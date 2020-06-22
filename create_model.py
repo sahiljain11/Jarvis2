@@ -29,8 +29,8 @@ number_of_hidden   = 32   # size of hidden layer
 number_of_gestures = 12   # output size
 sequence_length    = 20   # refers to the amount of timeframes to check
 batch_size         = 1    # how many different files to compute
-learning_rate      = 0.01
-num_epoch          = 1
+learning_rate      = 0.001
+num_epoch          = 5
 folder_name = ["none", "pinch_in", "pinch_out", "swipe_up", "swipe_down", "swipe_left", "swipe_right",
                "grab2fist", "fist2grab", "peace", "2fingers", "pointing"]
 STORAGE_PATH = "state_dict_model_new_features_with_prev.pt"
@@ -124,7 +124,7 @@ with IncrementalBar("Preprocessing...", max=number_of_gestures) as increment_bar
                     break
 
                 count += 1
-                if count > 50: #1322
+                if count > 1322:
                     break
 
                 portion_tensor = training_tensor[k - sequence_length:k, :]
@@ -143,39 +143,40 @@ cross_val_index = int((1 - CROSS_VAL_PORTION) * num_files)
 
 # LSTM model
 class JarvisLSTM(nn.Module):
-
     def __init__(self, hidden_dim, input_size, gesture_size, seq_len):
         super(JarvisLSTM, self).__init__()
 
         self.input_dim = input_size
         self.hidden_dim = hidden_dim
         self.seq_length = seq_len
+        self.gesture_size = gesture_size
        
         # create the LSTM network
-
-        # SEQUENCE LENGTH IS NOT RIGHT I THINK
-
-        # input size is the sequence length since each feature
-        
-        self.lstm = nn.LSTM(input_size, hidden_dim, batch_first=False)
+        self.lstm = nn.LSTM(input_size, hidden_dim, num_layers=1 , batch_first=False)
 
         # linear space maps between hidden layer and output layer
-        self.hidden2gesture = nn.Linear(hidden_dim, gesture_size)
+        self.hidden2gesture = nn.Linear(hidden_dim * seq_len, gesture_size)
 
     def forward(self, seq_batch_input):
 
         batch_size = list(seq_batch_input.size())[1]
 
-        h = torch.rand(self.seq_length, batch_size, self.hidden_dim)
-        c = torch.rand(self.seq_length, batch_size, self.hidden_dim)
+        hidden_state = torch.zeros(1, batch_size, self.hidden_dim)
+        cell_state = torch.zeros(1, batch_size, self.hidden_dim)
+        hidden = (hidden_state, cell_state)
 
         # run the lstm model
-        lstm_out, (ht, ct) = self.lstm(seq_batch_input, (h, c))
+        lstm_out, (ht, ct) = self.lstm(seq_batch_input, hidden)
+
+        #print(lstm_out.shape)
+        #lstm_out = lstm_out[-1, :, :]
+
+        # lstm_out = (seq_len, batch, hidden_size)
+        # convert lstm_out to (batch_size, -1) to merge
+        lstm_out = lstm_out.contiguous().view(batch_size, -1)
 
         # convert to the proper output dimensions
         gesture_out = self.hidden2gesture(lstm_out)
-        #gesture_out = self.hidden2gesture(ht)
-        gesture_out = gesture_out[-1, :, :]
 
         # apply softmax function to normalize the values
         # double check dimension. prob wrong
@@ -191,6 +192,7 @@ def epoch(folder_name, number_of_gestures, batch_size, lstm_model, loss_function
         bar_count = 0
         return_loss = 0
         count = 0
+        loss_count = 0
         for num in range(0, (cross_val_index - batch_size), batch_size):
 
             # adjust bar to see progress
@@ -219,6 +221,8 @@ def epoch(folder_name, number_of_gestures, batch_size, lstm_model, loss_function
             #resulting_scores = model(sectioned_data, (h, c))
             resulting_scores = lstm_model(curr_batch.view(sequence_length, batch_size, number_of_features))
 
+            resulting_scores = resulting_scores.view(batch_size, number_of_gestures)
+
             # compute loss and backward propogate
             loss = loss_function(resulting_scores, target)
             loss.backward()
@@ -227,6 +231,7 @@ def epoch(folder_name, number_of_gestures, batch_size, lstm_model, loss_function
 
             return_loss += loss.item()
             count += batch_size
+            loss_count += 1
 
             #if count % 500 == 0:
             #    correct = 0
@@ -249,7 +254,7 @@ def epoch(folder_name, number_of_gestures, batch_size, lstm_model, loss_function
                 
 
         # add the loss at the end and increment the progress bar
-        avg_total_loss.append(float(return_loss / count))
+        avg_total_loss.append(float(return_loss / loss_count))
 
     increment_bar.next()
     torch.save(lstm_model.state_dict(), STORAGE_PATH)
@@ -258,6 +263,7 @@ def epoch(folder_name, number_of_gestures, batch_size, lstm_model, loss_function
 # create loss function, model, and optimizer
 loss_function = nn.CrossEntropyLoss()
 lstm_model = JarvisLSTM(number_of_hidden, number_of_features, number_of_gestures, sequence_length)
+lstm_model.load_state_dict(torch.load("state_dict_model_83.pt"))
 optimizer = optim.Adam(lstm_model.parameters(), lr=learning_rate)
 start_time = time.time()
 
@@ -336,7 +342,7 @@ with torch.no_grad():
         increment_bar.next()
         increment_bar.finish()
 
-        print("Test Accuracy:  " + str(test_correct) + "/" + str(test_count) + " = " + str(float(test_correct) / float(test_count) * 100)+ "%")
+        print("Train Accuracy: " + str(test_correct) + "/" + str(test_count) + " = " + str(float(test_correct) / float(test_count) * 100)+ "%")
         print("Cross Accuracy: " + str(correct) + "/" + str(count) + " = " + str(float(correct) / float(count) * 100)+ "%")
 
 conf_mat = confusion_matrix(labels, predictions)
