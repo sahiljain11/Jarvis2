@@ -12,7 +12,6 @@ Picture{
     property var picHeight: sourceHeight/2
     property bool vis: false
 
-
     image: "../images/email_preview_button.png"
 
     Text{
@@ -75,4 +74,5 @@ Picture{
 
         onClicked: clicked.connect(touched)
     }
+
 }
