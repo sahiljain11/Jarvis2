@@ -48,7 +48,7 @@ Picture{
         font.pointSize: parent.height/25
         width: parent.width
         height: parent.height/2
-        elide: Text.elideRight
+        elide: Text.ElideRight
          wrapMode: Text.WordWrap
          text: "preview email new line af 33 charf jsdl kfja lsd jfwio  lwadfs dfajio wjd foawnefo nawd lfnhqo nwglnWIO PNWL HOIF OWIF HOWAGN Olj wodjfowan flwn gownag"
     }
