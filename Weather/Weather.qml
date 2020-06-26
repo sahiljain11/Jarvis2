@@ -1,14 +1,14 @@
-import QtQuick 2.15
-import QtQuick.Controls 2.15
+import QtQuick 2.12
+import QtQuick.Controls 2.12
 import QtQuick.Controls.Styles 1.4
 import QtQml 2.0
 import QtGraphicalEffects 1.12
-import QtQuick.Layouts 1.15
+import QtQuick.Layouts 1.12
 
 ApplicationWindow {
     title: qsTr("Weather App")
     width: 500
-    height: 300
+    height: 400
     visible: true
         Image {
             source: "default2.png"
@@ -26,7 +26,7 @@ ApplicationWindow {
         anchors.top: parent.top
         TextField {
             id: city_tf
-            Layout.topMargin: 30
+            Layout.topMargin: 40
             placeholderText: qsTr("City")
             Layout.alignment: Qt.AlignHCenter
             font.pointSize:14
@@ -60,12 +60,18 @@ ApplicationWindow {
             id: temperature_lbl
             color: "white"
             font.family: webFont.name
-            font.pointSize:14
             font { family: 'Helvetica'; pixelSize: 20; capitalization: Font.SmallCaps }
         }
+        Image {
+            id: sky_td
+            Layout.preferredWidth: 60
+            Layout.preferredHeight: 60
+            anchors.horizontalCenter: parent.horizontalCenter
+
+        }
         Label{
-            Layout.alignment: Qt.AlignHCenter
-            id: description_lbl
+            id: checking
+            color: "white"
         }
         Item {
             Layout.fillHeight: true
@@ -76,24 +82,31 @@ ApplicationWindow {
         target: weather
         function onDataChanged(){
             if(!weather.hasError()){
-                var temperature = weather.data['main']['temp']
-                var main = weather.data['weather'][0]['main']
-                var humidity = weather.data['main']['humidity']
-                var wind_speed = weather.data['wind']['speed']
-                temperature_lbl.text = " Temperature : " + Math.round(((temperature - 273.15) * 1.8) + 32) + " degrees Fahrenheit \n"  + " Current Conditions : " + main + "\n Humidity : " + humidity + "\n Wind Speed : " + wind_speed + " m/s"
-                var sunrise = weather.data['sys']['sunrise']
-                var sunset = weather.data['sys']['sunset']
-                var now = weather.data['dt']
-                if (now >= sunset)
-                    image_tod.source = "night2.png"
-                else if (now <= sunrise)
-                    image_tod.source = "night2.png"
-                else
-                    image_tod.source = "day2.png"
-
-
+                try{
+                    var temperature = weather.data['main']['temp']
+                    var main = weather.data['weather'][0]['main']
+                    var humidity = weather.data['main']['humidity']
+                    var wind_speed = weather.data['wind']['speed']
+                    temperature_lbl.text = " Temperature : " + Math.round(((temperature - 273.15) * 1.8) + 32) + " degrees Fahrenheit \n"  + " Current Conditions : " + main + "\n Humidity : " + humidity + "\n Wind Speed : " + wind_speed + " m/s"
+                    var sunrise = weather.data['sys']['sunrise']
+                    var sunset = weather.data['sys']['sunset']
+                    var now = weather.data['dt']
+                    if (now >= sunset)
+                        image_tod.source = "night2.png"
+                    else if (now <= sunrise)
+                        image_tod.source = "night2.png"
+                    else
+                        image_tod.source = "day2.png"
+                    var oof = weather.data['weather'][0]['icon']
+                    sky_td.source = "icons/" + oof + ".png"
+                }
+                    catch (error) {
+                        temperature_lbl.text = "oof sorry bruh"}
 
             }
+            else{
+                temperature_lbl.text = "error"}
+
         }
     }
 

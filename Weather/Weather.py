@@ -73,12 +73,14 @@ class WeatherWrapper(QObject):
                 del d["cod"]
                 self._data = d
             else:
-                self._data = dict()
+                #self._data = dict()
                 has_error = True
                 logging.debug("error: {code}")
+                self.data = "AHHH"
         else:
-            self.data = dict()
+            #self.data = dict()
             has_error = True
+            self.data = "AHHH"
             logging.debug(f"error: {reply.errorString()}")
         self.dataChanged.emit()
         self._has_error = has_error
