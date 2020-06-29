@@ -36,7 +36,7 @@ def find_distance_between_vec(df, col1, col2):
     return ((df[col1 + "x"] - df[col2 + "x"])**2 + (df[col1 + "y"] - df[col2 + "y"])**2 + (df[col1 + "z"] - df[col2 + "z"])**2)**0.5
 
 
-for i in range(0, 9):
+for i in range(4, len(folder_name)):
     name = folder_name[i]
     file_direc = os.path.join(basedir, name + "/")
     files = os.listdir(file_direc)
@@ -60,38 +60,62 @@ for i in range(0, 9):
             #for i in range(0, len(finger_names)):
             #    df[finger_names[i] + "Length"] = find_distance_between_vec(df, "hand_position_", finger_names[i] + "_distal_end_")
 
+            ## calculate angles omega
+            #for i in range(1, len(finger_names)):
+            #    temp_col_x = df[finger_names[i] + "_intermediate_end_x"] - df[finger_names[i] + "_intermediate_start_x"]
+            #    temp_col_y = df[finger_names[i] + "_intermediate_end_y"] - df[finger_names[i] + "_intermediate_start_y"]
+            #    temp_col_z = df[finger_names[i] + "_intermediate_end_z"] - df[finger_names[i] + "_intermediate_start_z"]
 
-            # calculate angles omega
-            for i in range(1, len(finger_names)):
-                temp_col_x = df[finger_names[i] + "_intermediate_end_x"] - df[finger_names[i] + "_intermediate_start_x"]
-                temp_col_y = df[finger_names[i] + "_intermediate_end_y"] - df[finger_names[i] + "_intermediate_start_y"]
-                temp_col_z = df[finger_names[i] + "_intermediate_end_z"] - df[finger_names[i] + "_intermediate_start_z"]
+            #    temp_col_a = df[finger_names[i] + "_distal_end_x"] - df[finger_names[i] + "_distal_start_x"]
+            #    temp_col_b = df[finger_names[i] + "_distal_end_y"] - df[finger_names[i] + "_distal_start_y"]
+            #    temp_col_c = df[finger_names[i] + "_distal_end_z"] - df[finger_names[i] + "_distal_start_z"]
 
-                temp_col_a = df[finger_names[i] + "_distal_end_x"] - df[finger_names[i] + "_distal_start_x"]
-                temp_col_b = df[finger_names[i] + "_distal_end_y"] - df[finger_names[i] + "_distal_start_y"]
-                temp_col_c = df[finger_names[i] + "_distal_end_z"] - df[finger_names[i] + "_distal_start_z"]
+            #    temp_col = (temp_col_x * temp_col_a) + (temp_col_y * temp_col_b) + (temp_col_z * temp_col_c)
+            #    temp_col = temp_col / (find_distance_between_vec(df, finger_names[i] + "_intermediate_end_", finger_names[i] + "_intermediate_start_"))
+            #    temp_col = temp_col / (find_distance_between_vec(df, finger_names[i] + "_distal_end_", finger_names[i] + "_distal_start_"))
 
-                temp_col = (temp_col_x * temp_col_a) + (temp_col_y * temp_col_b) + (temp_col_z * temp_col_c)
-                temp_col = temp_col / (find_distance_between_vec(df, finger_names[i] + "_intermediate_end_", finger_names[i] + "_intermediate_start_"))
-                temp_col = temp_col / (find_distance_between_vec(df, finger_names[i] + "_distal_end_", finger_names[i] + "_distal_start_"))
+            #    df[finger_names[i] + "_omega"] = np.arccos(temp_col)
 
-                df[finger_names[i] + "_omega"] = np.arccos(temp_col)
+            ## calculate angles beta
+            #for i in range(1, len(finger_names)):
+            #    temp_col_x = df[finger_names[i] + "_proximal_end_x"] - df[finger_names[i] + "_proximal_start_x"]
+            #    temp_col_y = df[finger_names[i] + "_proximal_end_y"] - df[finger_names[i] + "_proximal_start_y"]
+            #    temp_col_z = df[finger_names[i] + "_proximal_end_z"] - df[finger_names[i] + "_proximal_start_z"]
 
-            # calculate angles beta
-            for i in range(1, len(finger_names)):
-                temp_col_x = df[finger_names[i] + "_proximal_end_x"] - df[finger_names[i] + "_proximal_start_x"]
-                temp_col_y = df[finger_names[i] + "_proximal_end_y"] - df[finger_names[i] + "_proximal_start_y"]
-                temp_col_z = df[finger_names[i] + "_proximal_end_z"] - df[finger_names[i] + "_proximal_start_z"]
+            #    temp_col_a = df[finger_names[i] + "_intermediate_end_x"] - df[finger_names[i] + "_intermediate_start_x"]
+            #    temp_col_b = df[finger_names[i] + "_intermediate_end_y"] - df[finger_names[i] + "_intermediate_start_y"]
+            #    temp_col_c = df[finger_names[i] + "_intermediate_end_z"] - df[finger_names[i] + "_intermediate_start_z"]
 
-                temp_col_a = df[finger_names[i] + "_intermediate_end_x"] - df[finger_names[i] + "_intermediate_start_x"]
-                temp_col_b = df[finger_names[i] + "_intermediate_end_y"] - df[finger_names[i] + "_intermediate_start_y"]
-                temp_col_c = df[finger_names[i] + "_intermediate_end_z"] - df[finger_names[i] + "_intermediate_start_z"]
+            #    temp_col = (temp_col_x * temp_col_a) + (temp_col_y * temp_col_b) + (temp_col_z * temp_col_c)
+            #    temp_col = temp_col / (find_distance_between_vec(df, finger_names[i] + "_proximal_end_", finger_names[i] + "_proximal_start_"))
+            #    temp_col = temp_col / (find_distance_between_vec(df, finger_names[i] + "_intermediate_end_", finger_names[i] + "_intermediate_start_"))
 
-                temp_col = (temp_col_x * temp_col_a) + (temp_col_y * temp_col_b) + (temp_col_z * temp_col_c)
-                temp_col = temp_col / (find_distance_between_vec(df, finger_names[i] + "_proximal_end_", finger_names[i] + "_proximal_start_"))
-                temp_col = temp_col / (find_distance_between_vec(df, finger_names[i] + "_intermediate_end_", finger_names[i] + "_intermediate_start_"))
+            #    df[finger_names[i] + "_beta"] = np.arccos(temp_col)
 
-                df[finger_names[i] + "_beta"] = np.arccos(temp_col)
+            # calculate angles gamma
+            #for i in range(1, len(finger_names)):
+            #    temp_col_x = df[finger_names[i] + "_proximal_end_x"] - df[finger_names[i] + "_proximal_start_x"]
+            #    temp_col_y = df[finger_names[i] + "_proximal_end_y"] - df[finger_names[i] + "_proximal_start_y"]
+            #    temp_col_z = df[finger_names[i] + "_proximal_end_z"] - df[finger_names[i] + "_proximal_start_z"]
+
+            #    temp_col_a = df[finger_names[i - 1] + "_proximal_end_x"] - df[finger_names[i - 1] + "_proximal_start_x"]
+            #    temp_col_b = df[finger_names[i - 1] + "_proximal_end_y"] - df[finger_names[i - 1] + "_proximal_start_y"]
+            #    temp_col_c = df[finger_names[i - 1] + "_proximal_end_z"] - df[finger_names[i - 1] + "_proximal_start_z"]
+
+            #    temp_col = (temp_col_x * temp_col_a) + (temp_col_y * temp_col_b) + (temp_col_z * temp_col_c)
+            #    temp_col = temp_col / (find_distance_between_vec(df, finger_names[i] + "_proximal_end_", finger_names[i] + "_proximal_start_"))
+            #    temp_col = temp_col / (find_distance_between_vec(df, finger_names[i - 1] + "_proximal_end_", finger_names[i - 1] + "_proximal_start_"))
+
+            #    df[finger_names[i - 1] + "_" + finger_names[i] + "_gamma"] = np.arccos(temp_col)
+
+
+            # change in the flick of the wrist
+            wrist_to_palm_x = df["hand_position_x"] - df["wrist_x"]
+            wrist_to_palm_y = df["hand_position_y"] - df["wrist_y"]
+            wrist_to_palm_z = df["hand_position_z"] - df["wrist_z"]
+            df["wrist_phi"] = np.arctan(wrist_to_palm_y / wrist_to_palm_x)
+            df["wrist_theta"] = np.arctan((wrist_to_palm_x**2 + wrist_to_palm_y**2)**0.5 / wrist_to_palm_z)
+
 
             # save the csv
             df.to_csv(file_loc, index=False, header=True)

@@ -1,4 +1,4 @@
-from flask import request
+import requests
 import json
 import sys
 import os, inspect
@@ -12,7 +12,7 @@ class SampleListener(Leap.Listener):
 
     def on_init(self, controller):
         self.json_data = []
-        self.initial_x = [0] * len(self.finger_names)
+        self.initial_x = [0, 0, 0, 0, 0]
         self.prev_gesture = 0
         print("Initialized")
 
@@ -29,7 +29,7 @@ class SampleListener(Leap.Listener):
     def on_exit(self, controller):
         print("Exited")
 
-    def find_distance_between_vec(x1, y1, z1, x2, y2, z2):
+    def find_distance_between_vec(self, x1, y1, z1, x2, y2, z2):
         return ((x1 - x2)**2 + (y1 - y2)**2 + (z1 - z2)**2)**0.5
 
     def on_frame(self, controller):
@@ -45,7 +45,7 @@ class SampleListener(Leap.Listener):
 
             # only read in one hand
             if handType == "Left Hand":
-                self.initial_x = [0] * len(self.finger_names)
+                self.initial_x = [0, 0, 0, 0, 0]
                 return
             # else continue
 
@@ -73,14 +73,14 @@ class SampleListener(Leap.Listener):
 
                     # x, y, z
                     # prev_joint == "start"
-                    raw_data[self.finger_names[j] + "_" + bone_names[b] + "start_x"] = bone.prev_joint[0]
-                    raw_data[self.finger_names[j] + "_" + bone_names[b] + "start_y"] = bone.prev_joint[1]
-                    raw_data[self.finger_names[j] + "_" + bone_names[b] + "start_z"] = bone.prev_joint[2]
+                    raw_data[self.finger_names[j] + "_" + self.bone_names[b] + "_" + "start_x"] = bone.prev_joint[0]
+                    raw_data[self.finger_names[j] + "_" + self.bone_names[b] + "_" + "start_y"] = bone.prev_joint[1]
+                    raw_data[self.finger_names[j] + "_" + self.bone_names[b] + "_" + "start_z"] = bone.prev_joint[2]
                         
                     # next_joint == "end"
-                    raw_data[self.finger_names[j] + "_" + bone_names[b] + "end_x"] = bone.next_joint[0]
-                    raw_data[self.finger_names[j] + "_" + bone_names[b] + "end_y"] = bone.next_joint[1]
-                    raw_data[self.finger_names[j] + "_" + bone_names[b] + "end_z"] = bone.next_joint[2]
+                    raw_data[self.finger_names[j] + "_" + self.bone_names[b] + "_" + "end_x"] = bone.next_joint[0]
+                    raw_data[self.finger_names[j] + "_" + self.bone_names[b] + "_" + "end_y"] = bone.next_joint[1]
+                    raw_data[self.finger_names[j] + "_" + self.bone_names[b] + "_" + "end_z"] = bone.next_joint[2]
 
                 j += 1
 
@@ -88,28 +88,28 @@ class SampleListener(Leap.Listener):
 
             # distance betwene thumb distals and the other fingers' distals
             for i in range(1, len(self.finger_names)):
-                model_data["thumb2" + self.finger_names[i]] = find_distance_between_vec(raw_data["thumb_distal_end_x"],
-                                                                                        raw_data["thumb_distal_end_y"],
-                                                                                        raw_data["thumb_distal_end_z"],
-                                                                                        raw_data[self.finger_names[i] + "_distal_end_x"],
-                                                                                        raw_data[self.finger_names[i] + "_distal_end_y"],
-                                                                                        raw_data[self.finger_names[i] + "_distal_end_z"])
+                model_data["thumb2" + self.finger_names[i]] = self.find_distance_between_vec(raw_data["thumb_distal_end_x"],
+                                                                                             raw_data["thumb_distal_end_y"],
+                                                                                             raw_data["thumb_distal_end_z"],
+                                                                                             raw_data[self.finger_names[i] + "_distal_end_x"],
+                                                                                             raw_data[self.finger_names[i] + "_distal_end_y"],
+                                                                                             raw_data[self.finger_names[i] + "_distal_end_z"])
 
             # TODO: add initial distance x
             # change in each finger location
             for i in range(0, len(self.finger_names)):
                 if len(self.json_data) == 0:
-                    model_data[self.finger_names[i] + "fromstart"] = 0
+                    model_data[self.finger_names[i] + "FromStart"] = 0
                 else:
-                    model_data[self.finger_names[i] + "fromstart"] = raw_data[self.finger_names[i] + "_distal_end_x"] - self.initial_x[i]
+                    model_data[self.finger_names[i] + "FromStart"] = raw_data[self.finger_names[i] + "_distal_end_x"] - self.initial_x[i][0]
 
 
             # length between the hand to the end of the finger
             for i in range(0, len(self.finger_names)):
-                model_data[self.finger_names[i] + "Length"] = find_distance_between_vec(raw_data["hand_x"], raw_data["hand_y"], raw_data["hand_z"],
-                                                                                        raw_data[self.finger_names[i] + "_distal_end_x"],
-                                                                                        raw_data[self.finger_names[i] + "_distal_end_y"],
-                                                                                        raw_data[self.finger_names[i] + "_distal_end_z"])
+                model_data[self.finger_names[i] + "Length"] = self.find_distance_between_vec(raw_data["hand_x"], raw_data["hand_y"], raw_data["hand_z"],
+                                                                                             raw_data[self.finger_names[i] + "_distal_end_x"],
+                                                                                             raw_data[self.finger_names[i] + "_distal_end_y"],
+                                                                                             raw_data[self.finger_names[i] + "_distal_end_z"])
 
             # calculate angles omega
             for i in range(1, len(self.finger_names)):
@@ -122,19 +122,19 @@ class SampleListener(Leap.Listener):
                 temp_col_c = raw_data[self.finger_names[i] + "_distal_end_z"] - raw_data[self.finger_names[i] + "_distal_start_z"]
 
                 temp_col = (temp_col_x * temp_col_a) + (temp_col_y * temp_col_b) + (temp_col_z * temp_col_c)
-                temp_col = temp_col / (find_distance_between_vec(raw_data[self.finger_names[i] + "_intermediate_end_x"],
-                                                                 raw_data[self.finger_names[i] + "_intermediate_end_y"],
-                                                                 raw_data[self.finger_names[i] + "_intermediate_end_z"],
-                                                                 raw_data[self.finger_names[i] + "_intermediate_start_x"],
-                                                                 raw_data[self.finger_names[i] + "_intermediate_start_y"],
-                                                                 raw_data[self.finger_names[i] + "_intermediate_start_z"]))
+                temp_col = temp_col / (self.find_distance_between_vec(raw_data[self.finger_names[i] + "_intermediate_end_x"],
+                                                                      raw_data[self.finger_names[i] + "_intermediate_end_y"],
+                                                                      raw_data[self.finger_names[i] + "_intermediate_end_z"],
+                                                                      raw_data[self.finger_names[i] + "_intermediate_start_x"],
+                                                                      raw_data[self.finger_names[i] + "_intermediate_start_y"],
+                                                                      raw_data[self.finger_names[i] + "_intermediate_start_z"]))
 
-                temp_col = temp_col / (find_distance_between_vec(raw_data[self.finger_names[i] + "_distal_end_x"],
-                                                                 raw_data[self.finger_names[i] + "_distal_end_y"],
-                                                                 raw_data[self.finger_names[i] + "_distal_end_z"],
-                                                                 raw_data[self.finger_names[i] + "_distal_start_x"],
-                                                                 raw_data[self.finger_names[i] + "_distal_start_y"],
-                                                                 raw_data[self.finger_names[i] + "_distal_start_z"]))
+                temp_col = temp_col / (self.find_distance_between_vec(raw_data[self.finger_names[i] + "_distal_end_x"],
+                                                                      raw_data[self.finger_names[i] + "_distal_end_y"],
+                                                                      raw_data[self.finger_names[i] + "_distal_end_z"],
+                                                                      raw_data[self.finger_names[i] + "_distal_start_x"],
+                                                                      raw_data[self.finger_names[i] + "_distal_start_y"],
+                                                                      raw_data[self.finger_names[i] + "_distal_start_z"]))
 
                 model_data[self.finger_names[i] + "_omega"] = np.arccos(temp_col)
 
@@ -149,19 +149,19 @@ class SampleListener(Leap.Listener):
                 temp_col_c = raw_data[self.finger_names[i] + "_intermediate_end_z"] - raw_data[self.finger_names[i] + "_intermediate_start_z"]
 
                 temp_col = (temp_col_x * temp_col_a) + (temp_col_y * temp_col_b) + (temp_col_z * temp_col_c)
-                temp_col = temp_col / (find_distance_between_vec(raw_data[self.finger_names[i] + "_proximal_end_x"],
-                                                                 raw_data[self.finger_names[i] + "_proximal_end_y"],
-                                                                 raw_data[self.finger_names[i] + "_proximal_end_z"],
-                                                                 raw_data[self.finger_names[i] + "_proximal_start_x"],
-                                                                 raw_data[self.finger_names[i] + "_proximal_start_y"],
-                                                                 raw_data[self.finger_names[i] + "_proximal_start_z"]))
+                temp_col = temp_col / (self.find_distance_between_vec(raw_data[self.finger_names[i] + "_proximal_end_x"],
+                                                                      raw_data[self.finger_names[i] + "_proximal_end_y"],
+                                                                      raw_data[self.finger_names[i] + "_proximal_end_z"],
+                                                                      raw_data[self.finger_names[i] + "_proximal_start_x"],
+                                                                      raw_data[self.finger_names[i] + "_proximal_start_y"],
+                                                                      raw_data[self.finger_names[i] + "_proximal_start_z"]))
 
-                temp_col = temp_col / (find_distance_between_vec(raw_data[self.finger_names[i] + "_intermediate_end_x"],
-                                                                 raw_data[self.finger_names[i] + "_intermediate_end_y"],
-                                                                 raw_data[self.finger_names[i] + "_intermediate_end_z"],
-                                                                 raw_data[self.finger_names[i] + "_intermediate_start_x"],
-                                                                 raw_data[self.finger_names[i] + "_intermediate_start_y"],
-                                                                 raw_data[self.finger_names[i] + "_intermediate_start_z"]))
+                temp_col = temp_col / (self.find_distance_between_vec(raw_data[self.finger_names[i] + "_intermediate_end_x"],
+                                                                      raw_data[self.finger_names[i] + "_intermediate_end_y"],
+                                                                      raw_data[self.finger_names[i] + "_intermediate_end_z"],
+                                                                      raw_data[self.finger_names[i] + "_intermediate_start_x"],
+                                                                      raw_data[self.finger_names[i] + "_intermediate_start_y"],
+                                                                      raw_data[self.finger_names[i] + "_intermediate_start_z"]))
 
                 model_data[self.finger_names[i] + "_beta"] = np.arccos(temp_col)
 
@@ -177,19 +177,19 @@ class SampleListener(Leap.Listener):
 
                 temp_col = (temp_col_x * temp_col_a) + (temp_col_y * temp_col_b) + (temp_col_z * temp_col_c)
 
-                temp_col = temp_col / (find_distance_between_vec(raw_data[self.finger_names[i] + "_proximal_end_x"],
-                                                                 raw_data[self.finger_names[i] + "_proximal_end_y"],
-                                                                 raw_data[self.finger_names[i] + "_proximal_end_z"],
-                                                                 raw_data[self.finger_names[i] + "_proximal_start_x"],
-                                                                 raw_data[self.finger_names[i] + "_proximal_start_y"],
-                                                                 raw_data[self.finger_names[i] + "_proximal_start_z"]))
+                temp_col = temp_col / (self.find_distance_between_vec(raw_data[self.finger_names[i] + "_proximal_end_x"],
+                                                                      raw_data[self.finger_names[i] + "_proximal_end_y"],
+                                                                      raw_data[self.finger_names[i] + "_proximal_end_z"],
+                                                                      raw_data[self.finger_names[i] + "_proximal_start_x"],
+                                                                      raw_data[self.finger_names[i] + "_proximal_start_y"],
+                                                                      raw_data[self.finger_names[i] + "_proximal_start_z"]))
 
-                temp_col = temp_col / (find_distance_between_vec(raw_data[self.finger_names[i - 1] + "_proximal_end_x"],
-                                                                 raw_data[self.finger_names[i - 1] + "_proximal_end_y"],
-                                                                 raw_data[self.finger_names[i - 1] + "_proximal_end_z"],
-                                                                 raw_data[self.finger_names[i - 1] + "_proximal_start_x"],
-                                                                 raw_data[self.finger_names[i - 1] + "_proximal_start_y"],
-                                                                 raw_data[self.finger_names[i - 1] + "_proximal_start_z"]))
+                temp_col = temp_col / (self.find_distance_between_vec(raw_data[self.finger_names[i - 1] + "_proximal_end_x"],
+                                                                      raw_data[self.finger_names[i - 1] + "_proximal_end_y"],
+                                                                      raw_data[self.finger_names[i - 1] + "_proximal_end_z"],
+                                                                      raw_data[self.finger_names[i - 1] + "_proximal_start_x"],
+                                                                      raw_data[self.finger_names[i - 1] + "_proximal_start_y"],
+                                                                      raw_data[self.finger_names[i - 1] + "_proximal_start_z"]))
 
                 model_data[self.finger_names[i - 1] + "_" + self.finger_names[i] + "_gamma"] = np.arccos(temp_col)
 
@@ -197,8 +197,8 @@ class SampleListener(Leap.Listener):
             wrist_to_palm_x = raw_data["hand_x"] - raw_data["wrist_x"]
             wrist_to_palm_y = raw_data["hand_y"] - raw_data["wrist_y"]
             wrist_to_palm_z = raw_data["hand_z"] - raw_data["wrist_z"]
-            raw_data["wrist_phi"] = np.arctan(wrist_to_palm_y / wrist_to_palm_x)
-            raw_data["wrist_theta"] = np.arctan((wrist_to_palm_x**2 + wrist_to_palm_y**2)**0.5 / wrist_to_palm_z)
+            model_data["wrist_phi"] = np.arctan(wrist_to_palm_y / wrist_to_palm_x)
+            model_data["wrist_theta"] = np.arctan((wrist_to_palm_x**2 + wrist_to_palm_y**2)**0.5 / wrist_to_palm_z)
 
             # update initial x
             if len(self.json_data) == 0:
@@ -207,24 +207,30 @@ class SampleListener(Leap.Listener):
 
             # maintain 20 timesteps
             if len(self.json_data) < 20:
-                self.json_data.append(raw_data)
+                self.json_data.append(model_data)
             else:
                 del self.json_data[0]
-                self.json_data.append(raw_data)
+                self.json_data.append(model_data)
 
             # send request if enough data
-            if len(self.json_data) < 20:
+            if len(self.json_data) == 20:
+                #send = dict()
+                #for i in range(0, 20):
+                #    send[str(i)] = self.json_data[i]
+
+                #send = json.dumps(send)
                 send = json.dumps(self.json_data)
-                res = requests.post("http://127.0.0.1:3141/determine_gesture/", json=send).json()
+                res = requests.post("http://127.0.0.1:5000/determine-gesture/", json=send).json()
                 curr_gesture = res['gesture']
 
+                print(curr_gesture)
+
                 # gets rid of chains of gestures
-                if self.prev_gesture != 0:
-                    self.prev_gesture = curr_gesture
-                    curr_gesture = 0
+                #if self.prev_gesture != 0:
+                #    self.prev_gesture = curr_gesture
+                #    curr_gesture = 0
 
                 # computed gesture. send to QTC GUI
-            
 
 
 def main():

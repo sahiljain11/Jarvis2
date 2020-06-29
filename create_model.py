@@ -30,10 +30,10 @@ number_of_gestures = 12   # output size
 sequence_length    = 20   # refers to the amount of timeframes to check
 batch_size         = 1    # how many different files to compute
 learning_rate      = 0.001
-num_epoch          = 5
+num_epoch          = 10
 folder_name = ["none", "pinch_in", "pinch_out", "swipe_up", "swipe_down", "swipe_left", "swipe_right",
                "grab2fist", "fist2grab", "peace", "2fingers", "pointing"]
-STORAGE_PATH = "state_dict_model_new_features_with_prev.pt"
+STORAGE_PATH = "state_dict_model_wrist_features.pt"
 
 def create_training_tensor(data_file, number_of_features, feature_columns):
 
@@ -52,7 +52,9 @@ def create_training_tensor(data_file, number_of_features, feature_columns):
 
     file_contents = []
 
+
     for row_num in range(inner, outer):
+
         if row_num == 0:
             continue
         # get each row of the csv
@@ -95,6 +97,7 @@ feature_columns = []
 for i in range(0, len(col_data)):
     if col_data[i] == "1":
         feature_columns.append(i)
+        print(col_file.readlines()[0].split(",")[i])
 
 number_of_features = len(feature_columns)
 
@@ -263,7 +266,7 @@ def epoch(folder_name, number_of_gestures, batch_size, lstm_model, loss_function
 # create loss function, model, and optimizer
 loss_function = nn.CrossEntropyLoss()
 lstm_model = JarvisLSTM(number_of_hidden, number_of_features, number_of_gestures, sequence_length)
-lstm_model.load_state_dict(torch.load("state_dict_model_83.pt"))
+#lstm_model.load_state_dict(torch.load("state_dict_model_95.pt"))
 optimizer = optim.Adam(lstm_model.parameters(), lr=learning_rate)
 start_time = time.time()
 
