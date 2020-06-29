@@ -10,11 +10,11 @@ from email.mime.text import MIMEText
 import mimetypes
 import os
 from multipledispatch import dispatch
-
+from PySide2 import QtCore as qtc
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
-from apiclient import errors
+import apiclient.errors
 
 ''' 
 Gmail Module Functionality Description
@@ -30,10 +30,10 @@ Gmail Module Functionality Description
 '''
 
 
-class GmailModule:
+class GmailModule(qtc.QObject):
 
     def __init__(self):
-
+        super(GmailModule, self).__init__()
         self.scopes = ['https://mail.google.com/']
         self.service = self.use_token_pickle_to_get_service()
 
@@ -67,6 +67,7 @@ class GmailModule:
     '''
     gets a list of labels from email account
     '''
+    @qtc.Slot()
     def get_labels(self):
         results = self.service.users().labels().list(userId='me').execute()
 
@@ -93,9 +94,10 @@ class GmailModule:
 
         return list_of_msg_ids
 
-    def GetMessage(self, user_id, msg_id):
+    @qtc.Slot()
+    def GetMessage(self, msg_id):
         try:
-            message = self.service.users().messages().get(userId=user_id, id=msg_id, format='full').execute()
+            message = self.service.users().messages().get(userId='me', id=msg_id, format='full').execute()
 
             raw_msg = message['payload']['parts'][0]['body']['data']
             msg_str = base64.urlsafe_b64decode(raw_msg.encode('ASCII'))
@@ -104,14 +106,15 @@ class GmailModule:
             # print ('Message snippet: %s' % message['payload']['body']['data'])
 
             return msg_str
-        except errors.HttpError:
+        except apiclient.errors.HttpError:
 
             return
 
-    def ListMessagesMatchingQuery(self, user_id, query=''):
+    @qtc.Slot()
+    def ListMessagesMatchingQuery(self, query=''):
 
         try:
-            response = self.service.users().messages().list(userId=user_id,
+            response = self.service.users().messages().list(userId='me',
                                                             q=query).execute()
             messages = []
             if 'messages' in response:
@@ -124,9 +127,10 @@ class GmailModule:
                 messages.extend(response['messages'])
 
             return messages
-        except errors.HttpError as error:
+        except apiclient.errors.HttpError as error:
             return
 
+    @qtc.Slot()
     def ListMessagesWithLabels(self, user_id, label_ids=''):
         """
         List all Messages of the user's mailbox with label_ids applied.
@@ -158,12 +162,12 @@ class GmailModule:
                 messagess.extend(response['messages'])
 
             return messagess
-        except errors.HttpError as error:
+        except apiclient.errors.HttpError as error:
             print('An error occurred: %s' % error)
-
-    def get_messages_from_query(self, user_id, query=''):
+    @qtc.Slot()
+    def get_messages_from_query(self, query=''):
         try:
-            response = self.service.users().messages().list(userId=user_id,
+            response = self.service.users().messages().list(userId='me',
                                                             q=query).execute()
             messages = []
             if 'messages' in response:
@@ -171,12 +175,13 @@ class GmailModule:
 
             while 'nextPageToken' in response:
                 page_token = response['nextPageToken']
-                response = self.service.users().messages().list(userId=user_id, q=query,
+                response = self.service.users().messages().list(userId='me', q=query,
                                                                 pageToken=page_token).execute()
                 messages.extend(response['messages'])
-
+            print('hi')
             return messages
-        except errors.HttpError as error:
+        except apiclient.errors.HttpError as error:
+            print('bye')
             return
 
     def list_message_ids(self):
@@ -240,7 +245,7 @@ class GmailModule:
                        .execute())
 
             return message
-        except errors.HttpError as error:
+        except apiclient.errors.HttpError as error:
             return
 
 '''
@@ -526,10 +531,9 @@ def send_message(service, user_id, message):
 
 if __name__ == '__main__':
     gmail = GmailModule()
-    gmail.get_labels()
-    gmail.GetMessage()
+    (gmail.get_labels())
+    gmail.get_list_of_users_message_ids()
+
     print("\n \n \n")
     # ListMessagesMatchingQuery(service,'me','it\'s time to refresh')
-    ListMessagesWithLabels(service, 'me', 'SENT')
-    print("\n \n \n")
-    GetMessage(service, 'me', '1729468f38803eb0')
+

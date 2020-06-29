@@ -56,8 +56,8 @@ class SpotipyModule(qtc.QObject):
                                              offset=None)
         return
 
-    @qtc.Slot()
     # plays songs from a specific playlist
+    @qtc.Slot()
     def queue_music_from_playlist(self,playlist_name):
         # gets a list of tracks from a user inputted name of playlist
         search_results = ((self.token.playlist_tracks(self.find_a_playlist(playlist_title=playlist_name),
@@ -86,8 +86,8 @@ class SpotipyModule(qtc.QObject):
         self.token.pause_playback()
         return
 
-    @qtc.Slot(int)
     # changes volume of current song
+    @qtc.Slot(int)
     def change_volume(self, value):
         if self.token.current_user_playing_track() is not None:
             self.token.volume(value)

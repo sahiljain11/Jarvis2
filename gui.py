@@ -3,6 +3,7 @@ import numpy as np
 import sys
 import os
 from Spotify_Module import SpotipyModule
+from GmailModule import GmailModule
 from PySide2 import QtWidgets as qtw
 from PySide2 import QtGui as qtg
 from PySide2 import QtCore as qtc
@@ -42,9 +43,12 @@ if __name__ == '__main__':
     app = qtg.QGuiApplication(sys.argv)
     engine = qtm.QQmlApplicationEngine()
     spotify = SpotipyModule(os.environ.get('USER'), os.environ.get('CLIENT_ID'), os.environ.get('CLIENT_SECRET'), os.environ.get('REDIRECT_URI'))
+    gmail = GmailModule()
     # Load classes and main qml file 
     engine.rootContext().setContextProperty("spotify", spotify)
-    engine.load(qtc.QUrl.fromLocalFile('spotify.qml'))
+    engine.rootContext().setContextProperty("gmail",gmail)
+    engine.load(qtc.QUrl.fromLocalFile('gmail.qml'))
+
 
     # Exit if we have no classes
     if not engine.rootObjects():

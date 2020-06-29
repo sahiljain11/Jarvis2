@@ -12,6 +12,7 @@ import "./components"
 
 // Initialize application window
 ApplicationWindow{
+    property alias vis: new_email.visible
     visible: true
     width: 2000
     height: 1200
@@ -24,14 +25,15 @@ ApplicationWindow{
    }
 
    Image{
+        id: jarvis
         source: 'images/Jarvis_Placeholder_1.png'
 
         anchors{
         verticalCenter: parent.verticalCenter
         horizontalCenter: parent.horizontalCenter
         }
-        width: parent.width/5
-        height: parent.height/3
+        width: parent.width/2.5
+        height: parent.height/1.5
    }
 
    Item{
@@ -41,27 +43,24 @@ ApplicationWindow{
 
 
         ObjectModel {
-            id: itemModel
-            Gmail_Butt { height: list.height/4; width: list.width;  }
-            Gmail_Butt { height: list.height/4; width: list.width; color: "green" }
-            Gmail_Butt { height: list.height/4; width: list.width; color: "blue" }
-            Gmail_Butt { height: list.height/4; width: list.width; color: "white" }
-            Gmail_Butt { height: list.height/4; width: list.width; color: "red" }
-            Gmail_Butt { height: list.height/4; width: list.width; color: "green" }
-            Gmail_Butt { height: list.height/4; width: list.width; color: "blue" }
-            Gmail_Butt { height: list.height/4; width: list.width; color: "white" }
-            Gmail_Butt { height: list.height/4; width: list.width; color: "red" }
-            Gmail_Butt { height: list.height/4; width: list.width; color: "green" }
-            Gmail_Butt { height: list.height/4; width: list.width; color: "blue" }
-            Gmail_Butt { height: list.height/4; width: list.width; color: "white" }
-            Gmail_Butt { height: list.height/4; width: list.width; color: "red" }
-            Gmail_Butt { height: list.height/4; width: list.width; color: "green" }
-            Gmail_Butt { height: list.height/4; width: list.width; color: "blue" }
-            Gmail_Butt { height: list.height/4; width: list.width; color: "white" }
-            Gmail_Butt { height: list.height/4; width: list.width; color: "red" }
-            Gmail_Butt { height: list.height/4; width: list.width; color: "green" }
-            Gmail_Butt { height: list.height/4; width: list.width; color: "blue" }
-            Gmail_Butt { height: list.height/4; width: list.width; color: "white" }
+            id: emailModel
+            Gmail_Butt { height: emails.height/4; width: emails.width;color: 'green' }
+            Gmail_Butt { height: emails.height/4; width: emails.width; color: "green" }
+            Gmail_Butt { height: emails.height/4; width: emails.width; color: "blue" }
+            Gmail_Butt { height: emails.height/4; width: emails.width; color: "white" }
+            Gmail_Butt { height: emails.height/4; width: emails.width; color: "red" }
+            Gmail_Butt { height: emails.height/4; width: emails.width; color: "green" }
+            Gmail_Butt { height: emails.height/4; width: emails.width; color: "blue" }
+            Gmail_Butt { height: emails.height/4; width: emails.width; color: "white" }
+            Gmail_Butt { height: emails.height/4; width: emails.width; color: "red" }
+            Gmail_Butt { height: emails.height/4; width: emails.width; color: "green" }
+            Gmail_Butt { height: emails.height/4; width: emails.width; color: "blue" }
+            Gmail_Butt { height: emails.height/4; width: emails.width; color: "white" }
+            Gmail_Butt { height: emails.height/4; width: emails.width; color: "red" }
+            Gmail_Butt { height: emails.height/4; width: emails.width; color: "green" }
+            Gmail_Butt { height: emails.height/4; width: emails.width; color: "blue" }
+            Gmail_Butt { height: emails.height/4; width: emails.width; color: "white" }
+            Gmail_Butt { height: emails.height/4; width: emails.width; color: "red" }
 
 
 
@@ -69,40 +68,222 @@ ApplicationWindow{
         }
         ListView{
 
-        id: list
+        id: emails
 
         contentHeight: parent.height
         contentWidth: parent.width/2
         width: parent.width/2
         height: parent.height
         clip: true
-        model: itemModel
+        model: emailModel
         spacing: parent.height/40
         Keys.onUpPressed: scroll.decrease()
         Keys.onDownPressed: scroll.increase()
         focus: true
         anchors{
             left: parent.left
-            leftMargin: parent.width/12
+            leftMargin: parent.width/24
         }
         ScrollBar.vertical:
             ScrollBar{
             id: scroll
             active : true
-            height: list.height
-            width: list.width/20
+            height: emails.height
+            width: emails.width/20
             minimumSize: 0.0
             policy: Qt.ScrollBarAlwaysOn
             stepSize: .005
-
-
             anchors.right: parent.right
             }
+        }
+        }
+   ListView{
+        id: labels
 
+        height: parent.height/5
+        width: parent.width/5
+        contentHeight: parent.height/4
+        contentWidth: parent.width/5
+        spacing: 20
+        anchors{
 
-
+            right: parent.right
+            rightMargin: parent.width/40
+            top: parent.top
+            topMargin: parent.height/2
+            bottom: parent.bottom
+            bottomMargin: parent.height/24
         }
 
+        focus: true
+        model: labellist
+        ScrollBar.vertical:
+           ScrollBar{
+           id: labelscroll
+           active : true
+           height: labels.height
+           width: labels.width/20
+           minimumSize: 0.0
+           policy: Qt.ScrollBarAlwaysOn
+           stepSize: .005
+           anchors.right: parent.right
+            }
         }
+
+   ObjectModel{
+        id: labellist
+        Rectangle{ height: labels.height/6; width: labels.width; color: 'green' }
+        Rectangle{ height: labels.height/6; width: labels.width; color: 'blue' }
+        Rectangle{ height: labels.height/6; width: labels.width; color: 'green' }
+        Rectangle{ height: labels.height/6; width: labels.width; color: 'blue' }
+        Rectangle{ height: labels.height/6; width: labels.width; color: 'green' }
+        Rectangle{ height: labels.height/6; width: labels.width; color: 'blue' }
+        Rectangle{ height: labels.height/6; width: labels.width; color: 'green' }
+        Rectangle{ height: labels.height/6; width: labels.width; color: 'blue' }
+        Rectangle{ height: labels.height/6; width: labels.width; color: 'green' }
+        Rectangle{ height: labels.height/6; width: labels.width; color: 'blue' }
+        Rectangle{ height: labels.height/6; width: labels.width; color: 'green' }
+        Rectangle{ height: labels.height/6; width: labels.width; color: 'blue' }
+
+
+
+   }
+
+   Butt{
+    image: './Images/NewEmailIcon.png'
+
+    width: parent.width/15
+    height: parent.width/15
+    anchors{
+        right: searchbar.left
+        rightMargin: searchbar.width/40
+        top: parent.top
+        topMargin: parent.height/25
+    }
+    onTouched: {vis= true, print('hi')}
+
+    }
+
+    Item{
+
+        id: new_email
+        anchors.fill: jarvis
+        visible: false
+        Rectangle{
+            anchors.fill: new_email
+            color: '#21ADE8'
+            border.color: 'black'
+            border.width: 5
+            radius: 15
+            Rectangle{
+                id: send_to
+                anchors{
+                    top: parent.top
+                    topMargin: parent.height/15
+                    left: parent.left
+                    leftMargin: parent.width/15
+                    right: parent.right
+                    rightMargin: parent.width/15
+                    bottom: parent.bottom
+                    bottomMargin: parent.height/1.2
+                }
+                color: 'white'
+
+                radius: 15
+                TextEdit{
+                    cursorPosition: 5
+                    anchors.fill: parent
+                    wrapMode: TextEdit.Wrap
+
+
+                }
+            }
+            Rectangle{
+                id: subjectText
+                color: 'white'
+                radius: 15
+
+                anchors{
+                    top: send_to.bottom
+                    topMargin: send_to.height/5
+                    bottom: parent.bottom
+                    bottomMargin: parent.height/1.4
+                    left: send_to.left
+                    right: send_to.right
+
+                }
+                TextEdit{
+                    cursorPosition: 5
+                    anchors.fill: parent
+                    wrapMode: TextEdit.Wrap
+                }
+            }
+            Rectangle{
+                id: bodyText
+                color: 'white'
+                radius: 15
+                anchors{
+                    top: subjectText.bottom
+                    topMargin: subjectText.height/5
+                    bottom: parent.bottom
+                    bottomMargin: parent.height/5
+                    left: subjectText.left
+                    right: subjectText.right
+                }
+                TextEdit{
+                       cursorPosition: 5
+                       anchors.fill: parent
+                       wrapMode: TextEdit.Wrap
+                }
+            }
+        Butt{
+            id: send_butt
+            Text{text: 'Send Message'}
+            anchors{
+                top: parent.top
+                topMargin: parent.height/1.2
+                bottom: parent.bottom
+                bottomMargin: parent.height/20
+                right: parent.right
+                rightMargin: parent.width/20
+                left: parent.left
+                leftMargin: parent.width/1.2
+            }
+            onTouched:{vis = false, print('bye')}
+        }
+        }
+
+    }
+
+
+    TextField{
+    id: searchbar
+    anchors{
+        top: parent.top
+        topMargin: parent.height/20
+
+        right: parent.right
+        rightMargin: parent.width/40
+        left: parent.left
+        leftMargin: parent.width/1.5
+
+    }
+    Keys.onPressed:{
+        if(event.key == Qt.Key_Left){
+        console.log("searching")
+        gmail.get_messages_from_query(searchbar.text)
+        }
+    }
+    width: parent.width/10
+    height: parent.height/10
+
+    style: TextFieldStyle{
+        textColor: 'black'
+        font.pixelSize: 50
+        background: Picture{
+            image: "./Images/SearchBar.png"
+            }
+        }
+    }
    }
 
