@@ -41,8 +41,9 @@ ApplicationWindow{
         width: parent.width/2
         height: parent.height
 
-        /*
+
         ObjectModel {
+
             id: emailModel
             Gmail_Butt { height: emails.height/4; width: emails.width;color: 'green' }
             Gmail_Butt { height: emails.height/4; width: emails.width; color: "green" }
@@ -62,11 +63,8 @@ ApplicationWindow{
             Gmail_Butt { height: emails.height/4; width: emails.width; color: "white" }
             Gmail_Butt { height: emails.height/4; width: emails.width; color: "red" }
         }
-        */
-        ListModel{
-            id: emailModel
 
-        }
+
         ListView{
 
         id: emails
@@ -78,7 +76,7 @@ ApplicationWindow{
         clip: true
         model: emailModel
         delegate: Gmail_Butt{
-            Text{ text: 'sender'}
+            tit: 'sender'
         }
         spacing: parent.height/40
         Keys.onUpPressed: scroll.decrease()
@@ -88,6 +86,7 @@ ApplicationWindow{
             left: parent.left
             leftMargin: parent.width/24
         }
+        
         ScrollBar.vertical:
             ScrollBar{
             id: scroll

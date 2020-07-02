@@ -9,7 +9,6 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import mimetypes
 import os
-from multipledispatch import dispatch
 from PySide2 import QtCore as qtc
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -149,11 +148,13 @@ class GmailModule(qtc.QObject):
                    return subject
         except apiclient.errors.HttpError:
             return
-
-
-
-
-
+    def GetSnippet(self,msg_id):
+        try:
+            message = self.service.users().messages().get(userId='me', id=msg_id, format='metadata').execute()
+            snippet = message['snippet']
+            return snippet
+        except apiclient.errors.HttpError:
+            return
     @qtc.Slot()
     def ListMessagesMatchingQuery(self, user_id,query=''):
 
@@ -593,6 +594,7 @@ if __name__ == '__main__':
         (gmail.GetMessage(array[i]['id']))
         print(gmail.GetSender(array[i]['id']))
         print(gmail.GetSubjectTitle(array[i]['id']))
+        print(gmail.GetSnippet(array[i]['id']))
 
     # ListMessagesMatchingQuery(service,'me','it\'s time to refresh')
 
