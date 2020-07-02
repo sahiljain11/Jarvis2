@@ -100,18 +100,27 @@ class GmailModule(qtc.QObject):
         try:
             message = self.service.users().messages().get(userId='me', id=msg_id, format='full').execute()
 
-            #(message['payload']['body']['data'])
 
             try:
-                raw_msg = message['payload']['parts'][0]['body']['data']
-                msg_str = base64.urlsafe_b64decode(raw_msg.encode('ASCII'))
+
+                    raw_msg = message['payload']['parts'][0]['body']['data']
+                    msg_str = base64.urlsafe_b64decode(raw_msg.encode('ASCII'))
 
             #print(msg_str)
             # print ('Message snippet: %s' % message['payload']['body']['data'])
 
             except KeyError:
-                raw_msg = message['payload']['body']['data']
-                msg_str = base64.urlsafe_b64decode(raw_msg.encode("ASCII"))
+                if 'parts' in message['payload'] and 'data' not in message['payload']['parts'][0]['body']:
+
+                    raw_msg = ((message['payload']['parts'][0]['parts'][1]['body']['data']))
+                    msg_str = base64.urlsafe_b64decode(raw_msg.encode('ASCII'))
+                elif 'parts' in message['payload'] and 'data' in (message['payload']['parts'][0]['body']):
+                    raw_msg=((message['payload']['parts'][0]['body']['data']))
+                    msg_str = base64.urlsafe_b64decode(raw_msg.encode('ASCII'))
+                else:
+                    raw_msg = message['payload']['body']['data']
+                    msg_str = base64.urlsafe_b64decode(raw_msg.encode('ASCII'))
+
                 return msg_str
 
             return msg_str
@@ -122,17 +131,26 @@ class GmailModule(qtc.QObject):
     def GetSender(self,msg_id):
         try:
             message = self.service.users().messages().get(userId='me', id=msg_id, format='metadata').execute()
-            i = 0
-            parsing_mat = str(message['payload']['headers'][4])
-            for value in message['payload']['headers']:
-
-                m = re.search('(?<={'name': 'From', 'value'', parsing_mat)
-                print(m)
-                i +=1
+            
+            for i in range(0,len((message['payload']['headers']))):
+                if (message['payload']['headers'][i]['name']) == 'From':
+                    sender = ((message['payload']['headers'][i]['value']))
+                    return sender
             return
         except apiclient.errors.HttpError:
 
             return
+    def GetSubjectTitle(self,msg_id):
+        try:
+            message = self.service.users().messages().get(userId='me', id=msg_id, format='metadata').execute()
+            for i in range(0,len((message['payload']['headers']))):
+                if (message['payload']['headers'][i]['name']) == 'Subject':
+                   subject = ((message['payload']['headers'][i]['value']))
+                   return subject
+        except apiclient.errors.HttpError:
+            return
+
+
 
 
 
@@ -569,10 +587,12 @@ if __name__ == '__main__':
     gmail.get_list_of_users_message_ids()
 
     array = gmail.get_list_of_users_message_ids()
-    for i in range(0,30):
+    print(len(array))
+    for i in range(0,100):
+        print(i)
+        (gmail.GetMessage(array[i]['id']))
+        print(gmail.GetSender(array[i]['id']))
+        print(gmail.GetSubjectTitle(array[i]['id']))
 
-        print(gmail.GetMessage(array[i]['id']))
-        gmail.GetSender(array[i]['id'])
-    print("\n \n \n")
     # ListMessagesMatchingQuery(service,'me','it\'s time to refresh')
 
