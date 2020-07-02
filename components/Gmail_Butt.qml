@@ -11,7 +11,8 @@ Picture{
     property var picWidth: sourceWidth/2
     property var picHeight: sourceHeight/2
     property bool vis: false
-
+    property alias tit: title.text
+    property alias sen: sender.text
     image: "../images/email_preview_button.png"
 
     Text{
