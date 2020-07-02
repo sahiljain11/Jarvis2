@@ -41,7 +41,7 @@ ApplicationWindow{
         width: parent.width/2
         height: parent.height
 
-
+        /*
         ObjectModel {
             id: emailModel
             Gmail_Butt { height: emails.height/4; width: emails.width;color: 'green' }
@@ -61,9 +61,10 @@ ApplicationWindow{
             Gmail_Butt { height: emails.height/4; width: emails.width; color: "blue" }
             Gmail_Butt { height: emails.height/4; width: emails.width; color: "white" }
             Gmail_Butt { height: emails.height/4; width: emails.width; color: "red" }
-
-
-
+        }
+        */
+        ListModel{
+            id: emailModel
 
         }
         ListView{
@@ -76,6 +77,9 @@ ApplicationWindow{
         height: parent.height
         clip: true
         model: emailModel
+        delegate: Gmail_Butt{
+            Text{ text: 'sender'}
+        }
         spacing: parent.height/40
         Keys.onUpPressed: scroll.decrease()
         Keys.onDownPressed: scroll.increase()
@@ -176,7 +180,7 @@ ApplicationWindow{
             border.width: 5
             radius: 15
             Rectangle{
-                id: send_to
+                id: sendto
                 anchors{
                     top: parent.top
                     topMargin: parent.height/15
@@ -191,6 +195,8 @@ ApplicationWindow{
 
                 radius: 15
                 TextEdit{
+                    id: sendtotext
+                    text: ""
                     cursorPosition: 5
                     anchors.fill: parent
                     wrapMode: TextEdit.Wrap
@@ -204,15 +210,17 @@ ApplicationWindow{
                 radius: 15
 
                 anchors{
-                    top: send_to.bottom
-                    topMargin: send_to.height/5
+                    top: sendto.bottom
+                    topMargin: sendto.height/2
                     bottom: parent.bottom
                     bottomMargin: parent.height/1.4
-                    left: send_to.left
-                    right: send_to.right
+                    left: sendto.left
+                    right: sendto.right
 
                 }
                 TextEdit{
+                    id: subjectStringText
+                    text: ""
                     cursorPosition: 5
                     anchors.fill: parent
                     wrapMode: TextEdit.Wrap
@@ -224,32 +232,82 @@ ApplicationWindow{
                 radius: 15
                 anchors{
                     top: subjectText.bottom
-                    topMargin: subjectText.height/5
+                    topMargin: subjectText.height/1.5
                     bottom: parent.bottom
                     bottomMargin: parent.height/5
                     left: subjectText.left
                     right: subjectText.right
                 }
                 TextEdit{
-                       cursorPosition: 5
-                       anchors.fill: parent
-                       wrapMode: TextEdit.Wrap
+                   id: bodyStringText
+                   text: ""
+                   cursorPosition: 5
+                   anchors.fill: parent
+                   wrapMode: TextEdit.Wrap
                 }
             }
+        Label{
+            color: 'blue'
+            text: 'Recipient'
+            font.pixelSize: 30
+            anchors{
+                top: parent.top
+                topMargin: parent.height/40
+                bottom: sendto.top
+                left: sendto.left
+                right: sendto.right
+                rightMargin: sendto.width/1.2
+            }
+        }
+        Label{
+            color: 'blue'
+            text: 'Subject'
+            font.pixelSize: 30
+            anchors{
+                top: sendto.bottom
+                bottom: subjectText.top
+                left: subjectText.left
+                right: subjectText.right
+                rightMargin: subjectText.width/1.2
+            }
+        }
+        Label{
+            color: 'blue'
+            text: 'Message'
+            font.pixelSize: 30
+            anchors{
+                top: subjectText.bottom
+                bottom: bodyText.top
+                left: bodyText.left
+                right: bodyText.right
+                rightMargin: bodyText.width/1.2
+            }
+        }
         Butt{
             id: send_butt
-            Text{text: 'Send Message'}
+
+            image: './Images/SendEmailIcon.png'
             anchors{
                 top: parent.top
                 topMargin: parent.height/1.2
                 bottom: parent.bottom
-                bottomMargin: parent.height/20
+                bottomMargin: parent.height/30
                 right: parent.right
-                rightMargin: parent.width/20
+                rightMargin: parent.width/25
                 left: parent.left
-                leftMargin: parent.width/1.2
+                leftMargin: parent.width/2
             }
-            onTouched:{vis = false, print('bye')}
+            onTouched:{
+                console.log('yourmom')
+
+                gmail.send_message("me", sendtotext.text, subjectStringText.text, bodyStringText.text)
+
+                vis = false
+                print('bye')
+                sendtotext.text=""
+                subjectStringText.text=""
+                bodyStringText.text= ""
+            }
         }
         }
 
@@ -270,8 +328,8 @@ ApplicationWindow{
     }
     Keys.onPressed:{
         if(event.key == Qt.Key_Left){
-        console.log("searching")
-        gmail.get_messages_from_query(searchbar.text)
+            console.log("searching")
+            gmail.get_messages_from_query(searchbar.text)
         }
     }
     width: parent.width/10

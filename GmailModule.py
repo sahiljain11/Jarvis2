@@ -15,6 +15,7 @@ from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 import apiclient.errors
+import re
 
 ''' 
 Gmail Module Functionality Description
@@ -99,19 +100,44 @@ class GmailModule(qtc.QObject):
         try:
             message = self.service.users().messages().get(userId='me', id=msg_id, format='full').execute()
 
-            raw_msg = message['payload']['parts'][0]['body']['data']
-            msg_str = base64.urlsafe_b64decode(raw_msg.encode('ASCII'))
+            #(message['payload']['body']['data'])
 
-            print(msg_str)
+            try:
+                raw_msg = message['payload']['parts'][0]['body']['data']
+                msg_str = base64.urlsafe_b64decode(raw_msg.encode('ASCII'))
+
+            #print(msg_str)
             # print ('Message snippet: %s' % message['payload']['body']['data'])
+
+            except KeyError:
+                raw_msg = message['payload']['body']['data']
+                msg_str = base64.urlsafe_b64decode(raw_msg.encode("ASCII"))
+                return msg_str
 
             return msg_str
         except apiclient.errors.HttpError:
 
             return
 
+    def GetSender(self,msg_id):
+        try:
+            message = self.service.users().messages().get(userId='me', id=msg_id, format='metadata').execute()
+            i = 0
+            parsing_mat = str(message['payload']['headers'][4])
+            for value in message['payload']['headers']:
+
+                m = re.search('(?<={'name': 'From', 'value'', parsing_mat)
+                print(m)
+                i +=1
+            return
+        except apiclient.errors.HttpError:
+
+            return
+
+
+
     @qtc.Slot()
-    def ListMessagesMatchingQuery(self, query=''):
+    def ListMessagesMatchingQuery(self, user_id,query=''):
 
         try:
             response = self.service.users().messages().list(userId='me',
@@ -164,7 +190,7 @@ class GmailModule(qtc.QObject):
             return messagess
         except apiclient.errors.HttpError as error:
             print('An error occurred: %s' % error)
-    @qtc.Slot()
+    @qtc.Slot(str)
     def get_messages_from_query(self, query=''):
         try:
             response = self.service.users().messages().list(userId='me',
@@ -178,10 +204,10 @@ class GmailModule(qtc.QObject):
                 response = self.service.users().messages().list(userId='me', q=query,
                                                                 pageToken=page_token).execute()
                 messages.extend(response['messages'])
-            print('hi')
+
             return messages
         except apiclient.errors.HttpError as error:
-            print('bye')
+
             return
 
     def list_message_ids(self):
@@ -189,7 +215,7 @@ class GmailModule(qtc.QObject):
 
         return emails
 
-    @dispatch(str, str, str, str, str, str)
+
     def create_email(self, sender, to, subject, message_text, file_dir, filename):
         message = MIMEMultipart()
         message['to'] = to
@@ -230,22 +256,30 @@ class GmailModule(qtc.QObject):
 
 
 
-    @dispatch(str, str, str, str)
+
     # create email- use message returned as input for send_message
-    def create_email(self, sender, to, subject, message_text):
+
+    @qtc.Slot(str,str,str,str,result=dict)
+    def create_basic_email(self, sender, to, subject, message_text):
         message = MIMEText(message_text)
         message['to'] = to
         message['from'] = sender
         message['subject'] = subject
+
         return {'raw': base64.urlsafe_b64encode((message.as_bytes())).decode()}
 
-    def send_message(self, user_id, message):
-        try:
-            message = (self.service.users().messages().send(userId=user_id, body=message)
-                       .execute())
 
+
+    @qtc.Slot(str,str,str,str)
+    def send_message(self, sender,to,subject,message_text):
+        premessage= self.create_basic_email(sender,to,subject,message_text)
+        try:
+            message = (self.service.users().messages().send(userId=sender, body=premessage)
+                       .execute())
+            print((message))
             return message
         except apiclient.errors.HttpError as error:
+            print('error')
             return
 
 '''
@@ -534,6 +568,11 @@ if __name__ == '__main__':
     (gmail.get_labels())
     gmail.get_list_of_users_message_ids()
 
+    array = gmail.get_list_of_users_message_ids()
+    for i in range(0,30):
+
+        print(gmail.GetMessage(array[i]['id']))
+        gmail.GetSender(array[i]['id'])
     print("\n \n \n")
     # ListMessagesMatchingQuery(service,'me','it\'s time to refresh')
 
