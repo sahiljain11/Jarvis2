@@ -10,6 +10,7 @@ from email.mime.text import MIMEText
 import mimetypes
 import os
 from PySide2 import QtCore as qtc
+from PySide2 import QtGui as qtg
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
@@ -82,7 +83,7 @@ class GmailModule(qtc.QObject):
                 label_list_index += 1
             return label_list
 
-
+    @qtc.Slot(result=list)
     def get_list_of_users_message_ids(self):
 
         emails = self.service.users().messages().list(userId='me').execute()
@@ -94,7 +95,7 @@ class GmailModule(qtc.QObject):
 
         return list_of_msg_ids
 
-    @qtc.Slot()
+    @qtc.Slot(str,result=str)
     def GetMessage(self, msg_id):
         try:
             message = self.service.users().messages().get(userId='me', id=msg_id, format='full').execute()
@@ -127,6 +128,7 @@ class GmailModule(qtc.QObject):
 
             return
 
+    @qtc.Slot(str,result=str)
     def GetSender(self,msg_id):
         try:
             message = self.service.users().messages().get(userId='me', id=msg_id, format='metadata').execute()
@@ -139,6 +141,8 @@ class GmailModule(qtc.QObject):
         except apiclient.errors.HttpError:
 
             return
+
+    @qtc.Slot(str,result=str)
     def GetSubjectTitle(self,msg_id):
         try:
             message = self.service.users().messages().get(userId='me', id=msg_id, format='metadata').execute()
@@ -148,6 +152,8 @@ class GmailModule(qtc.QObject):
                    return subject
         except apiclient.errors.HttpError:
             return
+
+    @qtc.Slot(str,result=str)
     def GetSnippet(self,msg_id):
         try:
             message = self.service.users().messages().get(userId='me', id=msg_id, format='metadata').execute()
@@ -295,7 +301,7 @@ class GmailModule(qtc.QObject):
         try:
             message = (self.service.users().messages().send(userId=sender, body=premessage)
                        .execute())
-            print((message))
+            print(message)
             return message
         except apiclient.errors.HttpError as error:
             print('error')

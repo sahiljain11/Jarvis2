@@ -43,8 +43,10 @@ ApplicationWindow{
 
 
         ListModel {
+            property var list : ((gmail.get_list_of_users_message_ids()))
+
             id: emailModel
-            ListElement { subject: "Alice"; sender: "your mom" }
+            ListElement { subject: list[0]; sender: "your mom" }
             ListElement { subject: "Bob"; sender: "your mom" }
             ListElement { subject: "Jane"; sender: "ur mom" }
             ListElement { subject: "Harry"; sender: "you're mom" }
