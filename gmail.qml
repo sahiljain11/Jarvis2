@@ -42,64 +42,60 @@ ApplicationWindow{
         height: parent.height
 
 
-        ObjectModel {
-
+        ListModel {
             id: emailModel
-            Gmail_Butt { height: emails.height/4; width: emails.width;color: 'green' }
-            Gmail_Butt { height: emails.height/4; width: emails.width; color: "green" }
-            Gmail_Butt { height: emails.height/4; width: emails.width; color: "blue" }
-            Gmail_Butt { height: emails.height/4; width: emails.width; color: "white" }
-            Gmail_Butt { height: emails.height/4; width: emails.width; color: "red" }
-            Gmail_Butt { height: emails.height/4; width: emails.width; color: "green" }
-            Gmail_Butt { height: emails.height/4; width: emails.width; color: "blue" }
-            Gmail_Butt { height: emails.height/4; width: emails.width; color: "white" }
-            Gmail_Butt { height: emails.height/4; width: emails.width; color: "red" }
-            Gmail_Butt { height: emails.height/4; width: emails.width; color: "green" }
-            Gmail_Butt { height: emails.height/4; width: emails.width; color: "blue" }
-            Gmail_Butt { height: emails.height/4; width: emails.width; color: "white" }
-            Gmail_Butt { height: emails.height/4; width: emails.width; color: "red" }
-            Gmail_Butt { height: emails.height/4; width: emails.width; color: "green" }
-            Gmail_Butt { height: emails.height/4; width: emails.width; color: "blue" }
-            Gmail_Butt { height: emails.height/4; width: emails.width; color: "white" }
-            Gmail_Butt { height: emails.height/4; width: emails.width; color: "red" }
+            ListElement { subject: "Alice"; sender: "your mom" }
+            ListElement { subject: "Bob"; sender: "your mom" }
+            ListElement { subject: "Jane"; sender: "ur mom" }
+            ListElement { subject: "Harry"; sender: "you're mom" }
+            ListElement { subject: "Wendy"; sender: "yoor mum"}
         }
 
+        Component {
+            id: emailDelegate
+            Gmail_Butt{
+                tit: subject
+                sen: sender
+                Component.onCompleted: {
+                    console.log(tit)
+                }
+            }
+        }
 
         ListView{
 
-        id: emails
+            id: emails
 
-        contentHeight: parent.height
-        contentWidth: parent.width/2
-        width: parent.width/2
-        height: parent.height
-        clip: true
-        model: emailModel
-        delegate: Gmail_Butt{
-            tit: 'sender'
-        }
-        spacing: parent.height/40
-        Keys.onUpPressed: scroll.decrease()
-        Keys.onDownPressed: scroll.increase()
-        focus: true
-        anchors{
-            left: parent.left
-            leftMargin: parent.width/24
-        }
-        
-        ScrollBar.vertical:
-            ScrollBar{
-            id: scroll
-            active : true
-            height: emails.height
-            width: emails.width/20
-            minimumSize: 0.0
-            policy: Qt.ScrollBarAlwaysOn
-            stepSize: .005
-            anchors.right: parent.right
+            contentHeight: parent.height
+            contentWidth: parent.width/2
+            width: parent.width/2
+            height: parent.height
+            clip: true
+            model: emailModel
+            delegate: emailDelegate
+            spacing: parent.height/40
+            Keys.onUpPressed: scroll.decrease()
+            Keys.onDownPressed: scroll.increase()
+            focus: true
+            anchors{
+                left: parent.left
+                leftMargin: parent.width/24
             }
+            
+            ScrollBar.vertical:
+                ScrollBar{
+                id: scroll
+                active : true
+                height: emails.height
+                width: emails.width/20
+                minimumSize: 0.0
+                policy: Qt.ScrollBarAlwaysOn
+                stepSize: .005
+                anchors.right: parent.right
+                }
         }
-        }
+   }
+
    ListView{
         id: labels
 
