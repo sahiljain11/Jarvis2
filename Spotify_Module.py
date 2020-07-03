@@ -22,8 +22,9 @@ class SpotipyModule(qtc.QObject):
         self.client_secret = client_secret
         self.redirect_url = redirect_url
         self.scope = 'user-library-read user-read-playback-state streaming' \
-                     ' user-modify-playback-state playlist-modify-private ' \
-                     'user-read-playback-position user-read-currently-playing user-read-private'
+                     ' playlist-modify-public user-modify-playback-state playlist-modify-private ' \
+                     'user-read-playback-position user-read-currently-playing user-read-private'  \
+
 
         self.spellchecker = spellchecker.SpellChecker(language=u'en', distance=2)
         self.token = self.generate_token()
@@ -32,6 +33,8 @@ class SpotipyModule(qtc.QObject):
         self.playlist_names = None
         self.music_choices_for_queue = None
         self.search_results = None
+        self.queue_id = None
+
 
     # generates access token for authorization to use spotify API
     def generate_token(self):
@@ -43,14 +46,16 @@ class SpotipyModule(qtc.QObject):
             return sp
 
     def generate_queue(self):
-        self.token.user_playlist_create(self.username, 'Queue', public=False, description="Queue made by Yours Truly, Jarvis")
-        playlists = self.token.user_playlists(self.username)
+        #self.token.user_playlist_create('yfns4tuiglfazq9ajq7ucvrnt','Queue', public=True, description="Queue made by Yours Truly, Jarvis")
+        playlists = self.token.user_playlists('yfns4tuiglfazq9ajq7ucvrnt')
         for playlist in playlists['items']:
-            print(playlist)
+            if (playlist['name']) == 'Queue':
+                self.queue_id = playlist['id']
         return
 
+
+
     @qtc.Slot(str)
-    # allows user to search for a song and currently returns an array with all possible songs
     def add_song_to_queue(self, song_title):
         # search_query = song_title.replace(" ", "&20")
         # print(search_query)
@@ -86,7 +91,7 @@ class SpotipyModule(qtc.QObject):
             'song_title': title,
             'song_time': time
         }
-        self.token.user_playlist_add_tracks(self.client_id,)
+        self.token.user_playlist_add_tracks('yfns4tuiglfazq9ajq7ucvrnt', self.queue_id,tracks=song)
         return
 
 
