@@ -38,6 +38,7 @@ class GmailModule(qtc.QObject):
         self.scopes = ['https://mail.google.com/']
         self.service = self.use_token_pickle_to_get_service()
         self.message_ids = self.get_list_of_users_message_ids()
+
     '''
     Accesses a file to gain saved credentials
     if no file exists the file is generated and user is asked to put in creds
@@ -83,7 +84,6 @@ class GmailModule(qtc.QObject):
                 label_list_index += 1
             return label_list
 
-    @qtc.Slot(result=list)
     def get_list_of_users_message_ids(self):
 
         emails = self.service.users().messages().list(userId='me').execute()
@@ -92,8 +92,11 @@ class GmailModule(qtc.QObject):
         for email in range(0, len(emails['messages'])):
             list_of_msg_ids[index] = (emails['messages'][email])
             index += 1
-
         return list_of_msg_ids
+
+    @qtc.Slot(int, result=str)
+    def get_message_id(self, i):
+        return self.message_ids[i]['id']
 
     @qtc.Slot(str,result=str)
     def GetMessage(self, msg_id):
@@ -143,7 +146,7 @@ class GmailModule(qtc.QObject):
             return
 
     @qtc.Slot(str,result=str)
-    def GetSubjectTitle(self,msg_id):
+    def GetSubjectTitle(self, msg_id):
         try:
             message = self.service.users().messages().get(userId='me', id=msg_id, format='metadata').execute()
             for i in range(0,len((message['payload']['headers']))):

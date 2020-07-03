@@ -47,19 +47,17 @@ ApplicationWindow{
             id: emailModel
             Component.onCompleted:{
                 for (var i = 0; i < 50; i++) {
-                    emailModel.append(createListElement(i));
-                   
+                    emailModel.append(createListElement(i))
                 }
             }
 
             function createListElement(i) {
-                var indexs : gmail.get_list_of_users_message_ids(i)
+            
                 return{
-                    subject: gmail.GetSubjectTitle(indexs),
-                    sender: gmail.GetSender(indexs),
-                    snippet: gmail.GetSnippet(indexs),
-                    message: gmail.GetMessage(indexs),
-
+                    subject: gmail.GetSubjectTitle(gmail.get_message_id(i)),
+                    sender: gmail.GetSender(gmail.get_message_id(i)),
+                    snippet: gmail.GetSnippet(gmail.get_message_id(i)),
+                    message: gmail.GetMessage(gmail.get_message_id(i)),
                 };
             }
 
@@ -70,6 +68,7 @@ ApplicationWindow{
             Gmail_Butt{
                 tit: subject
                 sen: sender
+                snip: snippet
                 Component.onCompleted: {
 
                     console.log(tit)

@@ -13,6 +13,7 @@ Picture{
     property bool vis: false
     property alias tit: title.text
     property alias sen: sender.text
+    property alias snip: preview_email.text
     image: "../images/email_preview_button.png"
 
     Text{
