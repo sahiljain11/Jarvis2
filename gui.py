@@ -42,12 +42,12 @@ if __name__ == '__main__':
     # Initializes the app, engine, and classes 
     app = qtg.QGuiApplication(sys.argv)
     engine = qtm.QQmlApplicationEngine()
-    #spotify = SpotipyModule(os.environ.get('USER'), os.environ.get('CLIENT_ID'), os.environ.get('CLIENT_SECRET'), os.environ.get('REDIRECT_URI'))
+    spotify = SpotipyModule(os.environ.get('USER'), os.environ.get('CLIENT_ID'), os.environ.get('CLIENT_SECRET'), os.environ.get('REDIRECT_URI'))
     gmail = GmailModule()
     #Load classes and main qml file 
-    #engine.rootContext().setContextProperty("spotify", spotify)
+    engine.rootContext().setContextProperty("spotify", spotify)
     engine.rootContext().setContextProperty("gmail",gmail)
-    engine.load(qtc.QUrl.fromLocalFile('gmail.qml'))
+    engine.load(qtc.QUrl.fromLocalFile('spotify.qml'))
 
 
     # Exit if we have no classes

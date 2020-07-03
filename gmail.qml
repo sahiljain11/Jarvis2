@@ -130,6 +130,7 @@ ApplicationWindow{
 
         focus: true
         model: labellist
+        delegate:labelDelagate
         ScrollBar.vertical:
            ScrollBar{
            id: labelscroll
@@ -143,24 +144,31 @@ ApplicationWindow{
             }
         }
 
-   ObjectModel{
-        id: labellist
-        Rectangle{ height: labels.height/6; width: labels.width; color: 'green' }
-        Rectangle{ height: labels.height/6; width: labels.width; color: 'blue' }
-        Rectangle{ height: labels.height/6; width: labels.width; color: 'green' }
-        Rectangle{ height: labels.height/6; width: labels.width; color: 'blue' }
-        Rectangle{ height: labels.height/6; width: labels.width; color: 'green' }
-        Rectangle{ height: labels.height/6; width: labels.width; color: 'blue' }
-        Rectangle{ height: labels.height/6; width: labels.width; color: 'green' }
-        Rectangle{ height: labels.height/6; width: labels.width; color: 'blue' }
-        Rectangle{ height: labels.height/6; width: labels.width; color: 'green' }
-        Rectangle{ height: labels.height/6; width: labels.width; color: 'blue' }
-        Rectangle{ height: labels.height/6; width: labels.width; color: 'green' }
-        Rectangle{ height: labels.height/6; width: labels.width; color: 'blue' }
+   ListModel{
+       id: labellist
 
+           Component.onCompleted:{
+               for (var i = 0; i < 5; i++) {
+                   labellist.append(label(i))
+               }
+           }
+           function label(i) {
 
-
+               return{
+                   label: gmail.get_label(i)
+               };
+           }
    }
+    Component {
+            id: labelDelagate
+            Gmail_Butt{
+                tit: ''
+                sen: label
+                snip: ''
+
+
+            }
+        }
 
    Butt{
     image: './Images/NewEmailIcon.png'

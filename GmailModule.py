@@ -38,6 +38,7 @@ class GmailModule(qtc.QObject):
         self.scopes = ['https://mail.google.com/']
         self.service = self.use_token_pickle_to_get_service()
         self.message_ids = self.get_list_of_users_message_ids()
+        self.label_list = self.get_labels()
 
     '''
     Accesses a file to gain saved credentials
@@ -97,6 +98,10 @@ class GmailModule(qtc.QObject):
     @qtc.Slot(int, result=str)
     def get_message_id(self, i):
         return self.message_ids[i]['id']
+
+    @qtc.Slot(int,result=str)
+    def get_label(self,i):
+        return self.label_list[i]
 
     @qtc.Slot(str,result=str)
     def GetMessage(self, msg_id):
