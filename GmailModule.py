@@ -37,7 +37,7 @@ class GmailModule(qtc.QObject):
         super(GmailModule, self).__init__()
         self.scopes = ['https://mail.google.com/']
         self.service = self.use_token_pickle_to_get_service()
-
+        self.message_ids = self.get_list_of_users_message_ids()
     '''
     Accesses a file to gain saved credentials
     if no file exists the file is generated and user is asked to put in creds

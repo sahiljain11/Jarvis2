@@ -43,14 +43,26 @@ ApplicationWindow{
 
 
         ListModel {
-            property var list : ((gmail.get_list_of_users_message_ids()))
 
             id: emailModel
-            ListElement { subject: list[0]; sender: "your mom" }
-            ListElement { subject: "Bob"; sender: "your mom" }
-            ListElement { subject: "Jane"; sender: "ur mom" }
-            ListElement { subject: "Harry"; sender: "you're mom" }
-            ListElement { subject: "Wendy"; sender: "yoor mum"}
+            Component.onCompleted:{
+                for (var i = 0; i < 50; i++) {
+                    emailModel.append(createListElement(i));
+                   
+                }
+            }
+
+            function createListElement(i) {
+                var indexs : gmail.get_list_of_users_message_ids(i)
+                return{
+                    subject: gmail.GetSubjectTitle(indexs),
+                    sender: gmail.GetSender(indexs),
+                    snippet: gmail.GetSnippet(indexs),
+                    message: gmail.GetMessage(indexs),
+
+                };
+            }
+
         }
 
         Component {
@@ -59,6 +71,7 @@ ApplicationWindow{
                 tit: subject
                 sen: sender
                 Component.onCompleted: {
+
                     console.log(tit)
                 }
             }
