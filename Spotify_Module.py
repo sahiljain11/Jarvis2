@@ -24,11 +24,14 @@ class SpotipyModule(qtc.QObject):
         self.scope = 'user-library-read user-read-playback-state streaming' \
                      ' user-modify-playback-state playlist-modify-private ' \
                      'user-read-playback-position user-read-currently-playing user-read-private'
-        self.queue = QueueDataStructure()
+
         self.spellchecker = spellchecker.SpellChecker(language=u'en', distance=2)
         self.token = self.generate_token()
+        self.queue = self.generate_queue()
         self.playlist_ids = None
         self.playlist_names = None
+        self.music_choices_for_queue = None
+        self.search_results = None
 
     # generates access token for authorization to use spotify API
     def generate_token(self):
@@ -39,22 +42,54 @@ class SpotipyModule(qtc.QObject):
             sp = spy.Spotify(auth=token)
             return sp
 
-    # plays music from a queue
-    @qtc.Slot()
-    def play_music_from_queue(self):
-        # generates lists to hold uri and time of each song
-        queue_uri = [None] * self.queue.number_of_nodes
-        queue_time = [None] * self.queue.number_of_nodes
-        # reverses list order so that first in last out
-        queue_info = (self.queue.reversal())
-        # puts items into uri and time lists
-        for index in range(len(queue_info)):
-            queue_uri[index] = queue_info[index]['song_link']
-            queue_time[index] = queue_info[index]['song_time']
-        # plays songs from queue
-        self.token.start_playback(device_id=None, context_uri=None, uris=queue_uri,
-                                             offset=None)
+    def generate_queue(self):
+        self.token.user_playlist_create(self.username, 'Queue', public=False, description="Queue made by Yours Truly, Jarvis")
+        playlists = self.token.user_playlists(self.username)
+        for playlist in playlists['items']:
+            print(playlist)
         return
+
+    @qtc.Slot(str)
+    # allows user to search for a song and currently returns an array with all possible songs
+    def add_song_to_queue(self, song_title):
+        # search_query = song_title.replace(" ", "&20")
+        # print(search_query)
+
+        search_results = (self.token.search(song_title, 20, 0, type='track,album'))
+
+        # initalizes variables for loop
+        song_number = 1
+        song_index = 0
+        song_choices_for_queue = [None] * len(search_results['tracks']['items'])
+        # loop places song titles into array
+        for songz in range(0, len(search_results['tracks']['items'])):
+            song_choices_for_queue[song_index] = str(song_number) + ') ' + search_results['tracks']['items'][songz][
+                'name']
+            song_number += 1
+            song_index += 1
+
+        self.music_choices_for_queue = song_choices_for_queue
+        self.search_results = search_results
+        return
+
+    def helper_add_song_to_queue(self, number):
+
+        song = self.search_results['tracks']['items'][number]['uri']
+        title = self.search_results['tracks']['items'][number]['name']
+        picture_image = self.search_results['tracks']['items'][number]['album']['images'][1]['url']
+        artist = self.search_results['tracks']['items'][number]['artists'][0]['name']
+        time = self.search_results['tracks']['items'][number]['duration_ms']
+        song_info = {
+            'image': picture_image,
+            'artist': artist,
+            'song_link': song,
+            'song_title': title,
+            'song_time': time
+        }
+        self.token.user_playlist_add_tracks(self.client_id,)
+        return
+
+
 
     # plays songs from a specific playlist
     @qtc.Slot()
@@ -133,15 +168,17 @@ class SpotipyModule(qtc.QObject):
             song_number += 1
             song_index += 1
 
-        # adds chosen song into the end of queue
-        index = self.choose_song(song_choices_for_queue)
+        self.music_choices_for_queue = song_choices_for_queue
+        self.search_results = search_results
+        return
 
-        song = search_results['tracks']['items'][index]['uri']
-        title = search_results['tracks']['items'][index]['name']
-        picture_image = search_results['tracks']['items'][index]['album']['images'][1]['url']
-        artist = search_results['tracks']['items'][index]['artists'][0]['name']
-        time = search_results['tracks']['items'][index]['duration_ms']
+    def helper_add_song_to_queue(self,number):
 
+        song = self.search_results['tracks']['items'][number]['uri']
+        title = self.search_results['tracks']['items'][number]['name']
+        picture_image = self.search_results['tracks']['items'][number]['album']['images'][1]['url']
+        artist = self.search_results['tracks']['items'][number]['artists'][0]['name']
+        time = self.search_results['tracks']['items'][number]['duration_ms']
         song_info = {
             'image': picture_image,
             'artist': artist,
@@ -149,48 +186,30 @@ class SpotipyModule(qtc.QObject):
             'song_title': title,
             'song_time': time
         }
-
         self.queue.push(song_info)
-        # self.generate_token().add_to_queue(song)
-
         return
 
     def pop_song_from_queue(self):
         self.queue.pops()
         return
 
-    # helper function for add_song_to_queue
-    # takes
-    def choose_song(self, array_with_songs,index=None):
-        '''
-        for value in array_with_songs:
-            print(value)
-
-
-        song_number = index - 1
-        return song_number
-
-        '''
-        return array_with_songs[index]
-
-
     # hopefully returns song title
     @qtc.Property(str)
     def current_song(self):
         # Note I don't know if this one works/' Will test when Sahil isn't using Spotify
-        return self.queue.get(self.number_of_nodes-1)['song_title']
+        return self.queue.get(self.queue.number_of_nodes-1)['song_title']
         # return self.generate_token().currently_playing()
     
     @qtc.Property(str)
     def current_artist(self):
         # Note I don't know if this one works/' Will test when Sahil isn't using Spotify
-        return self.queue.get(self.number_of_nodes-1)['artist']
+        return self.queue.get(self.queue.number_of_nodes-1)['artist']
         # return self.generate_token().currently_playing()
     
     @qtc.Property(qtc.QUrl)
     def current_image(self):
         # Note I don't know if this one works/' Will test when Sahil isn't using Spotify
-        return self.queue.get(self.number_of_nodes-1)['image']
+        return self.queue.get(self.queue.number_of_nodes-1)['image']
         # return self.generate_token().currently_playing()
     
 
@@ -230,189 +249,13 @@ class SpotipyModule(qtc.QObject):
 
         return
 
-    # functions to create
-    '''
-    get image info (done)
-    get user info
-    going to a certain time in song (done)
-    implement genius api return 2 lines of lyrics 
-
-    '''
 
 
-class QueueDataStructure:
-
-    def __init__(self):
-        self.header_node = self.Node(None, None, None)
-        self.number_of_nodes = 0
-        self.pointer = self.header_node
-        # O(1) operation
-        # return the size of the doubly linked list
-        # check by doing len(name_of_linked_list)
-
-    def __len__(self):
-        return self.number_of_nodes
-
-        # returns the value at a given index
-        # O(N) operation
-
-    def get(self, index):
-        # sets variable to beginning of linked list
-        init_value = self.header_node
-        # allows variable to traverse linked list
-        for i in range(0, self.number_of_nodes):
-            # gets the value at index of linked list
-            if i == index:
-                return init_value.get_value()
-            init_value = init_value.get_next()
-        return
-
-    def push(self, new_data):
-
-        new_node = self.Node(new_data, None, None)
-        if self.number_of_nodes == 0:
-            self.header_node.set_next(new_node)
-            self.header_node.set_prev(new_node)
-            new_node.set_next(self.header_node)
-            new_node.set_prev(self.header_node)
-            self.number_of_nodes += 1
-        else:
-            self.pointer = self.pointer.get_prev()
-            new_node.set_next(self.pointer)
-            new_node.set_prev(self.header_node)
-            self.pointer.set_prev(new_node)
-            self.header_node.set_next(new_node)
-            self.number_of_nodes += 1
-
-        return
-
-    def pops(self):
-        if self.number_of_nodes == 0:
-            return
-        self.header_node.get_prev().get_prev().set_next(self.header_node)
-        self.header_node.set_prev(self.header_node.get_prev().get_prev())
-        self.number_of_nodes -= 1
-        return
-
-    # add a value to the end of the linkedlist
-    # O(1) operation
-    def add(self, value):
-        # adds node if only header is present
-        if self.number_of_nodes == 0:
-            node = self.Node(value, self.header_node, self.header_node)
-            self.header_node.set_next(node)
-            self.header_node.set_prev(node)
-            self.number_of_nodes += 1
-        # adds node when header and other nodes are present
-        else:
-            node = self.Node(value, self.header_node.get_prev(), self.header_node)
-            self.header_node.get_prev().set_next(node)
-            self.header_node.set_prev(node)
-            self.number_of_nodes += 1
-
-        return node.get_value()
-
-        # add a value to the given index value
-        # O(N) operation
-
-    def insert(self, value, index):
-        # checks to see if index is valid
-        if index > self.number_of_nodes or index < 0:
-            return
-        # inserts when only header is present
-        if self.number_of_nodes == 0:
-            node_to_be_inserted = self.Node(value, self.header_node, self.header_node)
-            self.header_node.set_next(node_to_be_inserted)
-            self.header_node.set_prev(node_to_be_inserted)
-            self.number_of_nodes += 1
-            return
-        # inserts when header and other nodes are present
-        # variable traverses through the list
-        node = self.header_node.get_next()
-        for i in range(1, index + 1):
-            node = node.get_next()
-            # inserts the node at index
-            if i == index:
-                node_to_be_inserted = self.Node(value, node.get_prev(), node)
-                node.get_prev().set_next(node_to_be_inserted)
-                node.set_prev(node_to_be_inserted)
-                self.number_of_nodes += 1
-
-        return
-
-        # remove the value at a given index
-        # O(N) operation
-
-    def remove(self, index):
-        # initalizes variable to header node
-        node = self.header_node
-        # tells variable to traverse list until  it gets to index
-        for i in range(0, self.number_of_nodes):
-            node = node.get_next()
-
-            if i == index:
-                node.get_prev().set_next(node.get_next())
-                node.get_next().set_prev(node.get_prev())
-
-                self.number_of_nodes -= 1
-                return
-
-    def reversal(self):
-        node_list = self.number_of_nodes * [None]
-        node = self.header_node.get_prev()
-        for i in range(0, self.number_of_nodes):
-            node_list[i] = node.value
-            node = node.get_prev()
-        return node_list
-        # prints the list in a [1,2,3] format
-        # O(N) operation
-
-    def __str__(self):
-        # returns empty list if empty
-        if self.header_node.get_next() == 'None':
-            return '[]'
-        # concatonates string to create "array"
-        string = '['
-        node = self.header_node.get_next()
-        string += str(node.get_value())
-        node = node.get_next()
-        while node != self.header_node:
-            string = string + ',' + str(node.get_value())
-            node = node.get_next()
-        string += ']'
-
-        return string
-
-    class Node:
-
-        def __init__(self, value, prevnode, nextnode):
-            self.value = value
-            self.prevnode = prevnode
-            self.nextnode = nextnode
-            return
-
-        def get_value(self):
-            return self.value
-
-        def set_prev(self, node):
-            self.prevnode = node
-            return
-
-        def set_next(self, node):
-            self.nextnode = node
-            return
-
-        def get_prev(self):
-            return self.prevnode
-
-        def get_next(self):
-            return self.nextnode
+spotify = SpotipyModule(environ.get('USER'), environ.get('CLIENT_ID'), environ.get('CLIENT_SECRET'),environ.get("REDIRECT_URI"))
 
 
 
-#Queue_object = QueueDataStructure()
-#spy = SpotipyModule(environ.get('USER'), environ.get('CLIENT_ID'), environ.get('CLIENT_SECRET'),
-#environ.get('REDIRECT_URI'))
+
 
 '''
 Clean up CODE
@@ -425,15 +268,4 @@ Clean up CODE
 -Cram play_music_from_queue and play_music_from_playlist into play_music
 '''
 
-#import time
-#spy.queue_music_from_playlist()
-#time.sleep(5)
-#spy.next_song()
-#time.sleep(5)
-#spy.pause_music()
-#time.sleep(5)
-#spy.play_music()
-#time.sleep(5)
-#spy.next_song()
-#spy.pause_music()
-#time.sleep(5)
+
