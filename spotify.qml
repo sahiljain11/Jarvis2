@@ -85,7 +85,7 @@ ApplicationWindow{
 
             onStateChanged: {
                 if (state == "ON"){
-                    spotify.play_music_from_queue()
+                    spotify.play_music()
                 }
                 else{
                     spotify.pause_music()
@@ -113,7 +113,11 @@ ApplicationWindow{
                 leftMargin: parent.width/15
             }
 
-            onTouched: spotify.next_song()
+            onTouched: {
+                console.log("forward")
+                spotify.next_song()
+                play.state = 'ON'
+            }
 
             //Resize
             width: picWidth/3
@@ -135,7 +139,11 @@ ApplicationWindow{
                 rightMargin: parent.width/15
             }
             
-            onTouched: spotify.prev_song()
+            onTouched: {
+                console.log("back")
+                spotify.prev_song()
+                play.state = 'ON'
+            }
             
             //Resize
             width: picWidth/3
@@ -158,7 +166,7 @@ ApplicationWindow{
             //Style
             color: "white"
             
-            text: spotify.current_artist 
+            text: 'Katy Perry' 
         }
 
         //Song Title
@@ -176,7 +184,7 @@ ApplicationWindow{
             
             //Style
             color: "white"
-            text: spotify.current_song 
+            text: 'Dark Horse'
         }
 
         //Song icon
@@ -184,7 +192,7 @@ ApplicationWindow{
             id: song_icon
 
             //Set the song icon
-            source: spotify.current_image
+            source: 'https://ichef.bbci.co.uk/news/1024/media/images/73240000/jpg/_73240070_73232474.jpg'
 
             // Position the song icon right above the play button
             // Make the song icon width bound by the skip buttons
@@ -356,6 +364,7 @@ ApplicationWindow{
             if(event.key == Qt.Key_Enter){
                 console.log("Prese")
                 spotify.add_song_to_queue(textInput.text)
+                spotify.helper_add_song_to_queue(0)
             }
 
             //Enable dragging when "Shift" is pressed

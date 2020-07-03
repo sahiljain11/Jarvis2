@@ -31,7 +31,10 @@ Picture{
         onEntered: {back.tint = "#80800000"; entered.connect(inside);}
 
         onExited: {back.tint = "transparent"; exited.connect(outside)}
+        
+    }
 
-        onClicked: clicked.connect(touched)
+    Component.onCompleted: {
+        mou.clicked.connect(touched)
     }   
 }

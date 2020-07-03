@@ -27,13 +27,18 @@ class SpotipyModule(qtc.QObject):
 
 
         self.spellchecker = spellchecker.SpellChecker(language=u'en', distance=2)
-        self.token = self.generate_token()
-        self.queue = self.generate_queue()
+        self.queue_id = None
+        self.playing = False
+        self.queue_uri = None
         self.playlist_ids = None
         self.playlist_names = None
         self.music_choices_for_queue = None
         self.search_results = None
-        self.queue_id = None
+        self.artist = None
+        self.title = None
+        self.picture = None
+        self.token = self.generate_token()
+        self.queue = self.generate_queue()
 
 
     # generates access token for authorization to use spotify API
@@ -46,11 +51,17 @@ class SpotipyModule(qtc.QObject):
             return sp
 
     def generate_queue(self):
-        #self.token.user_playlist_create('yfns4tuiglfazq9ajq7ucvrnt','Queue', public=True, description="Queue made by Yours Truly, Jarvis")
-        playlists = self.token.user_playlists('yfns4tuiglfazq9ajq7ucvrnt')
+        playlists = self.token.user_playlists('USER ID STRING')
         for playlist in playlists['items']:
             if (playlist['name']) == 'Queue':
                 self.queue_id = playlist['id']
+                self.queue_uri = playlist['uri']
+
+        if(self.queue_id is None):
+            self.token.user_playlist_create('USER ID STRING','Queue', public=True, description="Queue made by Yours Truly, Jarvis")
+            playlists = self.token.user_playlists('USER ID STRING')
+            self.queue_id = playlists['items'][0]['id']
+            self.queue_uri= playlists['items'][0]['uri']
         return
 
 
@@ -77,6 +88,7 @@ class SpotipyModule(qtc.QObject):
         self.search_results = search_results
         return
 
+    @qtc.Slot(int)
     def helper_add_song_to_queue(self, number):
 
         song = self.search_results['tracks']['items'][number]['uri']
@@ -91,7 +103,9 @@ class SpotipyModule(qtc.QObject):
             'song_title': title,
             'song_time': time
         }
-        self.token.user_playlist_add_tracks('yfns4tuiglfazq9ajq7ucvrnt', self.queue_id,tracks=song)
+        print(song)
+        print(self.queue_id)
+        self.token.user_playlist_add_tracks('USER ID STRING', self.queue_id, tracks=[song])
         return
 
 
@@ -117,7 +131,15 @@ class SpotipyModule(qtc.QObject):
     # play music
     @qtc.Slot()
     def play_music(self):
-        self.token.start_playback()
+        if(self.playing == False):
+            self.token.start_playback(context_uri=self.queue_uri)
+            self.token.shuffle(False)
+            print("playing flase")
+        else:
+            self.token.start_playback()
+            self.token.shuffle(False)
+            print("playing true")
+        self.playing = True
         return
 
     # pause music
@@ -152,46 +174,6 @@ class SpotipyModule(qtc.QObject):
     # goes back 1 song
     def prev_song(self):
         self.token.previous_track()
-        return
-    
-    @qtc.Slot(str)
-    # allows user to search for a song and currently returns an array with all possible songs
-    def add_song_to_queue(self, song_title):
-        # search_query = song_title.replace(" ", "&20")
-        # print(search_query)
-
-        search_results = (self.token.search(song_title, 20, 0, type='track,album'))
-
-        # initalizes variables for loop
-        song_number = 1
-        song_index = 0
-        song_choices_for_queue = [None] * len(search_results['tracks']['items'])
-        # loop places song titles into array
-        for songz in range(0, len(search_results['tracks']['items'])):
-            song_choices_for_queue[song_index] = str(song_number) + ') ' + search_results['tracks']['items'][songz][
-                'name']
-            song_number += 1
-            song_index += 1
-
-        self.music_choices_for_queue = song_choices_for_queue
-        self.search_results = search_results
-        return
-
-    def helper_add_song_to_queue(self,number):
-
-        song = self.search_results['tracks']['items'][number]['uri']
-        title = self.search_results['tracks']['items'][number]['name']
-        picture_image = self.search_results['tracks']['items'][number]['album']['images'][1]['url']
-        artist = self.search_results['tracks']['items'][number]['artists'][0]['name']
-        time = self.search_results['tracks']['items'][number]['duration_ms']
-        song_info = {
-            'image': picture_image,
-            'artist': artist,
-            'song_link': song,
-            'song_title': title,
-            'song_time': time
-        }
-        self.queue.push(song_info)
         return
 
     def pop_song_from_queue(self):
@@ -254,12 +236,29 @@ class SpotipyModule(qtc.QObject):
 
         return
 
-
-
+'''
+import time
 spotify = SpotipyModule(environ.get('USER'), environ.get('CLIENT_ID'), environ.get('CLIENT_SECRET'),environ.get("REDIRECT_URI"))
-
-
-
+spotify.add_song_to_queue('Dark Horse')
+spotify.helper_add_song_to_queue(0)
+spotify.add_song_to_queue('Love Story')
+spotify.helper_add_song_to_queue(0)
+spotify.add_song_to_queue('24 hours')
+spotify.helper_add_song_to_queue(0)
+spotify.add_song_to_queue('Just give me a reason')
+spotify.helper_add_song_to_queue(0)
+spotify.add_song_to_queue('tequila')
+spotify.helper_add_song_to_queue(0)
+time.sleep(5)
+spotify.play_music()
+time.sleep(5)
+spotify.next_song()
+time.sleep(5)
+spotify.next_song()
+time.sleep(5)
+spotify.next_song()
+time.sleep(5)
+'''
 
 
 '''

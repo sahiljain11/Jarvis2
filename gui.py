@@ -43,10 +43,10 @@ if __name__ == '__main__':
     app = qtg.QGuiApplication(sys.argv)
     engine = qtm.QQmlApplicationEngine()
     spotify = SpotipyModule(os.environ.get('USER'), os.environ.get('CLIENT_ID'), os.environ.get('CLIENT_SECRET'), os.environ.get('REDIRECT_URI'))
-    gmail = GmailModule()
+    #gmail = GmailModule()
     #Load classes and main qml file 
     engine.rootContext().setContextProperty("spotify", spotify)
-    engine.rootContext().setContextProperty("gmail",gmail)
+    #engine.rootContext().setContextProperty("gmail",gmail)
     engine.load(qtc.QUrl.fromLocalFile('spotify.qml'))
 
 
