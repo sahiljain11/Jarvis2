@@ -166,7 +166,7 @@ ApplicationWindow{
             //Style
             color: "white"
             
-            text: spotify.current_song_info()['artist']
+            text: spotify.currArtist
         }
 
         //Song Title
@@ -184,7 +184,7 @@ ApplicationWindow{
             
             //Style
             color: "white"
-            text: spotify.current_song_info()['song_title']
+            text: spotify.currTitle
         }
 
         //Song icon
@@ -192,7 +192,7 @@ ApplicationWindow{
             id: song_icon
 
             //Set the song icon
-            source: spotify.current_song_info()['album_cover']
+            source: spotify.currIcon
             // Position the song icon right above the play button
             // Make the song icon width bound by the skip buttons
             anchors{
@@ -290,23 +290,24 @@ ApplicationWindow{
             anchors {
                 
                 //For vertical
-                
                 //left: skip_forward.right
                 //leftMargin: parent.width/25
                 //bottom: skip_forward.bottom
                 //top: song_icon.bottom 
                 
                 //For horizontal
-
                 left: skip_forward.right
                 leftMargin: parent.width/25
                 bottom: skip_forward.bottom
                 top: skip_forward.top
-
             }
 
             width: parent.width/10
             
+            onValueChanged: {
+                spotify.change_volume(volume.value)
+            }
+
             //Vertical Rotation
             //transform: Rotation {origin.x: x; origin.y: y; angle: -90}
         }
