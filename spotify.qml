@@ -166,7 +166,7 @@ ApplicationWindow{
             //Style
             color: "white"
             
-            text: 'Katy Perry' 
+            text: spotify.current_song_info()['artist']
         }
 
         //Song Title
@@ -184,7 +184,7 @@ ApplicationWindow{
             
             //Style
             color: "white"
-            text: 'Dark Horse'
+            text: spotify.current_song_info()['song_title']
         }
 
         //Song icon
@@ -192,8 +192,7 @@ ApplicationWindow{
             id: song_icon
 
             //Set the song icon
-            source: 'https://ichef.bbci.co.uk/news/1024/media/images/73240000/jpg/_73240070_73232474.jpg'
-
+            source: spotify.current_song_info()['album_cover']
             // Position the song icon right above the play button
             // Make the song icon width bound by the skip buttons
             anchors{

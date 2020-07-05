@@ -51,17 +51,17 @@ class SpotipyModule(qtc.QObject):
             return sp
 
     def generate_queue(self):
-        playlists = self.token.user_playlists('USER ID STRING')
+        playlists = self.token.user_playlists('yfns4tuiglfazq9ajq7ucvrnt')
         for playlist in playlists['items']:
             if (playlist['name']) == 'Queue':
                 self.queue_id = playlist['id']
                 self.queue_uri = playlist['uri']
 
         if(self.queue_id is None):
-            self.token.user_playlist_create('USER ID STRING','Queue', public=True, description="Queue made by Yours Truly, Jarvis")
-            playlists = self.token.user_playlists('USER ID STRING')
+            self.token.user_playlist_create('yfns4tuiglfazq9ajq7ucvrnt','Queue', public=True, description="Queue made by Yours Truly, Jarvis")
+            playlists = self.token.user_playlists('yfns4tuiglfazq9ajq7ucvrnt')
             self.queue_id = playlists['items'][0]['id']
-            self.queue_uri= playlists['items'][0]['uri']
+            self.queue_uri = playlists['items'][0]['uri']
         return
 
 
@@ -105,7 +105,7 @@ class SpotipyModule(qtc.QObject):
         }
         print(song)
         print(self.queue_id)
-        self.token.user_playlist_add_tracks('USER ID STRING', self.queue_id, tracks=[song])
+        self.token.user_playlist_add_tracks('yfns4tuiglfazq9ajq7ucvrnt', self.queue_id, tracks=[song])
         return
 
 
@@ -147,6 +147,22 @@ class SpotipyModule(qtc.QObject):
     def pause_music(self):
         self.token.pause_playback()
         return
+
+    @qtc.Slot(result="QVariant")
+    def current_song_info(self):
+        #print(self.token.current_playback()['progress_ms'])
+        #print(self.token.current_playback()['context'])
+        #for key in self.token.current_user_playing_track()['item']:
+         #   print(self.token.current_user_playing_track()['item'][key])
+        album_cover = ((self.token.current_user_playing_track()['item']['album']['images'][0]['url']))
+        artist_name = ((self.token.current_user_playing_track()['item']['artists'][0]['name']))
+        song_title = ((self.token.current_user_playing_track()['item']['name']))
+        song_info = {
+            'image': album_cover,
+            'artist': artist_name,
+            'song_title': song_title,
+        }
+        return song_info
 
     # changes volume of current song
     @qtc.Slot(int)
@@ -259,8 +275,12 @@ time.sleep(5)
 spotify.next_song()
 time.sleep(5)
 '''
+spotify = SpotipyModule(environ.get('USER'), environ.get('CLIENT_ID'), environ.get('CLIENT_SECRET'),environ.get("REDIRECT_URI"))
+spotify.add_song_to_queue('beautiful people')
+spotify.helper_add_song_to_queue(0)
+print('\n')
 
-
+spotify.current_song_info()
 '''
 Clean up CODE
 -Implement anything that requires terminal input as parameters of a function (e.g. querying for a song, going back and forth within a song)
