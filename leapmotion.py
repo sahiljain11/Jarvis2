@@ -14,6 +14,7 @@ class SampleListener(Leap.Listener):
         self.json_data = []
         self.initial_x = [0, 0, 0, 0, 0]
         self.prev_gesture = 0
+        self.timesteps_count = 0
         print("Initialized")
 
     def on_connect(self, controller):
@@ -35,20 +36,18 @@ class SampleListener(Leap.Listener):
     def on_frame(self, controller):
         # Get the most recent frame and report some basic information
         frame = controller.frame()
-
-        # TODO: Test hands (if 0, reset)
         
         # Get hands
+        right_hand = False
         for hand in frame.hands:
 
             handType = "Left hand" if hand.is_left else "Right hand"
 
             # only read in one hand
             if handType == "Left Hand":
-                self.initial_x = [0, 0, 0, 0, 0]
-                return
+                break
             # else continue
-
+            right_hand = True
             raw_data = {}
 
             # get hand positions x,y,z
@@ -213,7 +212,7 @@ class SampleListener(Leap.Listener):
                 self.json_data.append(model_data)
 
             # send request if enough data
-            if len(self.json_data) == 20:
+            if len(self.json_data) == 20 and self.timesteps_count % 1 == 0:
                 #send = dict()
                 #for i in range(0, 20):
                 #    send[str(i)] = self.json_data[i]
@@ -231,7 +230,11 @@ class SampleListener(Leap.Listener):
                 #    curr_gesture = 0
 
                 # computed gesture. send to QTC GUI
+            self.timesteps_count += 1
 
+        if right_hand == False:
+            self.json_data = []
+            self.initial_x = [0, 0, 0, 0, 0]
 
 def main():
 

@@ -5,10 +5,15 @@
 # https://developer.leapmotion.com/sdk_agreement, or another agreement         #
 # between Leap Motion and you, your company or other organization.             #
 ################################################################################
+import sys
+import os, inspect
 
-import Leap, sys, thread, time
-from Leap import CircleGesture, KeyTapGesture, ScreenTapGesture, SwipeGesture
-import os
+#src_dir = os.path.dirname(inspect.getfile(inspect.currentframe()))
+#src_dir = "/mnt/c/Users/sahil/Coding/Python/SummerHacks"
+#arch_dir = '../lib/x64' if sys.maxsize > 2**32 else '../lib/x86'
+#sys.path.insert(0, os.path.abspath(os.path.join(src_dir, arch_dir)))
+
+import Leap, thread, time
 
 class SampleListener(Leap.Listener):
     finger_names = ['thumb', 'index', 'middle', 'ring', 'pinky']
@@ -17,8 +22,8 @@ class SampleListener(Leap.Listener):
 
     def on_init(self, controller):
         # determine what file number to write to
-        file_to_write = "none"
-        count = 0
+        file_to_write = "peace"
+        count = 102
 
         # get all the files within the data directory
         basedir = os.path.abspath(os.path.dirname(__file__))
@@ -140,6 +145,7 @@ class SampleListener(Leap.Listener):
             return "STATE_INVALID"
 
 def main():
+
     # Create a sample listener and controller
     listener = SampleListener()
     controller = Leap.Controller()
