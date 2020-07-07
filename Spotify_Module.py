@@ -154,7 +154,6 @@ class SpotipyModule(qtc.QObject):
     @qtc.Slot()
     def pause_music(self):
         self.token.pause_playback()
-        self.playing = False
         return
 
     @qtc.Slot()
@@ -181,8 +180,12 @@ class SpotipyModule(qtc.QObject):
 
         return
 
+    @qtc.Slot(result=int)
     def get_current_time(self):
         current_time = self.token.current_user_playing_track()['progress_ms']
+        time.sleep(.1)
+        if(not self.playing):
+            return 0
         return current_time
 
     @qtc.Property(str, notify=currTitleChanged)

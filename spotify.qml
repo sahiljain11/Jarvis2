@@ -1,5 +1,5 @@
 import QtQuick 2.5
-import QtQuick.Controls 1.4
+import QtQuick.Controls 2.12
 import QtQuick.Controls.Styles 1.4
 import QtQuick.Layouts 1.11
 import QtGraphicalEffects 1.12
@@ -117,6 +117,7 @@ ApplicationWindow{
                 console.log("forward")
                 spotify.next_song()
                 play.state = 'ON'
+                song_timer.restart()
             }
 
             //Resize
@@ -143,6 +144,7 @@ ApplicationWindow{
                 console.log("back")
                 spotify.prev_song()
                 play.state = 'ON'
+                song_timer.restart()
             }
             
             //Resize
@@ -157,7 +159,6 @@ ApplicationWindow{
                 horizontalCenter: play.horizontalCenter
                 bottom: play.top
                 bottomMargin: play.height/1.5
-                
             }
             //font.bold: true
             font.pointSize: 8
@@ -204,6 +205,41 @@ ApplicationWindow{
 
             //Make the song icon square
             height: width
+        }
+
+        Timer{
+            id: song_timer
+            running: true
+            repeat: true
+            interval: 500
+            onTriggered:{
+                song_playback.value = spotify.get_current_time()
+                if(song_playback.value > 0 && song_playback.value <= 600 ){
+                    spotify.set_current_song_info()
+                }
+            }
+        }
+
+        //Dial that changes current song playback
+        SongPlayBack{
+            id: song_playback
+            from: 0
+            to: spotify.durTime
+            stepSize: 1000
+
+            anchors{
+                left: parent.left
+                leftMargin: parent.width/10
+                right: skip_backward.right
+                rightMargin: parent.width/10
+                top: song_icon.verticalCenter
+                bottom: parent.bottom
+                bottomMargin: parent.height/10
+            }
+            
+            onMoved:{
+                spotify.change_time(song_playback.value)
+            }
         }
 
         //Create the border
