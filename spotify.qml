@@ -229,7 +229,7 @@ ApplicationWindow{
 
             anchors{
                 left: parent.left
-                leftMargin: parent.width/10
+                leftMargin: parent.width/20
                 right: skip_backward.right
                 rightMargin: parent.width/10
                 top: song_icon.verticalCenter
