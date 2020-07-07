@@ -178,8 +178,12 @@ class SpotipyModule(qtc.QObject):
         self.set_currTitle(song_info['song_title'])
         self.set_currIcon(song_info['image'])
         self.set_currArtist(song_info['artist'])
-        
+
         return
+
+    def get_current_time(self):
+        current_time = self.token.current_user_playing_track()['progress_ms']
+        return current_time
 
     @qtc.Property(str, notify=currTitleChanged)
     def currTitle(self):
@@ -240,7 +244,7 @@ class SpotipyModule(qtc.QObject):
     @qtc.Slot(int, result=int)
     def change_time(self, song_time):
         if song_time >= 0 and song_time < self.dur_time:
-            self.token.start_playback(context_uri=self.queue_uri,position_ms=song_time)
+            self.token.seek_track(position_ms=song_time)
             return song_time
         else:
             return
