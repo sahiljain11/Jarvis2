@@ -41,7 +41,7 @@ class SpotipyModule(qtc.QObject):
         self.playlist_names = None
         self.music_choices_for_queue = None
         self.search_results = None
-        self.dur_time = None
+        self.dur_time = 0
         self.artist = ""
         self.title = ""
         self.picture = qtc.QUrl()
@@ -214,8 +214,10 @@ class SpotipyModule(qtc.QObject):
         self.artist = new_artist
         self.currArtistChanged.emit()
 
-    @qtc.Property(int, notify=durTimeChanged)
+    @qtc.Property(float, notify=durTimeChanged)
     def durTime(self):
+        if self.dur_time == 0:
+            return 10000
         return self.dur_time
 
     @durTime.setter
@@ -226,8 +228,6 @@ class SpotipyModule(qtc.QObject):
             self.dur_time = time
             self.durTimeChanged.emit()
 
-
-
     # changes volume of current song
     @qtc.Slot(int)
     def change_volume(self, value):
@@ -237,10 +237,11 @@ class SpotipyModule(qtc.QObject):
         return value
 
     # allows user to start playing in middle of song
+    @qtc.Slot(int, result=int)
     def change_time(self, song_time):
-        if song_time >= 0 and song_time*1000 < self.dur_time:
-            self.token.start_playback(context_uri=self.queue_uri,position_ms=song_time*1000)
-            return
+        if song_time >= 0 and song_time < self.dur_time:
+            self.token.start_playback(context_uri=self.queue_uri,position_ms=song_time)
+            return song_time
         else:
             return
 
@@ -300,8 +301,7 @@ class SpotipyModule(qtc.QObject):
 
         return
 
-
-
+'''
 spotify = SpotipyModule(environ.get('USER'), environ.get('CLIENT_ID'), environ.get('CLIENT_SECRET'),environ.get("REDIRECT_URI"),environ.get("USERNAME"))
 spotify.add_song_to_queue('mask off')
 spotify.helper_add_song_to_queue(0)
@@ -337,7 +337,7 @@ print(spotify.artist)
 print(spotify.title)
 print(spotify.picture)
 time.sleep(5)
-
+'''
 
 '''
 spotify = SpotipyModule(environ.get('USER'), environ.get('CLIENT_ID'), environ.get('CLIENT_SECRET'),environ.get("REDIRECT_URI"))
