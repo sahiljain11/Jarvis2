@@ -397,7 +397,7 @@ ApplicationWindow{
                 scaleVal = scaleVal - 0.05
             }
 
-            if(event.key == Qt.Key_Enter){
+            if(event.key == Qt.Key_Return){
                 console.log("Prese")
                 spotify.add_song_to_queue(textInput.text)
                 spotify.helper_add_song_to_queue(0)
