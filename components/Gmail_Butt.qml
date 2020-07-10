@@ -22,8 +22,8 @@ Picture{
         anchors.left: parent.left
         anchors.leftMargin:parent.width/15
         anchors.top : parent.top
-        anchors.topMargin : parent.height/15
-        font.pointSize: parent.height/22
+        anchors.topMargin : parent.height/10
+        font.pixelSize: parent.height/22
     }
     Text{
         id: sender
@@ -33,7 +33,7 @@ Picture{
             topMargin: parent.height/20
             left: title.left
         }
-        font.pointSize: parent.height/25
+        font.pixelSize: parent.height/25
     }
     Text{
         id: preview_email
@@ -41,17 +41,17 @@ Picture{
         anchors{
                left: title.left
                right: parent.right
-               rightMargin: parent.width/20
+               rightMargin: parent.width/18.2908
                top: sender.bottom
                topMargin: parent.height/20
                bottom: parent.bottom
                bottomMargin: parent.height/7
         }
-        font.pointSize: parent.height/25
+        font.pixelSize: parent.height/25
         width: parent.width
         height: parent.height/2
         elide: Text.ElideRight
-         wrapMode: Text.WordWrap
+        wrapMode: Text.WordWrap
          text: "preview email new line af 33 charf jsdl kfja lsd jfwio  lwadfs dfajio wjd foawnefo nawd lfnhqo nwglnWIO PNWL HOIF OWIF HOWAGN Olj wodjfowan flwn gownag"
     }
 

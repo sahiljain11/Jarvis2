@@ -211,10 +211,11 @@ ApplicationWindow{
             id: song_timer
             running: true
             repeat: true
-            interval: 500
+            interval: 900
             onTriggered:{
+                console.log("tick")
                 song_playback.value = spotify.get_current_time()
-                if(song_playback.value > 0 && song_playback.value <= 600 ){
+                if(song_playback.value > 0 && song_playback.value <= 1000 ){
                     spotify.set_current_song_info()
                 }
             }
@@ -348,7 +349,7 @@ ApplicationWindow{
             //transform: Rotation {origin.x: x; origin.y: y; angle: -90}
         }
 
-        //Text input for spotify
+        //Search bar
         TextField{
             id: textInput
             text: "Text"
@@ -356,12 +357,12 @@ ApplicationWindow{
                 top: parent.top
                 topMargin: parent.height/8
                 right: parent.right
-                rightMargin: parent.width/10
+                rightMargin: parent.width/20
             }
             font.family: astro.name
-            width: parent.width/10
-            height: parent.height/10
+            scale: Math.min(1, parent.width / contentWidth)
         }
+
 
         //Sets up dragging functionality of window
         MouseArea{

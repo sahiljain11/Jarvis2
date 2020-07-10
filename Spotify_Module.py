@@ -98,12 +98,14 @@ class SpotipyModule(qtc.QObject):
 
     @qtc.Slot(int)
     def helper_add_song_to_queue(self, number):
+        
+        temp = self.search_results['tracks']['items'][number]
 
-        song = self.search_results['tracks']['items'][number]['uri']
-        title = self.search_results['tracks']['items'][number]['name']
-        picture_image = self.search_results['tracks']['items'][number]['album']['images'][1]['url']
-        artist = self.search_results['tracks']['items'][number]['artists'][0]['name']
-        time = self.search_results['tracks']['items'][number]['duration_ms']
+        song = temp['uri']
+        title = temp['name']
+        picture_image = temp['album']['images'][1]['url']
+        artist = temp['artists'][0]['name']
+        time = temp['duration_ms']
         song_info = {
             'image': picture_image,
             'artist': artist,
@@ -111,8 +113,8 @@ class SpotipyModule(qtc.QObject):
             'song_title': title,
             'song_time': time
         }
-        print(song)
-        print(self.queue_id)
+        #print(song)
+        #print(self.queue_id)
         self.token.user_playlist_add_tracks(self.user, self.queue_id, tracks=[song])
         return
 
@@ -249,6 +251,8 @@ class SpotipyModule(qtc.QObject):
         if song_time >= 0 and song_time < self.dur_time:
             self.token.seek_track(position_ms=song_time)
             return song_time
+        elif song_time >= self.dur_time:
+            self.token.seek_track(position_ms=self.dur_time)
         else:
             return
 

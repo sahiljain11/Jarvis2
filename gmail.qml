@@ -1,4 +1,3 @@
-import QtQuick 2.6
 import QtQuick 2.12
 import QtQml.Models 2.12
 import QtQuick.Controls 2.12
@@ -56,8 +55,8 @@ ApplicationWindow{
                 return{
                     subject: gmail.GetSubjectTitle(gmail.get_message_id(i)),
                     sender: gmail.GetSender(gmail.get_message_id(i)),
-                    snippet: gmail.GetSnippet(gmail.get_message_id(i)),
-                    message: gmail.GetMessage(gmail.get_message_id(i)),
+                    //snippet: gmail.GetSnippet(gmail.get_message_id(i)),
+                    //message: gmail.GetMessage(gmail.get_message_id(i)),
                 };
             }
 
@@ -69,10 +68,6 @@ ApplicationWindow{
                 tit: subject
                 sen: sender
                 snip: snippet
-                Component.onCompleted: {
-
-                    console.log(tit)
-                }
             }
         }
 
@@ -152,13 +147,15 @@ ApplicationWindow{
                    labellist.append(label(i))
                }
            }
+
            function label(i) {
 
                return{
                    label: gmail.get_label(i)
                };
            }
-   }
+    }
+
     Component {
             id: labelDelagate
             Gmail_Butt{
@@ -166,9 +163,8 @@ ApplicationWindow{
                 sen: label
                 snip: ''
 
-
             }
-        }
+    }
 
    Butt{
     image: './Images/NewEmailIcon.png'
@@ -181,7 +177,7 @@ ApplicationWindow{
         top: parent.top
         topMargin: parent.height/25
     }
-    onTouched: {vis= true, print('hi')}
+    onTouched: {vis= true}
 
     }
 
@@ -315,12 +311,10 @@ ApplicationWindow{
                 leftMargin: parent.width/2
             }
             onTouched:{
-                console.log('yourmom')
 
                 gmail.send_message("me", sendtotext.text, subjectStringText.text, bodyStringText.text)
 
                 vis = false
-                print('bye')
                 sendtotext.text=""
                 subjectStringText.text=""
                 bodyStringText.text= ""
@@ -345,7 +339,6 @@ ApplicationWindow{
     }
     Keys.onPressed:{
         if(event.key == Qt.Key_Left){
-            console.log("searching")
             gmail.get_messages_from_query(searchbar.text)
         }
     }

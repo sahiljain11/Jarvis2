@@ -9,6 +9,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import mimetypes
 import os
+import time
 from PySide2 import QtCore as qtc
 from PySide2 import QtGui as qtg
 from googleapiclient.discovery import build
@@ -39,6 +40,7 @@ class GmailModule(qtc.QObject):
         self.service = self.use_token_pickle_to_get_service()
         self.message_ids = self.get_list_of_users_message_ids()
         self.label_list = self.get_labels()
+        self.time_elapsed = 0
 
     '''
     Accesses a file to gain saved credentials
@@ -104,7 +106,10 @@ class GmailModule(qtc.QObject):
     @qtc.Slot(str,result=str)
     def GetMessage(self, msg_id):
         try:
+            start = time.time()
             message = self.service.users().messages().get(userId='me', id=msg_id, format='full').execute()
+            end = time.time()
+            self.time_elapsed += end-start
 
             try:
 
@@ -136,7 +141,10 @@ class GmailModule(qtc.QObject):
     @qtc.Slot(str,result=str)
     def GetSender(self,msg_id):
         try:
+            start = time.time()
             message = self.service.users().messages().get(userId='me', id=msg_id, format='metadata').execute()
+            end = time.time()
+            self.time_elapsed += end-start
             
             for i in range(0,len((message['payload']['headers']))):
                 if (message['payload']['headers'][i]['name']) == 'From':
@@ -150,7 +158,10 @@ class GmailModule(qtc.QObject):
     @qtc.Slot(str,result=str)
     def GetSubjectTitle(self, msg_id):
         try:
+            start = time.time()
             message = self.service.users().messages().get(userId='me', id=msg_id, format='metadata').execute()
+            end = time.time()
+            self.time_elapsed += end-start
             for i in range(0,len((message['payload']['headers']))):
                 if (message['payload']['headers'][i]['name']) == 'Subject':
                    subject = ((message['payload']['headers'][i]['value']))
@@ -161,11 +172,15 @@ class GmailModule(qtc.QObject):
     @qtc.Slot(str,result=str)
     def GetSnippet(self,msg_id):
         try:
+            start = time.time()
             message = self.service.users().messages().get(userId='me', id=msg_id, format='metadata').execute()
+            end = time.time()
+            self.time_elapsed += end-start
             snippet = message['snippet']
             return snippet
         except apiclient.errors.HttpError:
             return
+
     @qtc.Slot()
     def ListMessagesMatchingQuery(self, user_id,query=''):
 
@@ -300,9 +315,9 @@ if __name__ == '__main__':
 
     array = gmail.get_list_of_users_message_ids()
     print(len(array))
-    for i in range(0,100):
-        print(i)
-        (gmail.GetMessage(array[i]['id']))
+    for i in range(0,50):
+        print(gmail.GetMessage(array[i]['id']))
         print(gmail.GetSender(array[i]['id']))
         print(gmail.GetSubjectTitle(array[i]['id']))
         print(gmail.GetSnippet(array[i]['id']))
+    print("Time Elapsed: ", gmail.time_elapsed)

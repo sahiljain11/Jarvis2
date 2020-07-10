@@ -12,7 +12,7 @@ Dial{
     to: 10000
     value: 0
     live: true
-    stepSize: 1000
+    
 
 
     //implicitWidth: 200
