@@ -7,34 +7,43 @@ from PySide2 import QtGui as qtg
 from PySide2 import QtCore as qtc
 from PySide2 import QtQuick as qtq
 from PySide2 import QtQml as qtm
+from SongWrapper import SongWrapper
 
 
-# QtWrapper is a wrapper that wraps an object in a Qt object
-class SongWrapper(qtc.QObject):
+class ListModel(qtc.QAbstractListModel):
 
-    objectChanged = qtc.Signal()
+    # Initializes a python list to contain the elements and sets the role
+    # element_type must subclass QObject and must have a variable "roles"
+    def __init__(self, element_type, parent=None):
+        super(ListModel, self).__init__()
+        self._list = []
+        self.roles = element_type.roles
+    
+    def roleNames(self):
+        print(self.roles)
+        return self.roles
+    
+    # Apppends the item to the list
+    def appendRow(self, item, parent=qtc.QModelIndex()):
+        self.beginInsertRows(parent, len(self._list), len(self._list))
+        self._list.append(item)
+        self.endInsertRows()
+    
+    # Clears the list
+    def clear(self):
+        self._list.clear()
 
-    # Initialize the wrapper
-    def __init__(self, song, artist, image_url):
-        super(QtWrapper, self).__init__()
-        self._song = song
-        self._artist = artist
-        self._image_url = image_url
+    # Returns the row count
+    def rowCount(self, parent=qtc.QModelIndex()):
+        return len(self._list)
     
-    # Returns the song name
-
-    def song(self):
-        return self._song
-
-    def artist(self):
-        return self._artist
+    # Returns the data if it fits a given role
+    def data(self, index, role):
+        row = index.row()
+        if index.isValid() and 0 <= row < self.rowCount():
+            return self._list[index.row()].data(role)
     
-    def image_url(self):
-        return self._image_url
-    
-    # Returns the song 
-    
-    
-    
+    def __str__(self):
+        return str(self._list)
 
     

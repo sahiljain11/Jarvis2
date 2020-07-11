@@ -1,17 +1,17 @@
 import sys
+sys.path.append("../")
 import spotipy.util as util
 import spellchecker
 import time
 import spotipy as spy
 from os import environ
+from ListModel import ListModel
+from SongWrapper import SongWrapper
 from PySide2 import QtWidgets as qtw
 from PySide2 import QtGui as qtg
 from PySide2 import QtCore as qtc
 from PySide2 import QtQuick as qtq
 from PySide2 import QtQml as qtm
-
-scope = 'user-library-read'
-
 
 class SpotipyModule(qtc.QObject):
 
@@ -39,12 +39,12 @@ class SpotipyModule(qtc.QObject):
         self.queue_uri = None
         self.playlist_ids = None
         self.playlist_names = None
-        self.music_choices_for_queue = None
         self.search_results = None
         self.dur_time = 0
         self.artist = ""
         self.title = ""
         self.picture = qtc.QUrl()
+        self.search_list = ListModel(SongWrapper)
         self.token = self.generate_token()
         self.queue = self.generate_queue()
 
@@ -79,42 +79,20 @@ class SpotipyModule(qtc.QObject):
         # search_query = song_title.replace(" ", "&20")
         # print(search_query)
 
-        search_results = (self.token.search(song_title, 20, 0, type='track,album'))
+        self.search_results = (self.token.search(song_title, 10, 0, type='track,album'))
 
-        # initalizes variables for loop
-        song_number = 1
-        song_index = 0
-        song_choices_for_queue = [None] * len(search_results['tracks']['items'])
         # loop places song titles into array
-        for songz in range(0, len(search_results['tracks']['items'])):
-            song_choices_for_queue[song_index] = str(song_number) + ') ' + search_results['tracks']['items'][songz][
-                'name']
-            song_number += 1
-            song_index += 1
-
-        self.music_choices_for_queue = song_choices_for_queue
-        self.search_results = search_results
+        for temp in self.search_results['tracks']['items']:
+            title = temp['name']
+            picture_image = temp['album']['images'][1]['url']
+            artist = temp['artists'][0]['name']
+            self.search_list.appendRow(SongWrapper(title, artist, picture_image, self.search_list))
         return
 
     @qtc.Slot(int)
     def helper_add_song_to_queue(self, number):
-        
         temp = self.search_results['tracks']['items'][number]
-
         song = temp['uri']
-        title = temp['name']
-        picture_image = temp['album']['images'][1]['url']
-        artist = temp['artists'][0]['name']
-        time = temp['duration_ms']
-        song_info = {
-            'image': picture_image,
-            'artist': artist,
-            'song_link': song,
-            'song_title': title,
-            'song_time': time
-        }
-        #print(song)
-        #print(self.queue_id)
         self.token.user_playlist_add_tracks(self.user, self.queue_id, tracks=[song])
         return
 
@@ -164,9 +142,9 @@ class SpotipyModule(qtc.QObject):
         #print(self.token.current_playback()['context'])
         #for key in self.token.current_user_playing_track()['item']:
         #print(self.token.current_user_playing_track()['item'][key])
-        album_cover = ((self.token.current_user_playing_track()['item']['album']['images'][0]['url']))
-        artist_name = ((self.token.current_user_playing_track()['item']['artists'][0]['name']))
-        song_title = ((self.token.current_user_playing_track()['item']['name']))
+        album_cover = self.token.current_user_playing_track()['item']['album']['images'][0]['url']
+        artist_name = self.token.current_user_playing_track()['item']['artists'][0]['name']
+        song_title = self.token.current_user_playing_track()['item']['name']
         duration_time = self.token.current_user_playing_track()['item']['duration_ms']
 
         song_info = {

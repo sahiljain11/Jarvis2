@@ -213,7 +213,6 @@ ApplicationWindow{
             repeat: true
             interval: 900
             onTriggered:{
-                console.log("tick")
                 song_playback.value = spotify.get_current_time()
                 if(song_playback.value > 0 && song_playback.value <= 1000 ){
                     spotify.set_current_song_info()
@@ -361,6 +360,38 @@ ApplicationWindow{
             }
             font.family: astro.name
             scale: Math.min(1, parent.width / contentWidth)
+        }
+
+
+        Component{
+            id:search_del
+            Text{
+                anchors.fill: parent
+                text: song
+            }
+            
+        }
+        //Search results
+        ListView{
+            id: search_results
+            anchors{
+                top: textInput.bottom
+                bottom: volume.top
+                bottomMargin: parent.height/20
+                left: textInput.left
+                right: textInput.right
+            }
+            model: searchList
+            delegate: Rectangle {
+                width: search_results.width
+                height: search_results.height/10
+                Text{
+                    anchors.fill: parent
+                    elide: Text.ElideRight
+                    text: model.song + " " + model.artist
+                    fontSizeMode: Text.Fit
+                }
+            }
         }
 
 
