@@ -30,6 +30,7 @@ ApplicationWindow {
         Calendar {
         Layout.fillWidth: true
         Layout.fillHeight: true
+        frameVisible: true
         style: CalendarStyle {
             gridVisible: false
             dayDelegate: Rectangle {
