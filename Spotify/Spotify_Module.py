@@ -138,6 +138,10 @@ class SpotipyModule(qtc.QObject):
 
     @qtc.Slot()
     def set_current_song_info(self):
+        #print(self.token.current_playback()['progress_ms'])
+        #print(self.token.current_playback()['context'])
+        #for key in self.token.current_user_playing_track()['item']:
+        #print(self.token.current_user_playing_track()['item'][key])
         album_cover = self.token.current_user_playing_track()['item']['album']['images'][0]['url']
         artist_name = self.token.current_user_playing_track()['item']['artists'][0]['name']
         song_title = self.token.current_user_playing_track()['item']['name']
