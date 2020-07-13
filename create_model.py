@@ -30,10 +30,11 @@ number_of_gestures = 12   # output size
 sequence_length    = 20   # refers to the amount of timeframes to check
 batch_size         = 1    # how many different files to compute
 learning_rate      = 0.001
+num_epoch          = 20
 num_epoch          = 5
 folder_name = ["none", "pinch_in", "pinch_out", "swipe_up", "swipe_down", "swipe_left", "swipe_right",
                "grab2fist", "fist2grab", "peace", "2fingers", "pointing"]
-STORAGE_PATH = "state_dict_model_wrist_features.pt"
+STORAGE_PATH = "all_files.model"
 
 def create_training_tensor(data_file, number_of_features, feature_columns):
 
@@ -102,7 +103,8 @@ number_of_features = len(feature_columns)
 file_tensors = []
 file_hash = {}
 num_files = 0
-with IncrementalBar("Preprocessing...", max=number_of_gestures) as increment_bar:
+max_count = 0
+with IncrementalBar("Determining Tensor Counts...", max=number_of_gestures) as increment_bar:
     for i in range(0, number_of_gestures):
         # navigate to subfolder
         name = folder_name[i]
@@ -118,14 +120,48 @@ with IncrementalBar("Preprocessing...", max=number_of_gestures) as increment_bar
 
             # convert them to tensors
             training_tensor = create_training_tensor(training_file, number_of_features, feature_columns)
-            #training_tensor = F.normalize(training_tensor, dim=0)
 
             for k in range(sequence_length, training_tensor.shape[0]):
                 if training_tensor.shape[1] != number_of_features:
                     break
 
                 count += 1
+<<<<<<< HEAD
+
+        # determine max_count
+        if count > max_count:
+            max_count = count
+        increment_bar.next()
+
+with IncrementalBar("Preprocessing...", max=number_of_gestures) as increment_bar:
+    for i in range(0, number_of_gestures):
+        # navigate to subfolder
+        name = folder_name[i]
+        data_dir = os.path.join(basedir, 'csv_data/' + name + '/')
+        files = os.listdir(data_dir)
+
+        count = 0
+
+        #j = 0
+        #while True:
+        for j in range(0, len(files)):
+            # traverse through each file in each sub folder
+            test_string = name + str(j) + ".csv"
+            training_file = os.path.join(data_dir, test_string)
+
+            # convert them to tensors
+            training_tensor = create_training_tensor(training_file, number_of_features, feature_columns)
+            #training_tensor = F.normalize(training_tensor, dim=0)
+
+            for k in range(sequence_length, training_tensor.shape[0]):
+                if training_tensor.shape[1] != number_of_features:
+                    break
+                count += 1
+
+                #if count > max_count:
+=======
                 #if count > 1322:
+>>>>>>> d0ed84358e57e32bc20eb9866a1e19ce88635f3d
                 #    break
 
                 portion_tensor = training_tensor[k - sequence_length:k, :]
@@ -133,7 +169,16 @@ with IncrementalBar("Preprocessing...", max=number_of_gestures) as increment_bar
                 file_tensors.append(portion_tensor)
                 file_hash[portion_tensor] = i
                 num_files += 1
+<<<<<<< HEAD
+
+            # increment j and see if enough tensors for this gesture have been made
+            #j = (j + 1) % len(files)
+            #if count > max_count:
+            #    break
+
+=======
         #print("  " + str(count))
+>>>>>>> d0ed84358e57e32bc20eb9866a1e19ce88635f3d
         increment_bar.next()
 
 random.shuffle(file_tensors)

@@ -14,6 +14,7 @@ import random
 
 app = Flask(__name__)
 
+number_of_features = 31   # input size
 number_of_features = 28   # input size
 number_of_hidden   = 32   # size of hidden layer
 number_of_gestures = 12   # output size
@@ -78,15 +79,26 @@ class JarvisLSTM(nn.Module):
         return gesture_out
 
 lstm_model = JarvisLSTM(number_of_hidden, number_of_features, number_of_gestures, sequence_length)
+lstm_model.load_state_dict(torch.load("atan.model"))
 lstm_model.load_state_dict(torch.load("state_dict_model_wrist_features30epoch.pt"))
 
 lstm_model.eval()
 
-feature_order = ["thumb2index", "thumb2middle", "thumb2ring", "thumb2pinky", "thumbFromStart", "indexFromStart",
+feature_order = ["pitch", "roll", "yaw", "thumb2index", "thumb2middle", "thumb2ring", "thumb2pinky", "thumbFromStart", "indexFromStart",
                  "middleFromStart", "ringFromStart", "pinkyFromStart", "thumbLength", "indexLength", "middleLength",
                  "ringLength", "pinkyLength", "index_omega", "middle_omega", "ring_omega", "pinky_omega",
                  "index_beta", "middle_beta", "ring_beta", "pinky_beta", "thumb_index_gamma", "index_middle_gamma",
                  "middle_ring_gamma", "ring_pinky_gamma", "wrist_phi", "wrist_theta"]
+
+qml_data = [0, 0, 0, 0]
+
+@app.route("/get-gesture/", methods=['POST'])
+def get_gesture():
+    ret = {"gesture" : qml_data[0],
+           "x" : qml_data[1],
+           "y" : qml_data[2],
+           "z" : qml_data[3]}
+    return jsonify(ret)
 
 # Flask Server stuff
 @app.route("/determine-gesture/", methods=['POST'])
@@ -100,7 +112,7 @@ def determine_gesture():
     format_data = ([smol_array] * sequence_length)
     for i in range(0, sequence_length):
         for j in range(0, len(feature_order)):
-            format_data[i][j] = json_data[i][feature_order[j]]
+            format_data[i][j] = json_data[str(i)][feature_order[j]]
 
     # create tensor
     eval_tensor = torch.FloatTensor(format_data)
@@ -111,6 +123,11 @@ def determine_gesture():
     # manipulate model to get item with highest
     # probability
     result = torch.argmax(result)
+
+    qml_data[0] = result.item()
+    qml_data[1] = json_data["x"]
+    qml_data[2] = json_data["y"]
+    qml_data[3] = json_data["z"]
 
     # send that information back properly
     result = {"gesture" : result.item()}

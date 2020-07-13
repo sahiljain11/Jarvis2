@@ -36,7 +36,7 @@ class SampleListener(Leap.Listener):
     def on_frame(self, controller):
         # Get the most recent frame and report some basic information
         frame = controller.frame()
-        
+
         # Get hands
         right_hand = False
         for hand in frame.hands:
@@ -84,6 +84,11 @@ class SampleListener(Leap.Listener):
                 j += 1
 
             model_data = {}
+
+            # yaw, pitch, and roll
+            model_data["yaw"]   = direction.yaw
+            model_data["roll"]  = direction.roll
+            model_data["pitch"] = direction.pitch
 
             # distance betwene thumb distals and the other fingers' distals
             for i in range(1, len(self.finger_names)):
@@ -196,8 +201,8 @@ class SampleListener(Leap.Listener):
             wrist_to_palm_x = raw_data["hand_x"] - raw_data["wrist_x"]
             wrist_to_palm_y = raw_data["hand_y"] - raw_data["wrist_y"]
             wrist_to_palm_z = raw_data["hand_z"] - raw_data["wrist_z"]
-            model_data["wrist_phi"] = np.arctan(wrist_to_palm_y / wrist_to_palm_x)
-            model_data["wrist_theta"] = np.arctan((wrist_to_palm_x**2 + wrist_to_palm_y**2)**0.5 / wrist_to_palm_z)
+            model_data["wrist_phi"] = np.arctan2(wrist_to_palm_y, wrist_to_palm_x)
+            model_data["wrist_theta"] = np.arctan2((wrist_to_palm_x**2 + wrist_to_palm_y**2)**0.5, wrist_to_palm_z)
 
             # update initial x
             if len(self.json_data) == 0:
@@ -213,12 +218,20 @@ class SampleListener(Leap.Listener):
 
             # send request if enough data
             if len(self.json_data) == 20 and self.timesteps_count % 1 == 0:
+                # record hand data information
+
+                send = dict()
+                for i in range(0, 20):
+                    send[str(i)] = self.json_data[i]
+
+                send["x"] = raw_data["hand_x"]
+                send["y"] = raw_data["hand_y"]
+                send["z"] = raw_data["hand_z"]
                 #send = dict()
                 #for i in range(0, 20):
                 #    send[str(i)] = self.json_data[i]
 
-                #send = json.dumps(send)
-                send = json.dumps(self.json_data)
+                send = json.dumps(send)
                 res = requests.post("http://127.0.0.1:5000/determine-gesture/", json=send).json()
                 curr_gesture = res['gesture']
 

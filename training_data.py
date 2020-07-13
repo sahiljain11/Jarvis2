@@ -22,6 +22,8 @@ class SampleListener(Leap.Listener):
 
     def on_init(self, controller):
         # determine what file number to write to
+        file_to_write = "new_fist"
+        count = 0
         file_to_write = "peace"
         count = 102
 
@@ -53,6 +55,8 @@ class SampleListener(Leap.Listener):
         self.f.write("pitch,roll,yaw,arm_x,arm_y,arm_z,wrist_x,wrist_y,wrist_z,")
         self.f.write("elbow_x,elbow_y,elbow_z,")
 
+        self.started = False
+        
         for finger in self.finger_names:
             for bone in self.bone_names:
                 self.f.write(finger + "_" + bone + "_" + "start_x,")
@@ -89,6 +93,9 @@ class SampleListener(Leap.Listener):
 
         # Get hands
         for hand in frame.hands:
+            if self.started == False:
+                print("STARTING")
+                self.started = True
 
             handType = "Left hand" if hand.is_left else "Right hand"
 
