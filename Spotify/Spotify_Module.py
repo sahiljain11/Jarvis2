@@ -1,12 +1,10 @@
 import sys
-sys.path.append("../")
 import spotipy.util as util
 import spellchecker
 import time
 import spotipy as spy
 from os import environ
 from ListModel import ListModel
-from SongWrapper import SongWrapper
 from PySide2 import QtWidgets as qtw
 from PySide2 import QtGui as qtg
 from PySide2 import QtCore as qtc
@@ -44,7 +42,7 @@ class SpotipyModule(qtc.QObject):
         self.artist = ""
         self.title = ""
         self.picture = qtc.QUrl()
-        self.search_list = ListModel(SongWrapper)
+        self.search_list = ListModel(SpotipyModule.SongWrapper)
         self.token = self.generate_token()
         self.queue = self.generate_queue()
 
@@ -86,7 +84,7 @@ class SpotipyModule(qtc.QObject):
             title = temp['name']
             picture_image = temp['album']['images'][1]['url']
             artist = temp['artists'][0]['name']
-            self.search_list.appendRow(SongWrapper(title, artist, picture_image, self.search_list))
+            self.search_list.appendRow(SpotipyModule.SongWrapper(title, artist, picture_image, self.search_list))
         return
 
     @qtc.Slot(int)
@@ -285,6 +283,48 @@ class SpotipyModule(qtc.QObject):
             self.token.start_playback(device_id=None, context_uri=None, uris=uris)
 
         return
+
+    #SongWrapper is a wrapper that wraps an object in a Qt object
+    class SongWrapper(qtc.QObject):
+
+        # Dictionary of roles for SongWrapper
+        roles = {
+            qtc.Qt.UserRole + 1: b'song',
+            qtc.Qt.UserRole + 2: b'artist',
+            qtc.Qt.UserRole + 3: b'image_url'
+        }
+
+        # Signals
+        #songChanged = qtc.Signal()
+        #artistChanged = qtc.Signal()
+        #image_urlChanged = qtc.Signal()
+
+        # Initialize the wrapper
+        def __init__(self, song, artist, image_url, parent=None):
+            super(SpotipyModule.SongWrapper, self).__init__()
+            self._data = {b'song': song, b'artist': artist, b'image_url': image_url}
+        
+        # Retrieves the given role of the SongWrapper (i.e. song, artist, or image_url)
+        def data(self, key):
+            return self._data[self.roles[key]]
+
+        @qtc.Property(str)
+        def song(self):
+            return self._data[b'song']
+        
+        @qtc.Property(str)
+        def artist(self):
+            return self._data[b'artist']
+        
+        @qtc.Property(qtc.QUrl)
+        def image_url(self):
+            return self._data[b'image_url']
+
+        def __str__(self):
+            return "[" + str(self.song) + ", " + str(self.artist)  + "]" 
+        
+        def __repr__(self):
+            return str(self)
 
 '''
 spotify = SpotipyModule(environ.get('USER'), environ.get('CLIENT_ID'), environ.get('CLIENT_SECRET'),environ.get("REDIRECT_URI"),environ.get("USERNAME"))

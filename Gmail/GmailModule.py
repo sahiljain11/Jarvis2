@@ -12,6 +12,7 @@ import os
 import time
 from PySide2 import QtCore as qtc
 from PySide2 import QtGui as qtg
+from ListModel import ListModel
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
@@ -42,6 +43,10 @@ class GmailModule(qtc.QObject):
         self.label_list = self.get_labels()
         self.time_elapsed = 0
         self.messages = self.service.users().messages()
+        self.currentEmailList = ListModel(GmailModule.EmailObject)
+        self.get_preview_message_info(50)
+        print(self.currentEmailList.rowCount())
+        
     '''
     Accesses a file to gain saved credentials
     if no file exists the file is generated and user is asked to put in creds
@@ -103,17 +108,13 @@ class GmailModule(qtc.QObject):
     def get_label(self,i):
         return self.label_list[i]
 
-    def get_all_message_info(self,msg_id):
-        start = time.time()
-        message = self.messages.get(userId='me', id=msg_id, format='full').execute()
-        (self.GetSender(message))
-        (self.GetMessage(message))
-        (self.GetSnippet(message))
-        (self.GetSubjectTitle(message))
-        end = time.time()
-        self.time_elapsed += (end - start)
-
-        return
+    # Takes an integer as an index and retrieves the message's metadata
+    @qtc.Slot(int)
+    def get_preview_message_info(self, num_messages):
+        for index in range(0, num_messages):
+            message = self.messages.get(userId='me', id=self.message_ids[index]['id'], format='metadata', metadataHeaders=["To", "From", "Subject"]).execute()
+            self.currentEmailList.appendRow(GmailModule.EmailObject(sender=self.GetSender(message), snippet=self.GetSnippet(message), subject=self.GetSubjectTitle(message)))
+        return 
 
     @qtc.Slot(str,result=str)
     def GetMessage(self, message):
@@ -311,21 +312,72 @@ class GmailModule(qtc.QObject):
         except apiclient.errors.HttpError as error:
             print('error')
             return
+    
+    class EmailObject(qtc.QObject):
+
+        # Roles
+        roles = {
+            qtc.Qt.UserRole + 4: b'sender',
+            qtc.Qt.UserRole + 5: b'receiver',
+            qtc.Qt.UserRole + 6: b'subject',
+            qtc.Qt.UserRole + 7: b'snippet',
+            qtc.Qt.UserRole + 8: b'message'
+        }
+
+        # Signals
+        senderChanged = qtc.Signal()
+        receiverChanged = qtc.Signal()
+        subjectChanged = qtc.Signal()
+        snippetChanged = qtc.Signal()
+        messageChanged = qtc.Signal()
+
+        # Initializer for email object
+        def __init__(self, sender=None, receiver=None, subject=None, snippet=None, message=None):
+            super(GmailModule.EmailObject, self).__init__()
+            self._data = {b'sender': sender, b'receiver': receiver, b'subject': subject, b'snippet': snippet, b'message': message}
+        
+        # Retrieves the data
+        def data(self, key):
+            return self._data[self.roles[key]]
+        
+        @qtc.Property(str)
+        def sender(self):
+            self._data[b'sender']
+        
+        @qtc.Property(str)
+        def receiver(self):
+            return self._data[b'receiver']
+        
+        @qtc.Property(str)
+        def subject(self):
+            return self._data[b'subject']
+        
+        @qtc.Property(str)
+        def snippet(self):
+            return self._data[b'snippet']
+
+        @qtc.Property(str)
+        def message(self):
+            return self._data[b'message']
+
+        def __str__(self):
+            return "[" + self.sender + " " + self.receiver + " " + self.subject + ']'
+        
+        def __repr__(self):
+            return str(self)
+        
+
 
 
 if __name__ == '__main__':
     gmail = GmailModule()
-    (gmail.get_labels())
-    gmail.get_list_of_users_message_ids()
-
-    array = gmail.get_list_of_users_message_ids()
     import timeit
 
     start = time.time()
     timer = 0
     for i in range(0,50):
         starts = time.time()
-        (gmail.get_all_message_info(array[i]['id']))
+        (gmail.get_preview_message_info(i))
         ends = time.time()
         timer += ends-starts
     end = time.time()

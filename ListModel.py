@@ -20,7 +20,6 @@ class ListModel(qtc.QAbstractListModel):
         self.roles = element_type.roles
     
     def roleNames(self):
-        print(self.roles)
         return self.roles
     
     # Apppends the item to the list
@@ -30,8 +29,10 @@ class ListModel(qtc.QAbstractListModel):
         self.endInsertRows()
     
     # Clears the list
-    def clear(self):
+    def clear(self, parent=qtc.QModelIndex()):
+        self.beginResetModel()
         self._list.clear()
+        self.endResetModel()
 
     # Returns the row count
     def rowCount(self, parent=qtc.QModelIndex()):

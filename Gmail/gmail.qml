@@ -40,28 +40,6 @@ ApplicationWindow{
         width: parent.width/2
         height: parent.height
 
-
-        ListModel {
-
-            id: emailModel
-            Component.onCompleted:{
-                for (var i = 0; i < 50; i++) {
-                    emailModel.append(createListElement(i))
-                }
-            }
-
-            function createListElement(i) {
-            
-                return{
-                    subject: gmail.GetSubjectTitle(gmail.get_message_id(i)),
-                    sender: gmail.GetSender(gmail.get_message_id(i)),
-                    snippet: gmail.GetSnippet(gmail.get_message_id(i)),
-                    //message: gmail.GetMessage(gmail.get_message_id(i)),
-                };
-            }
-
-        }
-
         Component {
             id: emailDelegate
             Gmail_Butt{
@@ -80,7 +58,7 @@ ApplicationWindow{
             width: parent.width/2
             height: parent.height
             clip: true
-            model: emailModel
+            model: emailPreview
             delegate: emailDelegate
             spacing: parent.height/40
             Keys.onUpPressed: scroll.decrease()
