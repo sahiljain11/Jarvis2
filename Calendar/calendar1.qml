@@ -13,6 +13,7 @@ ApplicationWindow {
     Calendar {
         anchors.left: parent.left
         anchors.top: parent.top
+        frameVisible: true
         style: CalendarStyle {
             gridVisible: false
             dayDelegate: Rectangle {
