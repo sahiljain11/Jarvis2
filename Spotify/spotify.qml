@@ -1,10 +1,10 @@
 import QtQuick 2.5
-import QtQuick.Controls 1.4
+import QtQuick.Controls 2.12
 import QtQuick.Controls.Styles 1.4
 import QtQuick.Layouts 1.11
 import QtGraphicalEffects 1.12
 import QtMultimedia 5.0
-import "./components"
+import "../components"
 
 // Initialize application window
 ApplicationWindow{
@@ -16,7 +16,7 @@ ApplicationWindow{
     //background
     Image{
         id: grad
-        source: "images/grad.png"
+        source: "../images/grad.png"
         anchors.fill: parent
     }
 
@@ -25,8 +25,8 @@ ApplicationWindow{
         id: spotify_widget
         
         //Load fonts
-        FontLoader { id: nidsans; source: "./fonts/Nidsans.ttf"}
-        FontLoader{ id: astro; source: "./fonts/AstroSpace.ttf"}
+        FontLoader { id: nidsans; source: "../fonts/Nidsans.ttf"}
+        FontLoader{ id: astro; source: "../fonts/AstroSpace.ttf"}
     
         //custom properties
         property var scaleVal: 1
@@ -53,7 +53,7 @@ ApplicationWindow{
         // Sets the background image
         Picture{
             id: back
-            image: "images/frame1.png"
+            image: "../images/frame1.png"
             anchors.fill: parent
             smooth: true
             opacity: 1
@@ -73,8 +73,8 @@ ApplicationWindow{
             id: play
 
             //Load the play button image
-            iconOn: "./images/pause.png"
-            iconOff: "./images/play.png" 
+            iconOn: "../images/pause.png"
+            iconOff: "../images/play.png" 
 
             //Position the play button at the bottom center
             anchors {
@@ -103,7 +103,7 @@ ApplicationWindow{
             id: skip_forward
             
             //Load the skip png
-            image: "./images/skip_forward.png"
+            image: "../images/skip_forward.png"
 
             //Position the skip button to the right of the skip button
             anchors{
@@ -117,6 +117,7 @@ ApplicationWindow{
                 console.log("forward")
                 spotify.next_song()
                 play.state = 'ON'
+                song_timer.restart()
             }
 
             //Resize
@@ -129,7 +130,7 @@ ApplicationWindow{
             id: skip_backward
             
             //Load the skip png
-            image: "./images/skip_back.png"
+            image: "../images/skip_back.png"
 
             //Position the skip button to the right of the skip button
             anchors{
@@ -143,6 +144,7 @@ ApplicationWindow{
                 console.log("back")
                 spotify.prev_song()
                 play.state = 'ON'
+                song_timer.restart()
             }
             
             //Resize
@@ -157,7 +159,6 @@ ApplicationWindow{
                 horizontalCenter: play.horizontalCenter
                 bottom: play.top
                 bottomMargin: play.height/1.5
-                
             }
             //font.bold: true
             font.pointSize: 8
@@ -166,7 +167,7 @@ ApplicationWindow{
             //Style
             color: "white"
             
-            text: 'Katy Perry' 
+            text: spotify.currArtist
         }
 
         //Song Title
@@ -184,7 +185,7 @@ ApplicationWindow{
             
             //Style
             color: "white"
-            text: 'Dark Horse'
+            text: spotify.currTitle
         }
 
         //Song icon
@@ -192,8 +193,7 @@ ApplicationWindow{
             id: song_icon
 
             //Set the song icon
-            source: 'https://ichef.bbci.co.uk/news/1024/media/images/73240000/jpg/_73240070_73232474.jpg'
-
+            source: spotify.currIcon
             // Position the song icon right above the play button
             // Make the song icon width bound by the skip buttons
             anchors{
@@ -205,6 +205,41 @@ ApplicationWindow{
 
             //Make the song icon square
             height: width
+        }
+
+        Timer{
+            id: song_timer
+            running: true
+            repeat: true
+            interval: 900
+            onTriggered:{
+                song_playback.value = spotify.get_current_time()
+                if(song_playback.value > 0 && song_playback.value <= 1000 ){
+                    spotify.set_current_song_info()
+                }
+            }
+        }
+
+        //Dial that changes current song playback
+        SongPlayBack{
+            id: song_playback
+            from: 0
+            to: spotify.durTime
+            stepSize: 1000
+
+            anchors{
+                left: parent.left
+                leftMargin: parent.width/20
+                right: skip_backward.right
+                rightMargin: parent.width/10
+                top: song_icon.verticalCenter
+                bottom: parent.bottom
+                bottomMargin: parent.height/10
+            }
+            
+            onMoved:{
+                spotify.change_time(song_playback.value)
+            }
         }
 
         //Create the border
@@ -291,28 +326,29 @@ ApplicationWindow{
             anchors {
                 
                 //For vertical
-                
                 //left: skip_forward.right
                 //leftMargin: parent.width/25
                 //bottom: skip_forward.bottom
                 //top: song_icon.bottom 
                 
                 //For horizontal
-
                 left: skip_forward.right
                 leftMargin: parent.width/25
                 bottom: skip_forward.bottom
                 top: skip_forward.top
-
             }
 
             width: parent.width/10
             
+            onValueChanged: {
+                spotify.change_volume(volume.value)
+            }
+
             //Vertical Rotation
             //transform: Rotation {origin.x: x; origin.y: y; angle: -90}
         }
 
-        //Text input for spotify
+        //Search bar
         TextField{
             id: textInput
             text: "Text"
@@ -320,12 +356,44 @@ ApplicationWindow{
                 top: parent.top
                 topMargin: parent.height/8
                 right: parent.right
-                rightMargin: parent.width/10
+                rightMargin: parent.width/20
             }
             font.family: astro.name
-            width: parent.width/10
-            height: parent.height/10
+            scale: Math.min(1, parent.width / contentWidth)
         }
+
+
+        Component{
+            id:search_del
+            Text{
+                anchors.fill: parent
+                text: song
+            }
+            
+        }
+        //Search results
+        ListView{
+            id: search_results
+            anchors{
+                top: textInput.bottom
+                bottom: volume.top
+                bottomMargin: parent.height/20
+                left: textInput.left
+                right: textInput.right
+            }
+            model: searchList
+            delegate: Rectangle {
+                width: search_results.width
+                height: search_results.height/10
+                Text{
+                    anchors.fill: parent
+                    elide: Text.ElideRight
+                    text: model.song + " " + model.artist
+                    fontSizeMode: Text.Fit
+                }
+            }
+        }
+
 
         //Sets up dragging functionality of window
         MouseArea{
@@ -361,7 +429,7 @@ ApplicationWindow{
                 scaleVal = scaleVal - 0.05
             }
 
-            if(event.key == Qt.Key_Enter){
+            if(event.key == Qt.Key_Return){
                 console.log("Prese")
                 spotify.add_song_to_queue(textInput.text)
                 spotify.helper_add_song_to_queue(0)

@@ -28,15 +28,16 @@ for i in range(0, len(first_row)):
 finger_names = ['thumb', 'index', 'middle', 'ring', 'pinky']
 
 # add more relevant features to the csvs
-folder_name = ["none", "pinch_in", "pinch_out", "swipe_up", "swipe_down",
-               "swipe_left", "swipe_right", "grab2fist", "fist2grab", "peace",
-               "2fingers", "pointing"]
+folder_name = ["peace"]
+#folder_name = ["none", "pinch_in", "pinch_out", "swipe_up", "swipe_down",
+#               "swipe_left", "swipe_right", "grab2fist", "fist2grab", "peace",
+#               "2fingers", "pointing"]
 
 def find_distance_between_vec(df, col1, col2):
     return ((df[col1 + "x"] - df[col2 + "x"])**2 + (df[col1 + "y"] - df[col2 + "y"])**2 + (df[col1 + "z"] - df[col2 + "z"])**2)**0.5
 
 
-for i in range(4, len(folder_name)):
+for i in range(0, len(folder_name)):
     name = folder_name[i]
     file_direc = os.path.join(basedir, name + "/")
     files = os.listdir(file_direc)
@@ -47,66 +48,66 @@ for i in range(4, len(folder_name)):
             file_loc = file_direc + iter_file
             df = pd.read_csv(file_loc)
 
-            #df = df.rename(columns={"Unnamed: 197" : "thumb2index"})
+            df = df.rename(columns={"Unnamed: 197" : "thumb2index"})
 
             # calculate distances between each of the fingers to the thumb
-            #for i in range(1, len(finger_names)):
-            #    df["thumb2" + finger_names[i]] = find_distance_between_vec(df, "thumb_distal_end_", finger_names[i] + "_distal_end_")
+            for i in range(1, len(finger_names)):
+                df["thumb2" + finger_names[i]] = find_distance_between_vec(df, "thumb_distal_end_", finger_names[i] + "_distal_end_")
 
-            ## change in each finger location
-            #for i in range(0, len(finger_names)):
-            #    df[finger_names[i] + "FromStart"] = df[finger_names[i] + "_distal_end_x"] - df.loc[0, finger_names[i] + "_distal_end_x"]
+            # change in each finger location
+            for i in range(0, len(finger_names)):
+                df[finger_names[i] + "FromStart"] = df[finger_names[i] + "_distal_end_x"] - df.loc[0, finger_names[i] + "_distal_end_x"]
 
-            #for i in range(0, len(finger_names)):
-            #    df[finger_names[i] + "Length"] = find_distance_between_vec(df, "hand_position_", finger_names[i] + "_distal_end_")
+            for i in range(0, len(finger_names)):
+                df[finger_names[i] + "Length"] = find_distance_between_vec(df, "hand_position_", finger_names[i] + "_distal_end_")
 
-            ## calculate angles omega
-            #for i in range(1, len(finger_names)):
-            #    temp_col_x = df[finger_names[i] + "_intermediate_end_x"] - df[finger_names[i] + "_intermediate_start_x"]
-            #    temp_col_y = df[finger_names[i] + "_intermediate_end_y"] - df[finger_names[i] + "_intermediate_start_y"]
-            #    temp_col_z = df[finger_names[i] + "_intermediate_end_z"] - df[finger_names[i] + "_intermediate_start_z"]
+            # calculate angles omega
+            for i in range(1, len(finger_names)):
+                temp_col_x = df[finger_names[i] + "_intermediate_end_x"] - df[finger_names[i] + "_intermediate_start_x"]
+                temp_col_y = df[finger_names[i] + "_intermediate_end_y"] - df[finger_names[i] + "_intermediate_start_y"]
+                temp_col_z = df[finger_names[i] + "_intermediate_end_z"] - df[finger_names[i] + "_intermediate_start_z"]
 
-            #    temp_col_a = df[finger_names[i] + "_distal_end_x"] - df[finger_names[i] + "_distal_start_x"]
-            #    temp_col_b = df[finger_names[i] + "_distal_end_y"] - df[finger_names[i] + "_distal_start_y"]
-            #    temp_col_c = df[finger_names[i] + "_distal_end_z"] - df[finger_names[i] + "_distal_start_z"]
+                temp_col_a = df[finger_names[i] + "_distal_end_x"] - df[finger_names[i] + "_distal_start_x"]
+                temp_col_b = df[finger_names[i] + "_distal_end_y"] - df[finger_names[i] + "_distal_start_y"]
+                temp_col_c = df[finger_names[i] + "_distal_end_z"] - df[finger_names[i] + "_distal_start_z"]
 
-            #    temp_col = (temp_col_x * temp_col_a) + (temp_col_y * temp_col_b) + (temp_col_z * temp_col_c)
-            #    temp_col = temp_col / (find_distance_between_vec(df, finger_names[i] + "_intermediate_end_", finger_names[i] + "_intermediate_start_"))
-            #    temp_col = temp_col / (find_distance_between_vec(df, finger_names[i] + "_distal_end_", finger_names[i] + "_distal_start_"))
+                temp_col = (temp_col_x * temp_col_a) + (temp_col_y * temp_col_b) + (temp_col_z * temp_col_c)
+                temp_col = temp_col / (find_distance_between_vec(df, finger_names[i] + "_intermediate_end_", finger_names[i] + "_intermediate_start_"))
+                temp_col = temp_col / (find_distance_between_vec(df, finger_names[i] + "_distal_end_", finger_names[i] + "_distal_start_"))
 
-            #    df[finger_names[i] + "_omega"] = np.arccos(temp_col)
+                df[finger_names[i] + "_omega"] = np.arccos(temp_col)
 
-            ## calculate angles beta
-            #for i in range(1, len(finger_names)):
-            #    temp_col_x = df[finger_names[i] + "_proximal_end_x"] - df[finger_names[i] + "_proximal_start_x"]
-            #    temp_col_y = df[finger_names[i] + "_proximal_end_y"] - df[finger_names[i] + "_proximal_start_y"]
-            #    temp_col_z = df[finger_names[i] + "_proximal_end_z"] - df[finger_names[i] + "_proximal_start_z"]
+            # calculate angles beta
+            for i in range(1, len(finger_names)):
+                temp_col_x = df[finger_names[i] + "_proximal_end_x"] - df[finger_names[i] + "_proximal_start_x"]
+                temp_col_y = df[finger_names[i] + "_proximal_end_y"] - df[finger_names[i] + "_proximal_start_y"]
+                temp_col_z = df[finger_names[i] + "_proximal_end_z"] - df[finger_names[i] + "_proximal_start_z"]
 
-            #    temp_col_a = df[finger_names[i] + "_intermediate_end_x"] - df[finger_names[i] + "_intermediate_start_x"]
-            #    temp_col_b = df[finger_names[i] + "_intermediate_end_y"] - df[finger_names[i] + "_intermediate_start_y"]
-            #    temp_col_c = df[finger_names[i] + "_intermediate_end_z"] - df[finger_names[i] + "_intermediate_start_z"]
+                temp_col_a = df[finger_names[i] + "_intermediate_end_x"] - df[finger_names[i] + "_intermediate_start_x"]
+                temp_col_b = df[finger_names[i] + "_intermediate_end_y"] - df[finger_names[i] + "_intermediate_start_y"]
+                temp_col_c = df[finger_names[i] + "_intermediate_end_z"] - df[finger_names[i] + "_intermediate_start_z"]
 
-            #    temp_col = (temp_col_x * temp_col_a) + (temp_col_y * temp_col_b) + (temp_col_z * temp_col_c)
-            #    temp_col = temp_col / (find_distance_between_vec(df, finger_names[i] + "_proximal_end_", finger_names[i] + "_proximal_start_"))
-            #    temp_col = temp_col / (find_distance_between_vec(df, finger_names[i] + "_intermediate_end_", finger_names[i] + "_intermediate_start_"))
+                temp_col = (temp_col_x * temp_col_a) + (temp_col_y * temp_col_b) + (temp_col_z * temp_col_c)
+                temp_col = temp_col / (find_distance_between_vec(df, finger_names[i] + "_proximal_end_", finger_names[i] + "_proximal_start_"))
+                temp_col = temp_col / (find_distance_between_vec(df, finger_names[i] + "_intermediate_end_", finger_names[i] + "_intermediate_start_"))
 
-            #    df[finger_names[i] + "_beta"] = np.arccos(temp_col)
+                df[finger_names[i] + "_beta"] = np.arccos(temp_col)
 
             # calculate angles gamma
-            #for i in range(1, len(finger_names)):
-            #    temp_col_x = df[finger_names[i] + "_proximal_end_x"] - df[finger_names[i] + "_proximal_start_x"]
-            #    temp_col_y = df[finger_names[i] + "_proximal_end_y"] - df[finger_names[i] + "_proximal_start_y"]
-            #    temp_col_z = df[finger_names[i] + "_proximal_end_z"] - df[finger_names[i] + "_proximal_start_z"]
+            for i in range(1, len(finger_names)):
+                temp_col_x = df[finger_names[i] + "_proximal_end_x"] - df[finger_names[i] + "_proximal_start_x"]
+                temp_col_y = df[finger_names[i] + "_proximal_end_y"] - df[finger_names[i] + "_proximal_start_y"]
+                temp_col_z = df[finger_names[i] + "_proximal_end_z"] - df[finger_names[i] + "_proximal_start_z"]
 
-            #    temp_col_a = df[finger_names[i - 1] + "_proximal_end_x"] - df[finger_names[i - 1] + "_proximal_start_x"]
-            #    temp_col_b = df[finger_names[i - 1] + "_proximal_end_y"] - df[finger_names[i - 1] + "_proximal_start_y"]
-            #    temp_col_c = df[finger_names[i - 1] + "_proximal_end_z"] - df[finger_names[i - 1] + "_proximal_start_z"]
+                temp_col_a = df[finger_names[i - 1] + "_proximal_end_x"] - df[finger_names[i - 1] + "_proximal_start_x"]
+                temp_col_b = df[finger_names[i - 1] + "_proximal_end_y"] - df[finger_names[i - 1] + "_proximal_start_y"]
+                temp_col_c = df[finger_names[i - 1] + "_proximal_end_z"] - df[finger_names[i - 1] + "_proximal_start_z"]
 
-            #    temp_col = (temp_col_x * temp_col_a) + (temp_col_y * temp_col_b) + (temp_col_z * temp_col_c)
-            #    temp_col = temp_col / (find_distance_between_vec(df, finger_names[i] + "_proximal_end_", finger_names[i] + "_proximal_start_"))
-            #    temp_col = temp_col / (find_distance_between_vec(df, finger_names[i - 1] + "_proximal_end_", finger_names[i - 1] + "_proximal_start_"))
+                temp_col = (temp_col_x * temp_col_a) + (temp_col_y * temp_col_b) + (temp_col_z * temp_col_c)
+                temp_col = temp_col / (find_distance_between_vec(df, finger_names[i] + "_proximal_end_", finger_names[i] + "_proximal_start_"))
+                temp_col = temp_col / (find_distance_between_vec(df, finger_names[i - 1] + "_proximal_end_", finger_names[i - 1] + "_proximal_start_"))
 
-            #    df[finger_names[i - 1] + "_" + finger_names[i] + "_gamma"] = np.arccos(temp_col)
+                df[finger_names[i - 1] + "_" + finger_names[i] + "_gamma"] = np.arccos(temp_col)
 
 
             # change in the flick of the wrist

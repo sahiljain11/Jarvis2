@@ -30,7 +30,7 @@ number_of_gestures = 12   # output size
 sequence_length    = 20   # refers to the amount of timeframes to check
 batch_size         = 1    # how many different files to compute
 learning_rate      = 0.001
-num_epoch          = 10
+num_epoch          = 5
 folder_name = ["none", "pinch_in", "pinch_out", "swipe_up", "swipe_down", "swipe_left", "swipe_right",
                "grab2fist", "fist2grab", "peace", "2fingers", "pointing"]
 STORAGE_PATH = "state_dict_model_wrist_features.pt"
@@ -42,7 +42,7 @@ def create_training_tensor(data_file, number_of_features, feature_columns):
     f = open(data_file, "r")
     file_data = f.readlines()
 
-    portion_of_data = 0.6
+    portion_of_data = 0.65
     number_of_lines = len(file_data)
 
     # ADDED TO ONLY LIKE THE MIDDLE PORTION OF EACH FILE
@@ -51,7 +51,6 @@ def create_training_tensor(data_file, number_of_features, feature_columns):
     outer = middle + int(math.ceil(number_of_lines * portion_of_data / 2))
 
     file_contents = []
-
 
     for row_num in range(inner, outer):
 
@@ -95,9 +94,8 @@ col_data = col_file.readlines()[1].split(",")
 feature_columns = []
 
 for i in range(0, len(col_data)):
-    if col_data[i] == "1":
+    if col_data[i].strip("\r\n") == "1":
         feature_columns.append(i)
-        print(col_file.readlines()[0].split(",")[i])
 
 number_of_features = len(feature_columns)
 
@@ -127,15 +125,15 @@ with IncrementalBar("Preprocessing...", max=number_of_gestures) as increment_bar
                     break
 
                 count += 1
-                if count > 1322:
-                    break
+                #if count > 1322:
+                #    break
 
                 portion_tensor = training_tensor[k - sequence_length:k, :]
 
                 file_tensors.append(portion_tensor)
                 file_hash[portion_tensor] = i
                 num_files += 1
-
+        #print("  " + str(count))
         increment_bar.next()
 
 random.shuffle(file_tensors)
@@ -266,7 +264,7 @@ def epoch(folder_name, number_of_gestures, batch_size, lstm_model, loss_function
 # create loss function, model, and optimizer
 loss_function = nn.CrossEntropyLoss()
 lstm_model = JarvisLSTM(number_of_hidden, number_of_features, number_of_gestures, sequence_length)
-#lstm_model.load_state_dict(torch.load("state_dict_model_95.pt"))
+lstm_model.load_state_dict(torch.load(STORAGE_PATH))
 optimizer = optim.Adam(lstm_model.parameters(), lr=learning_rate)
 start_time = time.time()
 
@@ -275,8 +273,8 @@ lstm_model.train()
 print("\nNumber of total tensors: " + str(num_files))
 print("Storage path: " + str(STORAGE_PATH))
 print(str(lstm_model) + "\n")
-for i in range (0, num_epoch):
-    epoch(folder_name, number_of_gestures, batch_size, lstm_model, loss_function, optimizer, sequence_length, number_of_features, i, number_of_hidden)
+#for i in range (0, num_epoch):
+#    epoch(folder_name, number_of_gestures, batch_size, lstm_model, loss_function, optimizer, sequence_length, number_of_features, i, number_of_hidden)
 
 # save the model
 lstm_model.eval()

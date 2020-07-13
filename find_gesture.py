@@ -14,13 +14,14 @@ import random
 
 app = Flask(__name__)
 
-number_of_features = 27   # input size
+number_of_features = 28   # input size
 number_of_hidden   = 32   # size of hidden layer
 number_of_gestures = 12   # output size
 sequence_length    = 20   # refers to the amount of timeframes to check
 folder_name = ["none", "pinch_in", "pinch_out", "swipe_up", "swipe_down",
                "swipe_left", "swipe_right", "grab2fist", "fist2grab", "peace",
                "2fingers", "pointing"]
+
 # 0 - No gesture
 # 1 - Pinch zoom in
 # 2 - Pinch zoom out
@@ -77,7 +78,7 @@ class JarvisLSTM(nn.Module):
         return gesture_out
 
 lstm_model = JarvisLSTM(number_of_hidden, number_of_features, number_of_gestures, sequence_length)
-lstm_model.load_state_dict(torch.load("state_dict_model_95_32hidden.pt"))
+lstm_model.load_state_dict(torch.load("state_dict_model_wrist_features30epoch.pt"))
 
 lstm_model.eval()
 
@@ -85,7 +86,7 @@ feature_order = ["thumb2index", "thumb2middle", "thumb2ring", "thumb2pinky", "th
                  "middleFromStart", "ringFromStart", "pinkyFromStart", "thumbLength", "indexLength", "middleLength",
                  "ringLength", "pinkyLength", "index_omega", "middle_omega", "ring_omega", "pinky_omega",
                  "index_beta", "middle_beta", "ring_beta", "pinky_beta", "thumb_index_gamma", "index_middle_gamma",
-                 "middle_ring_gamma", "ring_pinky_gamma", "wrist_phi"]
+                 "middle_ring_gamma", "ring_pinky_gamma", "wrist_phi", "wrist_theta"]
 
 # Flask Server stuff
 @app.route("/determine-gesture/", methods=['POST'])
