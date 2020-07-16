@@ -13,7 +13,7 @@ def main():
 
     engine = QtQml.QQmlApplicationEngine()
 
-    filename = os.path.join(CURRENT_DIR, "calendar2.qml")
+    filename = os.path.join(CURRENT_DIR, "CalendarStyled.qml")
     engine.load(QUrl.fromLocalFile(filename))
 
     if not engine.rootObjects():

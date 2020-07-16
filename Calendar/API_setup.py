@@ -17,7 +17,7 @@ from PySide2 import QtNetwork
 
 
 class CalendarModule(QtCore.QObject):
-    
+
     def __init__(self):
         super(CalendarModule, self).__init__()
         self.scopes = ['https://www.googleapis.com/auth/calendar']
@@ -80,7 +80,7 @@ def main():
     app = QtGui.QGuiApplication(sys.argv)
 
     engine = QtQml.QQmlApplicationEngine()
-    filename = os.path.join(CURRENT_DIR, "calendar2.qml")
+    filename = os.path.join(CURRENT_DIR, "CalendarStyled.qml")
 
     cal = CalendarModule()
     engine.rootContext().setContextProperty("Cal", cal)
