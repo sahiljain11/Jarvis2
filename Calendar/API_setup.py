@@ -9,14 +9,15 @@ import apiclient.errors
 import os.path
 import os
 from PySide2 import QtCore
-from PySide2.QtCore import QUrl
+from PySide2.QtCore import Property, Signal, Slot, QObject, QUrl, QUrlQuery
 from PySide2 import QtGui
 from PySide2 import QtQml
+from PySide2 import QtNetwork
 
 
 
 class CalendarModule(QtCore.QObject):
-
+    
     def __init__(self):
         super(CalendarModule, self).__init__()
         self.scopes = ['https://www.googleapis.com/auth/calendar']
@@ -50,7 +51,7 @@ class CalendarModule(QtCore.QObject):
 
         return service
         
-    QtCore.Slot()
+    @Slot(result='QVariant')
     def getevents(self):
         # Call the Calendar API
         now = datetime.datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
@@ -59,12 +60,14 @@ class CalendarModule(QtCore.QObject):
                                               maxResults=10, singleEvents=True,
                                               orderBy='startTime').execute()
         events = events_result.get('items', [])
-
+        hey = {}
         if not events:
-            print('No upcoming events found.')
+            return 'No upcoming events found.'
+
         for event in events:
             start = event['start'].get('dateTime', event['start'].get('date'))
-            print(start, event['summary'])
+            hey[start] = event['summary']
+        return hey
 
 
 
@@ -77,8 +80,10 @@ def main():
     app = QtGui.QGuiApplication(sys.argv)
 
     engine = QtQml.QQmlApplicationEngine()
-
     filename = os.path.join(CURRENT_DIR, "calendar2.qml")
+
+    cal = CalendarModule()
+    engine.rootContext().setContextProperty("Cal", cal)
     engine.load(QUrl.fromLocalFile(filename))
 
     if not engine.rootObjects():

@@ -20,12 +20,20 @@ ApplicationWindow {
         height: 400
         width: 150
         color: "white"
-        Text {
-            anchors.horizontalCenter: parent.horizontalCenter
-            font.bold: true
-            font.pointSize:14
-            text: 'To-Do'
+            ListView{
+            model: Cal
+            anchors.fill: parent
+            delegate: Text { text: cal.display }
         }
+        Component.onCompleted: {
+            var data = cal.getevents()
+            for(var key in data){
+                var value = data[key]
+                console.log(key, ": ", value)
+            }
+        }
+
+
         }
         Calendar {
         Layout.fillWidth: true
