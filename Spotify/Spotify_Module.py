@@ -136,31 +136,24 @@ class SpotipyModule(qtc.QObject):
 
     @qtc.Slot()
     def set_current_song_info(self):
-        album_cover = self.token.current_user_playing_track()['item']['album']['images'][0]['url']
-        artist_name = self.token.current_user_playing_track()['item']['artists'][0]['name']
-        song_title = self.token.current_user_playing_track()['item']['name']
-        duration_time = self.token.current_user_playing_track()['item']['duration_ms']
-
-        song_info = {
-            'image': album_cover,
-            'artist': artist_name,
-            'song_title': song_title,
-            'duration_ms': duration_time
-        }
-        self.set_durTime(song_info['duration_ms'])
-        self.set_currTitle(song_info['song_title'])
-        self.set_currIcon(song_info['image'])
-        self.set_currArtist(song_info['artist'])
-
+        temp = self.token.current_user_playing_track()['item']
+        song_title = temp['name']
+        if(song_title == self.title):
+            return
+        self.set_durTime(temp['duration_ms'])
+        self.set_currArtist(temp['artists'][0]['name'])
+        self.set_currIcon(temp['album']['images'][0]['url'])
+        self.set_currTitle(song_title)
         return
 
     @qtc.Slot(result=int)
     def get_current_time(self):
-        current_time = self.token.current_user_playing_track()['progress_ms']
-        time.sleep(.1)
+        
         if(not self.playing):
             return 0
-        return current_time
+        songtime = self.token.current_user_playing_track()['progress_ms']
+        time.sleep(.03)
+        return songtime
 
     @qtc.Property(str, notify=currTitleChanged)
     def currTitle(self):
