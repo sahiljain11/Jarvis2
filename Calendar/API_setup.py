@@ -1,90 +1,126 @@
-from __future__ import print_function
-import datetime
+import logging
+import os
 import pickle
-import os.path
+import sys
+import threading
+
+from PySide2 import QtCore, QtGui, QtQml
+
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
-import apiclient.errors
-import os.path
-import os
-from PySide2 import QtCore
-from PySide2.QtCore import Property, Signal, Slot, QObject, QUrl, QUrlQuery
-from PySide2 import QtGui
-from PySide2 import QtQml
-from PySide2 import QtNetwork
 
 
-
-class CalendarModule(QtCore.QObject):
-
-    def __init__(self):
-        super(CalendarModule, self).__init__()
-        self.scopes = ['https://www.googleapis.com/auth/calendar']
-        self.service = self.use_token_pickle_to_get_service()
+SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"]
+CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 
 
-    def use_token_pickle_to_get_service(self):
-        """Shows basic usage of the Google Calendar API.
-        Prints the start and name of the next 10 events on the user's calendar.
-        """
+logging.basicConfig(level=logging.DEBUG)
+
+
+class CalendarBackend(QtCore.QObject):
+    eventsChanged = QtCore.Signal(list)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._service = None
+
+    @property
+    def service(self):
+        return self._service
+
+    def updateListEvents(self, kw):
+        # "separate flow of execution"
+        threading.Thread(target=self._update_list_events, args=(kw,)).start()
+
+    def _update_list_events(self, kw):
+        self._update_credentials()
+
+        events_result = self.service.events().list(**kw).execute()
+        events = events_result.get("items", [])
+
+        qt_events = []
+        if not events:
+            logging.debug("No upcoming events found.")
+        for event in events:
+            start = event["start"].get("dateTime", event["start"].get("date"))
+            end = event["end"].get("dateTime", event["end"].get("date"))
+            logging.debug(f"From {start} - To {end}:  {event['summary']}")
+
+            start_dt = QtCore.QDateTime.fromString(start, QtCore.Qt.ISODate)
+            end_dt = QtCore.QDateTime.fromString(end, QtCore.Qt.ISODate)
+            summary = event["summary"]
+
+            e = {"start": start_dt, "end": end_dt, "summary": summary}
+            qt_events.append(e)
+
+        self.eventsChanged.emit(qt_events)
+
+    def _update_credentials(self):
+        #oauth with google api
         creds = None
-        # The file token.pickle stores the user's access and refresh tokens, and is
-        # created automatically when the authorization flow completes for the first
-        # time.
-        if os.path.exists('token.pickle'):
-            with open('token.pickle', 'rb') as token:
+        if os.path.exists("token.pickle"):
+            with open("token.pickle", "rb") as token:
                 creds = pickle.load(token)
-        # If there are no (valid) credentials available, let the user log in.
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
                 creds.refresh(Request())
             else:
                 flow = InstalledAppFlow.from_client_secrets_file(
-                    'credentials.json', SCOPES)
+                    "credentials.json", SCOPES
+                )
                 creds = flow.run_local_server(port=0)
-            # Save the credentials for the next run
-            with open('token.pickle', 'wb') as token:
+            with open("token.pickle", "wb") as token:
                 pickle.dump(creds, token)
 
-        service = build('calendar', 'v3', credentials=creds)
+        self._service = build("calendar", "v3", credentials=creds)
 
-        return service
-        
-    @Slot(result='QVariant')
-    def getevents(self):
-        # Call the Calendar API
-        now = datetime.datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
-        #print('Getting the upcoming 10 events')
-        events_result = self.service.events().list(calendarId='primary', timeMin=now,
-                                              maxResults=10, singleEvents=True,
-                                              orderBy='startTime').execute()
-        events = events_result.get('items', [])
-        hey = {}
-        if not events:
-            return 'No upcoming events found.'
 
-        for event in events:
-            start = event['start'].get('dateTime', event['start'].get('date'))
-            hey[start] = event['summary']
-        return hey
+class CalendarProvider(QtCore.QObject):
+    loaded = QtCore.Signal()
 
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        self._cache_events = []
+        self._backend = CalendarBackend()
+        self._backend.eventsChanged.connect(self._handle_events)
+
+    @QtCore.Slot("QVariant")
+    def updateListEvents(self, parameters):
+        d = dict()
+        for k, v in parameters.toVariant().items():
+            if isinstance(v, QtCore.QDateTime):
+                v = v.toTimeSpec(QtCore.Qt.OffsetFromUTC).toString(
+                    QtCore.Qt.ISODateWithMs
+                )
+            d[k] = v
+        self._backend.updateListEvents(d)
+
+    @QtCore.Slot(QtCore.QDate, result="QVariantList")
+    def eventsForDate(self, date):
+        events = []
+        for event in self._cache_events:
+            start = event["start"]
+            if start.date() == date:
+                events.append(event)
+        return events
+
+    @QtCore.Slot(list)
+    def _handle_events(self, events):
+        self._cache_events = events
+        self.loaded.emit()
+        logging.debug("Loaded")
 
 
 def main():
-    import os
-    import sys
-
-    CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
-
     app = QtGui.QGuiApplication(sys.argv)
 
-    engine = QtQml.QQmlApplicationEngine()
-    filename = os.path.join(CURRENT_DIR, "CalendarStyled.qml")
+    QtQml.qmlRegisterType(CalendarProvider, "MyCalendar", 1, 0, "CalendarProvider")
 
-    cal = CalendarModule()
-    engine.rootContext().setContextProperty("Cal", cal)
-    engine.load(QUrl.fromLocalFile(filename))
+    engine = QtQml.QQmlApplicationEngine()
+    filename = os.path.join(CURRENT_DIR, "signaling.qml")
+    engine.load(QtCore.QUrl.fromLocalFile(filename))
 
     if not engine.rootObjects():
         sys.exit(-1)
@@ -92,58 +128,5 @@ def main():
     sys.exit(app.exec_())
 
 
-
-
-if __name__ == '__main__':
-    print(CalendarModule().getevents())
+if __name__ == "__main__":
     main()
-
-
-
-
-
-# SCOPES = ['https://www.googleapis.com/auth/calendar.events.readonly']
-#
-#
-# def main():
-#     """Shows basic usage of the Google Calendar API.
-#     Prints the start and name of the next 10 events on the user's calendar.
-#     """
-#     creds = None
-#     # The file token.pickle stores the user's access and refresh tokens, and is
-#     # created automatically when the authorization flow completes for the first
-#     # time.
-#     if os.path.exists('token.pickle'):
-#         with open('token.pickle', 'rb') as token:
-#             creds = pickle.load(token)
-#     # If there are no (valid) credentials available, let the user log in.
-#     if not creds or not creds.valid:
-#         if creds and creds.expired and creds.refresh_token:
-#             creds.refresh(Request())
-#         else:
-#             flow = InstalledAppFlow.from_client_secrets_file(
-#                 'credentials.json', SCOPES)
-#             creds = flow.run_local_server(port=0)
-#         # Save the credentials for the next run
-#         with open('token.pickle', 'wb') as token:
-#             pickle.dump(creds, token)
-#
-#     service = build('calendar', 'v3', credentials=creds)
-#
-#     # Call the Calendar API
-#     now = datetime.datetime.utcnow().isoformat() + 'Z' # 'Z' indicates UTC time
-#     print('Getting the upcoming 10 events')
-#     events_result = service.events().list(calendarId='primary', timeMin=now,
-#                                         maxResults=10, singleEvents=True,
-#                                         orderBy='startTime').execute()
-#     events = events_result.get('items', [])
-#
-#     if not events:
-#         print('No upcoming events found.')
-#     for event in events:
-#         start = event['start'].get('dateTime', event['start'].get('date'))
-#         print(start, event['summary'])
-#
-#
-# if __name__ == '__main__':
-#     main()
