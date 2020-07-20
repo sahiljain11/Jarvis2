@@ -1,7 +1,8 @@
 __pycache__/
 *.log
-credentials.json
-token.pickle
+*.json
+*.pickle
 test.qml
 .cache-Conradliste
+.cache-sahilbot1
 FirstVideo.mkv

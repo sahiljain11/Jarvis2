@@ -27,14 +27,14 @@ ApplicationWindow{
         anchors.fill: parent
     }
 
-    //Video{
-        //id: media
-      //  source:  "./images/FirstVideo.mkv"
-        //anchors.fill: parent
-        //loops: MediaPlayer.Infinite
-        //fillMode: VideoOutput.Stretch
-        //autoPlay: true
-    //}
+    /*Video{
+        id: media
+        source:  "./images/FirstVideo.mkv"
+        anchors.fill: parent
+        loops: MediaPlayer.Infinite
+        fillMode: VideoOutput.Stretch
+        autoPlay: true
+    }*/
 
     Spotify{
         id: spotify_widget
