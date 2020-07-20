@@ -1,4 +1,3 @@
-
 from werkzeug.utils import cached_property
 import json
 import requests
@@ -12,7 +11,7 @@ import logging
 from pytz import timezone
 import datetime
 
-logging.basicConfig(level=logging.DEBUG)
+#logging.basicConfig(level=logging.DEBUG)
 
 
 
@@ -41,15 +40,22 @@ class WeatherWrapper(QObject):
         self._api_key = "60e3e2927b60361a8a0fcae0f2042eab"
 
     @Property("QVariantMap", notify=dataChanged)
-    def data(self) -> dict:
+    def data(self):
         return self._data
+    
+    @data.setter
+    def setData(self, newData):
+        if(self._data == newData):
+            return
+        self._data = newData
+        self.dataChanged.emit()
 
     @Slot(result=bool)
     def hasError(self):
         return self._has_error
 
     @Slot(str)
-    def update_by_city(self, city: str) -> None:
+    def update_by_city(self, city: str):
 
         url = QUrl(WeatherWrapper.BASE_URL)
         query = QUrlQuery()
@@ -61,7 +67,7 @@ class WeatherWrapper(QObject):
         reply: QtNetwork.QNetworkReply = self.manager.get(request)
         reply.finished.connect(self._handle_reply)
 
-    def _handle_reply(self) -> None:
+    def _handle_reply(self):
         has_error = False
         reply: QtNetwork.QNetworkReply = self.sender()
         if reply.error() == QtNetwork.QNetworkReply.NoError:
@@ -71,7 +77,7 @@ class WeatherWrapper(QObject):
             code = d["cod"]
             if code != 404:
                 del d["cod"]
-                self._data = d
+                self.setData(d)
             else:
                 #self._data = dict()
                 has_error = True
@@ -86,8 +92,7 @@ class WeatherWrapper(QObject):
         self._has_error = has_error
         reply.deleteLater()
 
-
-def main():
+if __name__ == "__main__":
     import os
     import sys
 
@@ -110,30 +115,6 @@ def main():
         sys.exit(-1)
 
     sys.exit(app.exec_())
-
-
-if __name__ == "__main__":
-    main()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 # from werkzeug.utils import cached_property
 # import json

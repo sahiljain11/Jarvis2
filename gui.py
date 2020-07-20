@@ -4,6 +4,7 @@ import sys
 import os
 from Spotify.Spotify_Module import SpotipyModule
 from Gmail.GmailModule import GmailModule
+from Weather.Weather import WeatherWrapper
 from PySide2 import QtWidgets as qtw
 from PySide2 import QtGui as qtg
 from PySide2 import QtCore as qtc
@@ -45,9 +46,9 @@ if __name__ == '__main__':
     root_context = engine.rootContext()
 
     #Load Spotify
-    #spotify = SpotipyModule(os.environ.get('USER'), os.environ.get('CLIENT_ID'), os.environ.get('CLIENT_SECRET'), os.environ.get('REDIRECT_URI'),os.environ.get(('USERNAME')))
-    #root_context.setContextProperty("spotify", spotify)
-    #root_context.setContextProperty("searchList", spotify.search_list)
+    spotify = SpotipyModule(os.environ.get('USER'), os.environ.get('CLIENT_ID'), os.environ.get('CLIENT_SECRET'), os.environ.get('REDIRECT_URI'),os.environ.get(('USERNAME')))
+    root_context.setContextProperty("spotify", spotify)
+    root_context.setContextProperty("searchList", spotify.search_list)
     
 
     # Load Gmail
@@ -55,11 +56,18 @@ if __name__ == '__main__':
     root_context.setContextProperty("gmail", gmail)
     root_context.setContextProperty("emailPreview", gmail.currentEmailList)
 
+    # Load Weather
+    weather = WeatherWrapper()
+    weather.api_key = "API_HERE"
+    root_context.setContextProperty("weather", weather)
+
     # Load the main gui qml
     engine.load(qtc.QUrl.fromLocalFile('./gui.qml'))
     
 
+    # Load specific widgets
     #engine.load(qtc.QUrl.fromLocalFile('./Gmail/Gmail.qml'))
+    #engine.load(qtc.QUrl.fromLocalFile('./Spotify/Spotify.qml'))
     
     # Exit if we have no classes
     if not engine.rootObjects():
