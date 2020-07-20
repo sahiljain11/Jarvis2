@@ -7,7 +7,6 @@ from PySide2 import QtGui as qtg
 from PySide2 import QtCore as qtc
 from PySide2 import QtQuick as qtq
 from PySide2 import QtQml as qtm
-from SongWrapper import SongWrapper
 
 
 class ListModel(qtc.QAbstractListModel):
