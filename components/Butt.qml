@@ -10,14 +10,15 @@ Picture{
     signal inside()
     signal outside()
     property string word: ""
+    property string color_: "black"
     property var picWidth: sourceWidth 
     property var picHeight: sourceHeight
 
-    image: "../images/play.png"
+    image: ""
 
     //Places text if any inside the button
     Text {
-        text: word 
+        text: word
         anchors.centerIn: parent
     }
 

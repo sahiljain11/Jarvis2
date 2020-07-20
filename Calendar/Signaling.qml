@@ -3,19 +3,14 @@ import QtQuick.Controls 1.2
 import QtQuick.Controls.Private 1.0
 import QtQuick.Controls.Styles 1.4
 import MyCalendar 1.0
+import "../components"
 
-ApplicationWindow {
-    visible: true
-    width: 640
-    height: 400
-    minimumWidth: 400
-    minimumHeight: 300
+JarvisWidget {
+ 
         Image {
             source: "background.png"
             anchors.fill: parent
         }
-
-    title: "My Calendar"
 
     SystemPalette {
         id: systemPalette

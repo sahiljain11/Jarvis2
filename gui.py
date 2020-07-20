@@ -5,6 +5,7 @@ import os
 from Spotify.Spotify_Module import SpotipyModule
 from Gmail.GmailModule import GmailModule
 from Weather.Weather import WeatherWrapper
+from Calendar.API_setup import CalendarProvider 
 from PySide2 import QtWidgets as qtw
 from PySide2 import QtGui as qtg
 from PySide2 import QtCore as qtc
@@ -42,6 +43,7 @@ if __name__ == '__main__':
 
     # Initializes the app, engine, and classes 
     app = qtg.QGuiApplication(sys.argv)
+    qtm.qmlRegisterType(CalendarProvider, "MyCalendar", 1, 0, "CalendarProvider")
     engine = qtm.QQmlApplicationEngine()
     root_context = engine.rootContext()
 
@@ -60,6 +62,7 @@ if __name__ == '__main__':
     weather = WeatherWrapper()
     weather.api_key = "API_HERE"
     root_context.setContextProperty("weather", weather)
+
 
     # Load the main gui qml
     engine.load(qtc.QUrl.fromLocalFile('./gui.qml'))

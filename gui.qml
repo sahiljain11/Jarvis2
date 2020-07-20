@@ -64,10 +64,24 @@ ApplicationWindow{
 
     Weather{
         id: weather_widget
-        x: window.newX
-        y: window.newY
         width: 2000/2.5
         height: 1200/2.5
+        Component.onCompleted:{
+            x = window.newX 
+            y = window.newY
+            window.newX = 0
+            window.newY = spotify_widget.y + spotify_widget.height
+        }  
+    }
+
+    Signaling {
+        id: calendar_widget
+        width: 2000/2.5
+        height: 1200/2.5
+        Component.onCompleted:{
+            x = window.newX 
+            y = window.newY
+        }  
     }
     
 }
