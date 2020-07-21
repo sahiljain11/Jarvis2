@@ -14,8 +14,9 @@ import "./Calendar"
 ApplicationWindow{
     id: window
     visible: true
-    width: 600
-    height: 600
+    //width: 600
+    //height: 600
+    visibility: "FullScreen"
     title: qsTr("Jarvis2")
     property double newX: 0
     property double newY: 0
@@ -83,5 +84,19 @@ ApplicationWindow{
             y = window.newY
         }  
     }
-    
+
+    Button{
+        x: parent.width-50
+        y: 0
+        width: 50
+        height: 50
+        palette.button: "#0e3066"
+        
+        Text{
+            anchors.centerIn: parent
+            text: "Exit"
+            color: "white"
+        }
+        onClicked: Qt.quit()
+    }
 }

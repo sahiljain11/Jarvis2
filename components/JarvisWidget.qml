@@ -14,6 +14,7 @@ Item{
 
     //custom properties
     property var scaleVal: 1
+    property int maxZ: 0
 
     //defaults
     state: "BASE"
@@ -44,8 +45,13 @@ Item{
 
         //Allow mouse pressed events through if we are in the base state
         onPressed: {
-            jarvis.z = jarvis.z+1
-            jarvis.focus = true
+
+            if(jarvis.focus != true){
+                jarvis.z = maxZ
+                maxZ += 1
+                jarvis.focus = true
+            }
+
             if(parent.state == "BASE"){
                 mouse.accepted = false
             }
