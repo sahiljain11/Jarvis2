@@ -102,7 +102,7 @@ def main():
     engine = QtQml.QQmlApplicationEngine()
     engine.rootContext().setContextProperty("weather", weather)
 
-    filename = os.path.join(CURRENT_DIR, "Weather.qml")
+    filename = os.path.join(CURRENT_DIR, "Weatherdraft.qml")
     engine.load(QUrl.fromLocalFile(filename))
 
     if not engine.rootObjects():

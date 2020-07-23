@@ -12,11 +12,24 @@ JarvisWidget{
         width: parent.width
         height: parent.height
 
-        Image {
-            source: "default2.png"
-            id: image_tod
+        Image{
+            id: back
+            source: "frame3.png"
             anchors.fill: parent
+            smooth: true
+            opacity: 1
+            focus: true
+
+
+            Rectangle{
+                z: -2
+                anchors.fill: parent
+                id: rect_col
+                color: "#00FFF5"
+                opacity: 0.4
+            }
         }
+
 
         FontLoader {
             id: webFont
@@ -107,11 +120,11 @@ JarvisWidget{
                         var sunset = weather.data['sys']['sunset']
                         var now = weather.data['dt']
                         if (now >= sunset)
-                            image_tod.source = "night2.png"
+                            rect_col.color = "#0431d1"
                         else if (now <= sunrise)
-                            image_tod.source = "night2.png"
+                            rect_col.color = "#0431d1"
                         else
-                            image_tod.source = "day2.png"
+                            rect_col.color = "#2bf2fc"
                         var oof = weather.data['weather'][0]['icon']
                         sky_td.source = "icons/" + oof + ".png"
                     }
