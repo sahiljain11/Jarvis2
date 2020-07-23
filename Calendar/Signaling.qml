@@ -1,5 +1,5 @@
 import QtQuick 2.2
-import QtQuick.Controls 1.2
+import QtQuick.Controls 1.2z
 import QtQuick.Controls.Private 1.0
 import QtQuick.Controls.Styles 1.4
 import MyCalendar 1.0
@@ -7,9 +7,21 @@ import "../components"
 
 JarvisWidget {
  
-        Image {
-            source: "background.png"
+        Image{
+            id: back
+            source: "frame2.png"
             anchors.fill: parent
+            smooth: true
+            opacity: 1
+            focus: true
+
+
+            Rectangle{
+                z: -2
+                anchors.fill: parent
+                color: "#00FFF5"
+                opacity: 0.4
+            }
         }
 
     SystemPalette {

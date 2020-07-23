@@ -1,7 +1,7 @@
-import QtQuick 2.12
-import QtQuick.Controls 2.12
+import QtQuick 2.2
+import QtQuick.Controls 1.2
 import QtQuick.Controls.Private 1.0
-import QtQuick.Controls.Styles 1.1
+import QtQuick.Controls.Styles 1.4
 import MyCalendar 1.0
 
 ApplicationWindow {
@@ -10,7 +10,22 @@ ApplicationWindow {
     height: 400
     minimumWidth: 400
     minimumHeight: 300
-    color: "#f4f4f4"
+        Image{
+            id: back
+            source: "frame2.png"
+            anchors.fill: parent
+            smooth: true
+            opacity: 1
+            focus: true
+
+
+            Rectangle{
+                z: -2
+                anchors.fill: parent
+                color: "#00FFF5"
+                opacity: 0.4
+            }
+        }
 
     title: "My Calendar"
 
@@ -47,7 +62,7 @@ ApplicationWindow {
         Flow {
             id: row
             anchors.fill: parent
-            anchors.margins: 20
+            anchors.margins: 30
             spacing: 10
             layoutDirection: Qt.RightToLeft
 
@@ -139,7 +154,7 @@ ApplicationWindow {
                 width: (parent.width > parent.height ? parent.width * 0.4 - parent.spacing : parent.width)
                 height: (parent.height > parent.width ? parent.height * 0.4 - parent.spacing : parent.height)
                 border.color: Qt.darker(color, 1.2)
-
+                anchors.margins: 30
                 ListView {
                     id: eventsListView
                     spacing: 4
@@ -166,6 +181,7 @@ ApplicationWindow {
                             width: parent.width
                             height: 1
                             color: "#eee"
+                            opacity: .5
                         }
 
                         Column {

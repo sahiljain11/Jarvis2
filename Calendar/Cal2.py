@@ -18,7 +18,7 @@ CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 logging.basicConfig(level=logging.DEBUG)
 
 
-class CalendarBackend(QtCore.QObject): #qobject handles signals and slots
+class CalendarBackend(QtCore.QObject):
     eventsChanged = QtCore.Signal(list)
 
     def __init__(self, parent=None):
@@ -31,13 +31,13 @@ class CalendarBackend(QtCore.QObject): #qobject handles signals and slots
 
     def updateListEvents(self, kw):
         # "separate flow of execution"
-        threading.Thread(target=self._update_list_events, args=(kw,)).start() #threading here prevents a loading lag and runs this in the background
+        threading.Thread(target=self._update_list_events, args=(kw,)).start()
 
     def _update_list_events(self, kw):
         self._update_credentials()
 
         events_result = self.service.events().list(**kw).execute()
-        events = events_result.get("items", []) #gets val from events_results based off key
+        events = events_result.get("items", [])
 
         qt_events = []
         if not events:
@@ -51,8 +51,8 @@ class CalendarBackend(QtCore.QObject): #qobject handles signals and slots
             end_dt = QtCore.QDateTime.fromString(end, QtCore.Qt.ISODate)
             summary = event["summary"]
 
-            e = {"start": start_dt, "end": end_dt, "summary": summary} #a dictionary for each event
-            qt_events.append(e) #an array of dictionaries, each of which is an event
+            e = {"start": start_dt, "end": end_dt, "summary": summary}
+            qt_events.append(e)
 
         self.eventsChanged.emit(qt_events)
 
@@ -119,7 +119,7 @@ def main():
     QtQml.qmlRegisterType(CalendarProvider, "MyCalendar", 1, 0, "CalendarProvider")
 
     engine = QtQml.QQmlApplicationEngine()
-    filename = os.path.join(CURRENT_DIR, "signaling.qml")
+    filename = os.path.join(CURRENT_DIR, "CalendarDraft.qml")
     engine.load(QtCore.QUrl.fromLocalFile(filename))
 
     if not engine.rootObjects():
