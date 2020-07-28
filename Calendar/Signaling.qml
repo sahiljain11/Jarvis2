@@ -90,7 +90,7 @@ JarvisWidget {
                             anchors.margins: -1
                             width: 12
                             height: width
-                            source: "eventindicator.png"
+                            source: "indicator.png"
                         }
 
                         Label {
@@ -169,7 +169,7 @@ JarvisWidget {
                             anchors.topMargin: 4
                             width: 12
                             height: width
-                            source: "eventindicator.png"
+                            source: "indicator.png"
                         }
 
                         Rectangle {
