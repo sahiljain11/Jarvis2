@@ -124,7 +124,7 @@ JarvisWidget{
                         else if (now <= sunrise)
                             rect_col.color = "#0431d1"
                         else
-                            rect_col.color = "#2bf2fc"
+                            rect_col.color = "#fc902b"
                         var oof = weather.data['weather'][0]['icon']
                         sky_td.source = "icons/" + oof + ".png"
                     }
