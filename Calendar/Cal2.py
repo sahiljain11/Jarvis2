@@ -11,7 +11,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 
 
-SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"]
+SCOPES = ["https://www.googleapis.com/auth/calendar"]
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 
 
@@ -111,6 +111,30 @@ class CalendarProvider(QtCore.QObject):
         self._cache_events = events
         self.loaded.emit()
         logging.debug("Loaded")
+
+class AddToCalendar(QtCore.QObject):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._data = dict()
+
+    def createevent(self):
+        event = {
+            'summary': 'Pick Exactly Enough Strawberries to fill a Fishbowl',
+            'start': {
+                'dateTime': '2015-05-28T09:00:00-07:00',
+                'timeZone': 'America/Chicago',
+            },
+            'end': {
+                'dateTime': '2015-05-28T17:00:00-07:00',
+                'timeZone': 'America/Chicago',
+            }
+        }
+
+    event = service.events().insert(calendarId='primary', body=event).execute()
+    print
+    'Event created: %s' % (event.get('htmlLink'))
+
+
 
 
 def main():

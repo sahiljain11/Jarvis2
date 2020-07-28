@@ -3,6 +3,8 @@ import QtQuick.Controls 1.2
 import QtQuick.Controls.Private 1.0
 import QtQuick.Controls.Styles 1.4
 import MyCalendar 1.0
+import "../components"
+
 
 ApplicationWindow {
     visible: true
@@ -76,7 +78,7 @@ ApplicationWindow {
                 style: CalendarStyle {
                     dayDelegate: Item {
                         readonly property color sameMonthDateTextColor: "#444"
-                        readonly property color selectedDateColor: Qt.platform.os === "osx" ? "#3778d0" : systemPalette.highlight
+                        readonly property color selectedDateColor: Qt.platform.os === "osx" ? "#282828" : systemPalette.highlight
                         readonly property color selectedDateTextColor: "white"
                         readonly property color differentMonthDateTextColor: "#bbb"
                         readonly property color invalidDatecolor: "#dddddd"
@@ -206,12 +208,45 @@ ApplicationWindow {
                             }
                         }
                     }
+
+
+
+                    TextField {
+                        id: ayooo
+                        anchors.bottom: parent.bottom
+                        placeholderText: qsTr("Event Name")
+                        selectByMouse: true
+                    }
+                    Butt {
+                        width: rect.width
+                        anchors.bottom: parent.bottom
+                        anchors.right: parent.right
+                        height: rect.height
+
+                        Rectangle {
+                            id: rect
+                            implicitWidth: 70
+                            implicitHeight: 25
+                            color: "#282828"
+                            radius: 10
+                        }
+
+                        Text {
+                            text: "Add Event"
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.verticalCenter: parent.verticalCenter
+                            color: "white"
+                        }
+
+                        onTouched: {
+                            console.log("touched")
+                            //weather.update_by_city(city_tf.text)
+                        }
+                    }
+
+
                 }
-                
             }
-
-
         }
     }
-
 }
