@@ -3,28 +3,54 @@ import QtQuick.Controls 1.4
 import QtQuick.Layouts 1.11
 import QtGraphicalEffects 1.12
 
-Picture{
-    id: back
-    signal touched()
-    signal inside()
-    signal outside()
-    property var picWidth: sourceWidth/2
-    property var picHeight: sourceHeight/2
+Item{
+
+    //Properties
     property bool vis: false
     property alias tit: title.text
     property alias sen: sender.text
     property alias snip: preview_email.text
-    image: "../images/email_preview_button.png"
+    property alias tit2: title2.text
+    property var fontSize: height/13
+    property var halign: Text.AlignLeft
+    property var valign: Text.AlignTop
+    signal touched()
+    signal inside()
+    signal outside()
+
+    
+    /*Rectangle{
+        id: back
+        anchors.fill: parent
+        border.color: "#FFA54C"
+        opacity: 0.7
+    }*/
+
+    Picture{
+        id: back
+        anchors.fill: parent
+        image: "../images/Gmail_Border.png"
+    }
 
     Text{
         id: title
         text: 'hello world'
-        anchors.left: parent.left
-        anchors.leftMargin:parent.width/15
-        anchors.top : parent.top
-        anchors.topMargin : parent.height/10
-        font.pixelSize: parent.height/22
+
+        anchors{ 
+            left: parent.left
+            leftMargin: parent.width/15
+            right: parent.right
+            rightMargin: parent.width/18.2908 
+            top : parent.top
+            topMargin : parent.height/10
+        }
+        elide: Text.ElideRight
+        font.pixelSize: fontSize
+        color: "white"
+        horizontalAlignment: halign
+        verticalAlignment: valign
     }
+
     Text{
         id: sender
         text: 'conradiste@gmail.com'
@@ -32,27 +58,43 @@ Picture{
             top: title.bottom
             topMargin: parent.height/20
             left: title.left
+            right: title.right
+            bottom: parent.bottom
+            bottomMargin: parent.height/1.5
         }
-        font.pixelSize: parent.height/25
+        elide: Text.ElideRight
+        font.pixelSize: fontSize
+        horizontalAlignment: halign
+        verticalAlignment: valign
+    }
+
+    Text{
+        id: title2
+        anchors.fill: parent
+        horizontalAlignment: halign
+        verticalAlignment: valign
+        font.pixelSize: fontSize
     }
     Text{
         id: preview_email
         clip : true
         anchors{
-               left: title.left
-               right: parent.right
-               rightMargin: parent.width/18.2908
-               top: sender.bottom
-               topMargin: parent.height/20
-               bottom: parent.bottom
-               bottomMargin: parent.height/7
+                left: title.left
+                right: parent.right
+                rightMargin: parent.width/18.2908
+                top: sender.bottom
+                topMargin: parent.height/20
+                bottom: parent.bottom
+                bottomMargin: parent.height/10
         }
-        font.pixelSize: parent.height/25
+        font.pixelSize: fontSize
         width: parent.width
         height: parent.height/2
         elide: Text.ElideRight
         wrapMode: Text.WordWrap
-         text: "preview email new line af 33 charf jsdl kfja lsd jfwio  lwadfs dfajio wjd foawnefo nawd lfnhqo nwglnWIO PNWL HOIF OWIF HOWAGN Olj wodjfowan flwn gownag"
+        text: "preview email new line af 33 charf jsdl kfja lsd jfwio  lwadfs dfajio wjd foawnefo nawd lfnhqo nwglnWIO PNWL HOIF OWIF HOWAGN Olj wodjfowan flwn gownag"
+        horizontalAlignment: halign
+        verticalAlignment: valign
     }
 
     Rectangle{
@@ -61,7 +103,7 @@ Picture{
         opacity: .3
         anchors.fill: parent
         visible: vis
-        radius:19.78
+        radius:5
     }
     //Darkens the button when the mouse is over it
     //Connects the clicked signal to 'touched'
@@ -76,5 +118,4 @@ Picture{
 
         onClicked: clicked.connect(touched)
     }
-
 }

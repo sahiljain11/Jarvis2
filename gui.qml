@@ -16,7 +16,7 @@ ApplicationWindow{
     visible: true
     //width: 600
     //height: 600
-    visibility: "FullScreen"
+    visibility: "Maximized"
     title: qsTr("Jarvis2")
     property double newX: 0
     property double newY: 0

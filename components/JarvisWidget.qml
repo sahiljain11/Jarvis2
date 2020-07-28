@@ -37,6 +37,7 @@ Item{
         id: mouseArea
         anchors.fill: parent
         propagateComposedEvents: true
+        hoverEnabled: true
         
         onClicked: {
             jarvis.focus = true 
@@ -49,16 +50,21 @@ Item{
             if(jarvis.focus != true){
                 jarvis.z = maxZ
                 maxZ += 1
-                jarvis.focus = true
             }
+            
+            jarvis.focus = true
 
             if(parent.state == "BASE"){
                 mouse.accepted = false
             }
-            else{
+
+            if(parent.state == "DRAGGING"){
                 mouse.accepted = true
             }
+        }
 
+        onEntered:{
+            jarvis.focus = true
         }
     }
 
@@ -76,7 +82,6 @@ Item{
 
         //Enable dragging when "Shift" is pressed
         if(event.key == Qt.Key_Alt){
-            jarvis.focus = true
             state = "DRAGGING"
         }
     }

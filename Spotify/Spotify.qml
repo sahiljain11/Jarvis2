@@ -320,7 +320,6 @@ JarvisWidget{
         //Search bar
         TextField{
             id: textInput
-            text: "Text"
             anchors{
                 top: parent.top
                 topMargin: parent.height/8
@@ -352,14 +351,50 @@ JarvisWidget{
                 right: textInput.right
             }
             model: searchList
-            delegate: Rectangle {
+            interactive: false
+            delegate: Item {
                 width: search_results.width
                 height: search_results.height/10
+                property bool vis: false
+
+                Rectangle{
+                    anchors.fill: parent
+                    color: "#25b3e6"
+                    opacity: 0.5
+                }
+
                 Text{
                     anchors.fill: parent
                     elide: Text.ElideRight
-                    text: model.song + " " + model.artist
+                    text: model.song + " by " + model.artist
                     fontSizeMode: Text.Fit
+                }
+
+                Rectangle{
+                    anchors.fill: parent
+                    visible: vis
+                    color: "black"
+                    opacity: 0.3
+                }
+
+                MouseArea{
+                    anchors.fill: parent
+                    hoverEnabled: true
+
+                    onClicked:{
+                        console.log(textInput.text)
+                        textInput.remove(0, textInput.text.length)
+                        console.log(textInput.text)
+                        spotify.helper_add_song_to_queue(index)
+                    }
+
+                    onEntered:{
+                        vis = true
+                    }
+
+                    onExited:{
+                        vis = false
+                    }
                 }
             }
         }
@@ -369,7 +404,6 @@ JarvisWidget{
             if(event.key == Qt.Key_Return){
                 console.log("Prese")
                 spotify.add_song_to_queue(textInput.text)
-                spotify.helper_add_song_to_queue(0)
             }
         }
     }

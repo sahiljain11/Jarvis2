@@ -77,9 +77,11 @@ class SpotipyModule(qtc.QObject):
         # search_query = song_title.replace(" ", "&20")
         # print(search_query)
 
+        # Find all songs that show up for this query
         self.search_results = (self.token.search(song_title, 10, 0, type='track,album'))
+        self.search_list.clear()
 
-        # loop places song titles into array
+        # loop places song titles into list of possible songs
         for temp in self.search_results['tracks']['items']:
             title = temp['name']
             picture_image = temp['album']['images'][1]['url']
@@ -89,6 +91,7 @@ class SpotipyModule(qtc.QObject):
 
     @qtc.Slot(int)
     def helper_add_song_to_queue(self, number):
+        self.search_list.clear()
         temp = self.search_results['tracks']['items'][number]
         song = temp['uri']
         self.token.user_playlist_add_tracks(self.user, self.queue_id, tracks=[song])
