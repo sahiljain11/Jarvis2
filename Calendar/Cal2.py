@@ -10,7 +10,6 @@ from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 
-
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 
@@ -121,18 +120,18 @@ class AddToCalendar(QtCore.QObject):
         event = {
             'summary': 'Pick Exactly Enough Strawberries to fill a Fishbowl',
             'start': {
-                'dateTime': '2015-05-28T09:00:00-07:00',
+                'dateTime': '2020-08-10T09:00:00-07:00',
                 'timeZone': 'America/Chicago',
             },
             'end': {
-                'dateTime': '2015-05-28T17:00:00-07:00',
+                'dateTime': '2020-08-10T17:00:00-07:00',
                 'timeZone': 'America/Chicago',
             }
         }
 
-    event = service.events().insert(calendarId='primary', body=event).execute()
-    print
-    'Event created: %s' % (event.get('htmlLink'))
+        event = service.events().insert(calendarId='primary', body=event).execute()
+        print
+        'Event created: %s' % (event.get('htmlLink'))
 
 
 
