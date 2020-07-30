@@ -6,7 +6,10 @@ import QtGraphicalEffects 1.12
 import QtQuick.Layouts 1.12
 import "../components"
 
-JarvisWidget{
+ApplicationWindow{
+    visible: true
+    width: 500
+    height: 550
 
     Item {
         width: parent.width
@@ -95,6 +98,25 @@ JarvisWidget{
                 anchors.horizontalCenter: parent.horizontalCenter
             }
 
+            Rectangle {
+                width: animation.width;
+                height: animation.height + 8
+
+                AnimatedImage {
+                    id: animation;
+                    source: "runrundog.gif"
+                }
+
+                Rectangle {
+                    property int frames: animation.frameCount
+
+                    width: 4; height: 8
+                    x: (animation.width - width) * animation.currentFrame / frames
+                    y: animation.height
+                    color: "red"
+                }
+            }
+
             Label{
                 id: checking
                 color: "white"
@@ -124,7 +146,7 @@ JarvisWidget{
                         else if (now <= sunrise)
                             rect_col.color = "#0431d1"
                         else
-                            rect_col.color = "#FFA54C"
+                            rect_col.color = "#00FFF5"
                         var oof = weather.data['weather'][0]['icon']
                         sky_td.source = "icons/" + oof + ".png"
                     }

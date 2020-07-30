@@ -33,6 +33,21 @@ class Stats:
         df_usdeaths = df_usdeaths.reset_index()
         self.usdeaths_dict = dict(zip(df_usdeaths['Province_State'], df_usdeaths.iloc[:, -1]))
 
+
+        #getting data over a period of time
+        URL_DATASET5 = r'https://raw.githubusercontent.com/datasets/covid-19/master/data/countries-aggregated.csv'
+        #dates days since day 1
+        df1 = pd.read_csv(URL_DATASET5, parse_dates=['Date'])
+        first_date = df1.loc[0, 'Date']
+        df1['Date'] = (df1['Date'] - first_date).dt.days
+
+        df_alltimecountry = df1[df1['Country'] == 'CountryName']
+        xconfirmed = df_alltimecountry['Confirmed'].tolist()
+        xdeaths = df_alltimecountry['Deaths'].tolist()
+        ydates = df_alltimecountry['Date'].tolist()
+        self.countryallconfirmed = dict(zip(ydates, xconfirmed))
+        self.countryalldeath = dict(zip(ydates, xdeaths))
+
     def show(self, *args): #this is called a repr/representation/"predefined method thats true for all classes"? 
         for i in args:
             if i == 'death':
@@ -58,11 +73,16 @@ class Stats:
     def deathus(self, state):
         return self.usdeaths_dict[state]
 
+    def countryallconfirmed(self, country):
+        return self.countryallconfirmed[country]
+
+    def countryalldeath(self, country):
+        return self.countryalldeath[country]
 
 my_stats = Stats()
 #print(my_stats.confirmus('Texas'))
-# print(my_stats.confirmglobal('Albania'))
-# print(my_stats.deathglobal('Albania'))
-# my_stats.show('death')
+#print(my_stats.confirmglobal('Albania'))
+#print(my_stats.deathglobal('Albania'))
+#my_stats.show('death')
 #my_stats.show('usdeath')
-# my_stats.show('confirm', 'death')
+#my_stats.show('confirm', 'death')

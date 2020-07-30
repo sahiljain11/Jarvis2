@@ -9,6 +9,15 @@ from PySide2 import QtCore, QtGui, QtQml
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
+import httplib2
+
+from apiclient import discovery
+import oauth2client
+from oauth2client import client
+from oauth2client import tools
+
+import datetime
+
 
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -116,7 +125,9 @@ class AddToCalendar(QtCore.QObject):
         super().__init__(parent)
         self._data = dict()
 
-    def createevent(self):
+    @QtCore.Slot(str)
+    def createevent(self, eventinfo: str):
+
         event = {
             'summary': 'Pick Exactly Enough Strawberries to fill a Fishbowl',
             'start': {

@@ -32,9 +32,6 @@ df_domrep = df1[df1['Country'] == 'Dominican Republic']
 df_domrep = df_domrep.tail(20)
 
 
-
-
-
 #QtGui.QApplication.setGraphicsSystem('raster')
 app = QtGui.QApplication([])
 #mw = QtGui.QMainWindow()

@@ -212,7 +212,7 @@ ApplicationWindow {
 
 
                     TextField {
-                        id: ayooo
+                        id: eventinfo
                         anchors.bottom: parent.bottom
                         placeholderText: qsTr("Event Name")
                         selectByMouse: true
@@ -240,7 +240,7 @@ ApplicationWindow {
 
                         onTouched: {
                             console.log("touched")
-                            //weather.update_by_city(city_tf.text)
+                            //Cal2.createevent(eventinfo.text)
                         }
                     }
 
