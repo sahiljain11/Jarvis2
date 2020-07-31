@@ -1,7 +1,8 @@
 import pandas as pd
 import collections
 
-
+#https://stackoverflow.com/questions/17426292/what-is-the-most-efficient-way-to-create-a-dictionary-of-two-pandas-dataframe-co
+#this can be made even more efficient
 class Stats:
 
     def __init__(self):
