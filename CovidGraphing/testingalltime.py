@@ -137,14 +137,10 @@ my_stats = Stats()
 
 # method 2
 #
-# apparently DataFrames are smart - when you requests elements by comparing with the index, they use binary search
-# now, the only reason I used a dict at all is because I thought scanning a DataFrame for all entries for a specific country would be slow.
-# Apparently there's a better solution:
+# "DataFrames are smart - when you requests elements by comparing with the index, they use binary search"
 # 1) sort the DataFrame by the Country.
 # 2) Set Country to be the index column
 # 3) Now queries like df1[df1['Country'] == country] will be fast.
-# so, let's see...
-# https://paste.pythondiscord.com/abitefusec.py
 #
 # In [148]: s = Stats()
 #
@@ -168,20 +164,31 @@ my_stats = Stats()
 #
 #
 #
-# yeah, ideally you want it to be sorted first by country, then by date, hold on...
-# ah, right
-# there
-# https://paste.pythondiscord.com/wupekiyoja.py
-#
-# I mean, it just means you have to do self._data[self._data.index==country]
-# which I moved to a new method for simplicity
-#
 # self._data[self._data.index == country] can be simplified to self._data.loc[country]
 # https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html
-# found
-# that
-# here.
 #
-# another v dumb question lol. so if i wanted to get the data from russia, for example, would i have to run it through both methods?
-# Yes, or just use get_data_for_country("Russia") to get all entries (with all columns) and select the columns you want.
+#  get_data_for_country("Russia") to get all entries (with all columns) and select the columns you want.
 #
+#not by date
+#
+# import pandas as pd
+#
+#
+# class Stats:
+#
+#     def __init__(self):
+#         URL_DATASET5 = r'https://raw.githubusercontent.com/datasets/covid-19/master/data/countries-aggregated.csv'
+#         # dates days since day 1
+#         df1 = pd.read_csv(URL_DATASET5, parse_dates=['Date'])
+#         first_date = df1.loc[0, 'Date']
+#         df1['Date'] = (df1['Date'] - first_date).dt.days
+#
+#         df1.sort_values(by="Country", inplace=True)
+#         df1.set_index(keys=["Country"], drop=False, inplace=True)
+#         self._data = df1
+#
+#     def countryallconfirmed(self, country):
+#         return self._data[self._data.Country == country][["Date", "Confirmed"]]
+#
+#     def countryalldeath(self, country):
+#         return self._data[self._data.Country == country][["Date", "Deaths"]]

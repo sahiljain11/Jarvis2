@@ -127,18 +127,18 @@ class AddToCalendar(QtCore.QObject):
 
     @QtCore.Slot(str)
     def createevent(self, eventinfo: str):
-
-        event = {
-            'summary': 'Pick Exactly Enough Strawberries to fill a Fishbowl',
-            'start': {
-                'dateTime': '2020-08-10T09:00:00-07:00',
-                'timeZone': 'America/Chicago',
-            },
-            'end': {
-                'dateTime': '2020-08-10T17:00:00-07:00',
-                'timeZone': 'America/Chicago',
+        try:
+            event = {
+                'summary': 'Pick Exactly Enough Strawberries to fill a Fishbowl',
+                'start': {
+                    'dateTime': '2020-08-10T09:00:00-07:00',
+                    'timeZone': 'America/Chicago',
+                },
+                'end': {
+                    'dateTime': '2020-08-10T17:00:00-07:00',
+                    'timeZone': 'America/Chicago',
+                }
             }
-        }
 
         event = service.events().insert(calendarId='primary', body=event).execute()
         print
