@@ -1,4 +1,6 @@
 import pandas as pd
+#import collections #METHOD BETA
+
 
 class Stats:
 
@@ -34,21 +36,28 @@ class Stats:
         self.usdeaths_dict = dict(zip(df_usdeaths['Province_State'], df_usdeaths.iloc[:, -1]))
 
 
-        #getting data over a period of time
+        # #METHOD ALPHA, not the most effective bc using rows n dictionaries, getting data over a period of time
+        # URL_DATASET5 = r'https://raw.githubusercontent.com/datasets/covid-19/master/data/countries-aggregated.csv'
+        # # dates days since day 1
+        # df1 = pd.read_csv(URL_DATASET5, parse_dates=['Date'])
+        # first_date = df1.loc[0, 'Date']
+        # df1['Date'] = (df1['Date'] - first_date).dt.days
+        # self.stats_by_country = collections.defaultdict(list)   #collections is a dict variant: unlike a normal dict that raises a KeyError when you try to access a key that's not there, a defaultdict instead gives you some default. In this case, an empty list, commonly used for counting
+        # for row in df1.itertuples():
+        #     self.stats_by_country[row.Country].append(row)
+
+        #METHOD BETA, i believe by using dataframes, this is more efficient
         URL_DATASET5 = r'https://raw.githubusercontent.com/datasets/covid-19/master/data/countries-aggregated.csv'
-        #dates days since day 1
+        # dates days since day 1
         df1 = pd.read_csv(URL_DATASET5, parse_dates=['Date'])
         first_date = df1.loc[0, 'Date']
         df1['Date'] = (df1['Date'] - first_date).dt.days
 
-        df_alltimecountry = df1[df1['Country'] == 'CountryName']
-        xconfirmed = df_alltimecountry['Confirmed'].tolist()
-        xdeaths = df_alltimecountry['Deaths'].tolist()
-        ydates = df_alltimecountry['Date'].tolist()
-        self.countryallconfirmed = dict(zip(ydates, xconfirmed))
-        self.countryalldeath = dict(zip(ydates, xdeaths))
+        df1.sort_values(by=["Country", "Date"], inplace=True)
+        df1.set_index(keys=["Country"], inplace=True)
+        self._data = df1
 
-    def show(self, *args): #this is called a repr/representation/"predefined method thats true for all classes"? 
+    def show(self, *args):
         for i in args:
             if i == 'death':
                 print (self.deaths_dict)
@@ -61,23 +70,46 @@ class Stats:
             else:
                 print ("that's not even a dictionary bruh")
 
+    # latest date confirmed cases for given country
     def confirmglobal(self, country):
         return self.confirm_dict[country]
 
+    # latest date deaths for given country
     def deathglobal(self, country):
         return self.deaths_dict[country]
 
+    # latest date confirmed cases for given state
     def confirmus(self, state):
         return self.usconfirm_dict[state]
 
+    # latest date confirmed cases for given state
     def deathus(self, state):
         return self.usdeaths_dict[state]
 
-    def countryallconfirmed(self, country):
-        return self.countryallconfirmed[country]
+    #METHOD ALPHA
+    # def countryallconfirmed(self, country):
+    #     country_stats = self.stats_by_country[country]
+    #     return list(zip((entry.Date for entry in country_stats), (entry.Confirmed for entry in country_stats)))
+    #
+    # def countryalldeath(self, country):
+    #     country_stats = self.stats_by_country[country]
+    #     return list(zip((entry.Date for entry in country_stats), (entry.Deaths for entry in country_stats)))
 
+    #METHOD BETA (3)
+    # all time, all data for a given country
+    def get_data_for_country(self, country):
+        return self._data[self._data.index == country]
+
+    # dictionary of alltime confirmed cases for given country; hey is a dataframe
+    def countryallconfirmed(self, country):
+        hey = self.get_data_for_country(country)[["Date", "Confirmed"]]
+        return dict(zip(hey.Date,hey.Confirmed))
+
+    # dictionary of alltime deaths for given country; aye is a dataframe
     def countryalldeath(self, country):
-        return self.countryalldeath[country]
+        aye = self.get_data_for_country(country)[["Date", "Deaths"]]
+        return dict(zip(aye.Date, aye.Deaths))
+
 
 my_stats = Stats()
 #print(my_stats.confirmus('Texas'))
@@ -86,3 +118,11 @@ my_stats = Stats()
 #my_stats.show('death')
 #my_stats.show('usdeath')
 #my_stats.show('confirm', 'death')
+
+#METHOD BETA
+#print(my_stats.get_data_for_country("Russia"))
+#print(my_stats.countryallconfirmed("Russia"))
+#print(my_stats.countryalldeath("Russia"))
+
+#METHOD ALPHA
+#print(my_stats.countryallconfirmed("Canada")[:50])
