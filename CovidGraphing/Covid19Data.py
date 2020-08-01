@@ -1,10 +1,21 @@
 import pandas as pd
+import sys
+import datetime
+from PySide2 import QtWidgets as qtw
+from PySide2 import QtGui as qtg
+from PySide2 import QtCore as qtc
+from PySide2 import QtQuick as qtq
+from PySide2 import QtQml as qtm
 #import collections #METHOD BETA
 
 
-class Stats:
+class Stats(qtc.QObject):
+
+    #Signals
+    countryAllConfirmedChanged = qtc.Signal()
 
     def __init__(self):
+        super(Stats, self).__init__()
         cols_to_use = [1, -1]
         URL_DATASET1 = r'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv'
         df_confirm = pd.read_csv(URL_DATASET1)
@@ -98,31 +109,58 @@ class Stats:
     #METHOD BETA (3)
     # all time, all data for a given country
     def get_data_for_country(self, country):
-        return self._data[self._data.index == country]
+        result = self._data[self._data.index == country]
+        if result.empty:
+            return
+        return result
 
     # dictionary of alltime confirmed cases for given country; hey is a dataframe
+    @qtc.Slot(str, result='QVariant')
     def countryallconfirmed(self, country):
-        hey = self.get_data_for_country(country)[["Date", "Confirmed"]]
-        return dict(zip(hey.Date,hey.Confirmed))
+        query = self.get_data_for_country(country)
+        if (query is None):
+            return
+        hey = query[["Date", "Confirmed"]]
+        #print([type(k) for k in {1: 2, 3: 4}.keys()])
+        #print([type(k) for k in dict(zip(hey.Date,hey.Confirmed)).keys()])
+        return dict(zip(hey.Date.apply(lambda x: self.epoch_to_date(x, datetime.datetime(2020, 1, 22, 0, 0))),hey.Confirmed))
 
     # dictionary of alltime deaths for given country; aye is a dataframe
+    @qtc.Property('QVariant')
     def countryalldeath(self, country):
         aye = self.get_data_for_country(country)[["Date", "Deaths"]]
         return dict(zip(aye.Date, aye.Deaths))
 
+    def epoch_to_date(self, num_days, epoch):
+        date = epoch + datetime.timedelta(num_days)
+        return date.strftime("%Y-%m-%d")
 
-my_stats = Stats()
-#print(my_stats.confirmus('Texas'))
-#print(my_stats.confirmglobal('Albania'))
-#print(my_stats.deathglobal('Albania'))
-#my_stats.show('death')
-#my_stats.show('usdeath')
-#my_stats.show('confirm', 'death')
 
-#METHOD BETA
-#print(my_stats.get_data_for_country("Russia"))
-#print(my_stats.countryallconfirmed("Russia"))
-#print(my_stats.countryalldeath("Russia"))
+if __name__ == '__main__':
+   
+    print("This is the main")
 
-#METHOD ALPHA
-#print(my_stats.countryallconfirmed("Canada")[:50])
+    app = qtw.QApplication(sys.argv)
+    engine = qtm.QQmlApplicationEngine()
+    root_context = engine.rootContext()
+
+    my_stats = Stats()
+    root_context.setContextProperty('corona', my_stats)
+    engine.load(qtc.QUrl.fromLocalFile('Covid.qml'))
+
+    #print(my_stats.confirmus('Texas'))
+    #print(my_stats.confirmglobal('Albania'))
+    #print(my_stats.deathglobal('Albania'))
+    #my_stats.show('death')
+    #my_stats.show('usdeath')
+    #my_stats.show('confirm', 'death')
+
+    #METHOD BETA
+    #print(my_stats.get_data_for_country("Russia"))
+    #print(my_stats.countryallconfirmed("Russia"))
+    #print(my_stats.countryalldeath("Russia"))
+
+    #METHOD ALPHA
+    #print(my_stats.countryallconfirmed("Canada")[:50])
+    
+    sys.exit(app.exec_())
