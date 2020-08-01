@@ -5,12 +5,14 @@ import os
 from Spotify.Spotify_Module import SpotipyModule
 from Gmail.GmailModule import GmailModule
 from Weather.Weather import WeatherWrapper
-from Calendar.API_setup import CalendarProvider 
+from Calendar.API_setup import CalendarProvider
+from CovidGraphing.Covid19Data import Stats 
 from PySide2 import QtWidgets as qtw
 from PySide2 import QtGui as qtg
 from PySide2 import QtCore as qtc
 from PySide2 import QtQuick as qtq
 from PySide2 import QtQml as qtm
+
 
 
 class Spotify(qtc.QObject):
@@ -42,7 +44,7 @@ class Spotify(qtc.QObject):
 if __name__ == '__main__':
 
     # Initializes the app, engine, and classes 
-    app = qtg.QGuiApplication(sys.argv)
+    app = qtw.QApplication(sys.argv)
     qtm.qmlRegisterType(CalendarProvider, "MyCalendar", 1, 0, "CalendarProvider")
     engine = qtm.QQmlApplicationEngine()
     root_context = engine.rootContext()
@@ -62,6 +64,10 @@ if __name__ == '__main__':
     weather = WeatherWrapper()
     weather.api_key = "API_HERE"
     root_context.setContextProperty("weather", weather)
+
+    # Load Covid
+    covid = Stats()
+    root_context.setContextProperty("covid", covid)
 
 
     # Load the main gui qml

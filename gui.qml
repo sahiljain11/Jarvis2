@@ -1,7 +1,10 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Controls.Styles 1.4
-import QtQuick.Layouts 1.11
+import QtQuick.Layouts 1.12
+import QtCharts 2.0
+import QtPositioning 5.12
+import QtLocation 5.12
 import QtGraphicalEffects 1.12
 import QtMultimedia 5.12
 import QtQml.Models 2.12
@@ -10,6 +13,7 @@ import "./Spotify"
 import "./Gmail"
 import "./Weather"
 import "./Calendar"
+import "./CovidGraphing"
 
 ApplicationWindow{
     id: window
@@ -22,20 +26,28 @@ ApplicationWindow{
     property double newY: 0
 
     //background
-    Image{
+    /*Image{
         id: grad
         source: "./images/elec_back.png"
         anchors.fill: parent
-    }
+    } */
 
-    /*Video{
+    Video{
         id: media
-        source:  "./images/FirstVideo.mkv"
+        source:  "./images/Background_slowmo.mkv"
         anchors.fill: parent
         loops: MediaPlayer.Infinite
         fillMode: VideoOutput.Stretch
         autoPlay: true
-    }*/
+        //flushMode: VideoOutput.FirstFrame
+    }
+
+   Covid{
+        id: graph2
+        width: 1200/1.5
+        height: 550/1.5
+
+    }
 
     Spotify{
         id: spotify_widget
@@ -65,8 +77,8 @@ ApplicationWindow{
 
     Weather{
         id: weather_widget
-        width: 2000/2.5
-        height: 1200/2.5
+        width: 500
+        height: 550
         Component.onCompleted:{
             x = window.newX 
             y = window.newY
@@ -85,7 +97,7 @@ ApplicationWindow{
         }  
     }
 
-    Button{
+    /*Button{
         x: parent.width-50
         y: 0
         width: 50
@@ -98,5 +110,5 @@ ApplicationWindow{
             color: "white"
         }
         onClicked: Qt.quit()
-    }
+    }*/
 }
