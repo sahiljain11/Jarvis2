@@ -13,6 +13,7 @@ Dial{
     value: 0
     live: true
     
+    palette.dark: 'white'
 
 
     //implicitWidth: 200
@@ -21,6 +22,7 @@ Dial{
     Text{
         text: msToTime(Math.round(value))
         anchors.centerIn: parent
+        color: "white"
     }
 
     //Takes in a time in milliseconds and returns a sting representation of the time

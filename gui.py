@@ -56,9 +56,9 @@ if __name__ == '__main__':
     
 
     # Load Gmail
-    gmail = GmailModule()
-    root_context.setContextProperty("gmail", gmail)
-    root_context.setContextProperty("emailPreview", gmail.currentEmailList)
+    #gmail = GmailModule()
+    #root_context.setContextProperty("gmail", gmail)
+    #root_context.setContextProperty("emailPreview", gmail.currentEmailList)
 
     # Load Weather
     weather = WeatherWrapper()

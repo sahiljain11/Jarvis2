@@ -97,15 +97,6 @@ class Stats(qtc.QObject):
     def deathus(self, state):
         return self.usdeaths_dict[state]
 
-    #METHOD ALPHA
-    # def countryallconfirmed(self, country):
-    #     country_stats = self.stats_by_country[country]
-    #     return list(zip((entry.Date for entry in country_stats), (entry.Confirmed for entry in country_stats)))
-    #
-    # def countryalldeath(self, country):
-    #     country_stats = self.stats_by_country[country]
-    #     return list(zip((entry.Date for entry in country_stats), (entry.Deaths for entry in country_stats)))
-
     #METHOD BETA (3)
     # all time, all data for a given country
     def get_data_for_country(self, country):
@@ -117,20 +108,30 @@ class Stats(qtc.QObject):
     # dictionary of alltime confirmed cases for given country; hey is a dataframe
     @qtc.Slot(str, result='QVariant')
     def countryallconfirmed(self, country):
+        # Attempt to query for the given country
         query = self.get_data_for_country(country)
+        # Return nothing if the country is not found
         if (query is None):
             return
+        # Retrieve the time series data for cases
         hey = query[["Date", "Confirmed"]]
-        #print([type(k) for k in {1: 2, 3: 4}.keys()])
-        #print([type(k) for k in dict(zip(hey.Date,hey.Confirmed)).keys()])
+        # Zip the data into a dictionary and convert the time data to dates
         return dict(zip(hey.Date.apply(lambda x: self.epoch_to_date(x, datetime.datetime(2020, 1, 22, 0, 0))),hey.Confirmed))
 
     # dictionary of alltime deaths for given country; aye is a dataframe
-    @qtc.Property('QVariant')
+    @qtc.Slot(str, result='QVariant')
     def countryalldeath(self, country):
-        aye = self.get_data_for_country(country)[["Date", "Deaths"]]
-        return dict(zip(aye.Date, aye.Deaths))
+        # Attempt to query for the given country
+        query = self.get_data_for_country(country)
+        # Return nothing if the country is not found
+        if (query is None):
+            return
+        # Retrieve the time series data for deathes
+        aye = query[["Date", "Deaths"]]
+        # Zip the data into a dict and convert the time data to dates
+        return dict(zip(aye.Date.apply(lambda x: self.epoch_to_date(x, datetime.datetime(2020, 1, 22, 0, 0))), aye.Deaths))
 
+    # Converts the number of days since the given epoch to a date in the form Year-Month-Day
     def epoch_to_date(self, num_days, epoch):
         date = epoch + datetime.timedelta(num_days)
         return date.strftime("%Y-%m-%d")

@@ -14,8 +14,11 @@ import "."
 ApplicationWindow{
 visibility: "Maximized"
 JarvisWidget{
+    id: wid
     width: 700*1.67
     height: 700
+
+    signal graphChanged()
     Rectangle{
         width:  parent.width
         height: parent.height
@@ -38,19 +41,17 @@ JarvisWidget{
             color:"white"
         }
 
-        // Placeholder for corona graph
-        ChartView {
-            id: graph
-            title: "Cases per Country"
-            antialiasing: true
-            theme: ChartView.ChartThemeDark
-            
-            //Animates the grid lines
-            animationOptions: {ChartView.GridAxisAnimations}
-            
-            //Controls the legend
+        // Shows the corona graphs
+        ListView{
+            id: root
+            //Set visual parameters
+            snapMode: ListView.SnapOneItem
+            highlightRangeMode: ListView.StrictlyEnforceRange
+            highlightMoveDuration: 250
+            orientation: ListView.Horizontal
+            boundsBehavior: Flickable.StopAtBounds
+            clip: true
 
-            // Position the graph on the left under the news bar
             anchors{
                 right: parent.right
                 rightMargin: parent.width/40
@@ -62,69 +63,25 @@ JarvisWidget{
                 bottomMargin: parent.height/30
             }
 
-            // One country
-            SplineSeries {
-                id: graphData
-                name: ""
+            model: corona_graphs
 
-                axisX: DateTimeAxis {
-                            id: xAxis
-                            format: "MMM yyyy"
-                        }
-
-                axisY: ValueAxis{
-                            id: yAxis
-                            min: 0
-                            max: 1000000
-                        }
-
-                Component.onCompleted:{
-                    axisY.applyNiceNumbers()
+            delegate: Component {
+                SplineGraph{
+                    id: cases_per_country
+                    title: "Cases per Country"
+                    antialiasing: true
+                    country: coun
+                    type: graph_type
+                    theme: ChartView.ChartThemeDark
+                    width: root.width
+                    height: root.height
                 }
-            }
-
-            /*Component.onCompleted:{
-                graph.addNewSeries(corona.countryallconfirmed('Russia'))
-                //graphData.append(1,2)
-            }*/
-
-            function addNewSeries(country){
-                graphData.removePoints(0, graphData.count)
-                console.log(graphData.count)
-                var data = corona.countryallconfirmed(country)
-                if (data == null){
-                    return -1
-                }
-                var max = 0
-                var i = 0
-                var start = 0
-                var end = 0
-                var date = 0
-                for(var key in data){
-                    var value = data[key]
-
-                    if (value > max){
-                        max = value
-                    }
-                    
-                    date = new Date(key)
-                    
-                    if (i == 0){
-                        start = date
-                    }
-
-                    graphData.append(date, value)
-                    i++
-                }
-                end = date
-                yAxis.max = max + 10000
-                xAxis.min = start
-                xAxis.max = end
-                graphData.index
-                return 0
             }
         }
-  
+
+        ListModel{
+            id: corona_graphs
+        }
 
         // Map plugin for the corona map
         Plugin{
@@ -144,7 +101,7 @@ JarvisWidget{
 
             // Positions the coronavirus map
             anchors{
-                right: graph.left
+                right: root.left
                 rightMargin: parent.width/40
                 left: parent.left
                 leftMargin: parent.width/40
@@ -168,7 +125,7 @@ JarvisWidget{
         TextField{
             id: chart_search
             anchors{
-                horizontalCenter: graph.horizontalCenter
+                horizontalCenter: root.horizontalCenter
                 bottom: parent.bottom
                 bottomMargin: parent.height/20
             }
@@ -178,12 +135,9 @@ JarvisWidget{
 
             Keys.onPressed:{
                 if(event.key == Qt.Key_Return){
-                    if (graph.addNewSeries(chart_search.text) == 0){
-                        graphData.name = chart_search.text
-                    }
-                    else{
-                        graphData.name = ""
-                    }
+                    corona_graphs.clear()
+                    corona_graphs.append({coun: chart_search.text, graph_type: "cases"})
+                    corona_graphs.append({coun: chart_search.text, graph_type: "deathes"})
                 }
             }
         }

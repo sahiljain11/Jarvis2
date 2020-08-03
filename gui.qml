@@ -14,6 +14,7 @@ import "./Gmail"
 import "./Weather"
 import "./Calendar"
 import "./CovidGraphing"
+import "./DateTime"
 
 ApplicationWindow{
     id: window
@@ -42,14 +43,13 @@ ApplicationWindow{
         //flushMode: VideoOutput.FirstFrame
     }
 
-   Covid{
+   /*Covid{
         id: graph2
         width: 1200/1.5
         height: 550/1.5
+    }*/
 
-    }
-
-    Spotify{
+    /*Spotify{
         id: spotify_widget
         width: 1200/1.5
         height: 550/1.5
@@ -61,8 +61,9 @@ ApplicationWindow{
             window.newX = spotify_widget.x + spotify_widget.width
             window.newY = spotify_widget.y
         }       
-    }
+    }*/
 
+    /*
     Gmail{
         id: gmail_widget
         width: 2000/2.5
@@ -95,6 +96,12 @@ ApplicationWindow{
             x = window.newX 
             y = window.newY
         }  
+    }*/
+
+    Clockwindow{
+        id: clock
+        width: 2000/2.5
+        height: 1200/2.5
     }
 
     /*Button{

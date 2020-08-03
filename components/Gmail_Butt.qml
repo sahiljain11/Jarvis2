@@ -18,6 +18,8 @@ Item{
     signal inside()
     signal outside()
 
+    FontLoader { id: nidsans; source: "../fonts/Nidsans.ttf"}
+    FontLoader { id: astro; source: "../fonts/AstroSpace.ttf"}
     
     /*Rectangle{
         id: back
@@ -46,6 +48,7 @@ Item{
         }
         elide: Text.ElideRight
         font.pixelSize: fontSize
+        font.family: nidsans.name
         color: "white"
         horizontalAlignment: halign
         verticalAlignment: valign
@@ -62,8 +65,10 @@ Item{
             bottom: parent.bottom
             bottomMargin: parent.height/1.5
         }
+        color: "white"
         elide: Text.ElideRight
         font.pixelSize: fontSize
+        font.family: nidsans.name
         horizontalAlignment: halign
         verticalAlignment: valign
     }
@@ -74,6 +79,7 @@ Item{
         horizontalAlignment: halign
         verticalAlignment: valign
         font.pixelSize: fontSize
+        font.family: nidsans.name
     }
     Text{
         id: preview_email
@@ -88,6 +94,7 @@ Item{
                 bottomMargin: parent.height/10
         }
         font.pixelSize: fontSize
+        font.family: nidsans.name
         width: parent.width
         height: parent.height/2
         elide: Text.ElideRight

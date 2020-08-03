@@ -10,6 +10,7 @@ import QtQuick.Layouts 1.11
 Picture{
     id: back
     signal touched()
+    signal inside()
     property string word: ""
     property var picWidth: sourceWidth 
     property var picHeight: sourceHeight
@@ -22,7 +23,11 @@ Picture{
     //Places text if any inside the switch
     Text {
         text: word
-        anchors.centerIn: parent 
+        anchors.fill: parent
+        anchors.centerIn: parent
+        horizontalAlignment: Text.AlignHCenter
+        verticalAlignment: Text.AlignVCenter
+        color: "white"
     }
 
     //Define the on/off states of the switch
@@ -45,7 +50,10 @@ Picture{
         hoverEnabled: true
 
         // Darken the icon when moving over it
-        onEntered: back.tint = "#80800000"
+        onEntered: {
+            back.tint = "#80800000"
+            entered.connect(inside)
+        }
         onExited: back.tint = "transparent"
 
         onClicked: {
