@@ -331,13 +331,42 @@ JarvisWidget{
         }
 
 
+        //Toggle between searching for playlist and song
+        Switch{
+            id: toggle
+
+            //Positioning
+            anchors{
+                left: textInput.left
+                leftMargin: textInput.width/8
+                bottom: textInput.top
+                top: parent.top
+                topMargin: parent.height/15
+            }
+            width: textInput.width/2.5
+
+            //Set the default parameters
+            word: "Search Songs"
+            iconOff: "../images/back2.png"
+            iconOn: "../images/back2.png"
+
+            //Toggle functionality
+            onTouched:{
+                if (toggle.state == "ON"){
+                    toggle.word = "Search Playlists"
+                }
+                else{
+                    toggle.word = "Search Songs"
+                }
+            }
+        }
+
         Component{
             id:search_del
             Text{
                 anchors.fill: parent
                 text: song
             }
-            
         }
 
         //Search results
@@ -382,10 +411,17 @@ JarvisWidget{
                     hoverEnabled: true
 
                     onClicked:{
-                        console.log(textInput.text)
                         textInput.remove(0, textInput.text.length)
-                        console.log(textInput.text)
-                        spotify.helper_add_song_to_queue(index)
+                        
+                        //We are choosing a song
+                        if (toggle.state == "OFF"){
+                            spotify.helper_add_song_to_queue(index)
+                        }
+
+                        // We are choosing a playlist
+                        else{
+                            spotify.queue_music_from_playlist(index)
+                        }
                     }
 
                     onEntered:{
@@ -402,8 +438,14 @@ JarvisWidget{
         //Defines key event changes
         Keys.onPressed: {
             if(event.key == Qt.Key_Return){
-                console.log("Prese")
-                spotify.add_song_to_queue(textInput.text)
+
+                if (toggle.state == "OFF"){
+                    spotify.add_song_to_queue(textInput.text)
+                }
+
+                else{
+                    spotify.find_a_playlist(textInput.text)
+                }
             }
         }
     }

@@ -34,7 +34,11 @@ class SpotipyModule(qtc.QObject):
         self.spellchecker = spellchecker.SpellChecker(language=u'en', distance=2)
         self.queue_id = None
         self.playing = False
+
         self.queue_uri = None
+        self.queue_changed = False
+        self.current_queue = None
+
         self.playlist_ids = None
         self.playlist_names = None
         self.search_results = None
@@ -62,12 +66,14 @@ class SpotipyModule(qtc.QObject):
             if (playlist['name']) == 'Queue':
                 self.queue_id = playlist['id']
                 self.queue_uri = playlist['uri']
+                self.current_queue = self.queue_uri
 
         if(self.queue_id is None):
             self.token.user_playlist_create(self.user,'Queue', public=True, description="Queue made by Yours Truly, Jarvis")
             playlists = self.token.user_playlists(self.user)
             self.queue_id = playlists['items'][0]['id']
             self.queue_uri = playlists['items'][0]['uri']
+            self.current_queue = self.queue_uri
         return
 
     @qtc.Slot(str)
@@ -89,35 +95,37 @@ class SpotipyModule(qtc.QObject):
 
     @qtc.Slot(int)
     def helper_add_song_to_queue(self, number):
+
+        # Change the queue to the default queue
+        if self.current_queue != self.queue_uri:
+            self.current_queue = self.queue_uri
+            self.queue_changed = True
+
         self.search_list.clear()
         temp = self.search_results['tracks']['items'][number]
         song = temp['uri']
         self.token.user_playlist_add_tracks(self.user, self.queue_id, tracks=[song])
         return
 
-    # plays songs from a specific playlist
-    @qtc.Slot()
-    def queue_music_from_playlist(self,playlist_name):
-        # gets a list of tracks from a user inputted name of playlist
-        songs_from_playlist = self.token.playlist_tracks(playlist_id=playlist_name, fields='items(track(name,id,href,album(name,href)))', limit=100)
-
-        self.token.start_playback(context_uri=playlist_name)
-        # starts playing playlist from beginning
-
-        return
-
-
     # play music
     @qtc.Slot()
     def play_music(self):
+
         if(self.playing == False):
-            self.token.start_playback(context_uri=self.queue_uri)
+            print("Entered")
+            self.token.start_playback(context_uri=self.current_queue)
             self.token.shuffle(False)
             time.sleep(.1)
             self.set_current_song_info()
+
         else:
-            self.token.start_playback()
+            if self.queue_changed:
+                self.token.start_playback(context_uri=self.current_queue)
+                self.queue_changed = False
+            else:
+                self.token.start_playback()
             self.token.shuffle(False)
+
         self.playing = True
         return
 
@@ -234,6 +242,7 @@ class SpotipyModule(qtc.QObject):
         self.set_current_song_info()
         return
 
+    @qtc.Slot(str)
     def find_a_playlist(self, playlist_title):
 
         # format_for_query =  playlist_title.replace(" ", "&20")
@@ -247,16 +256,49 @@ class SpotipyModule(qtc.QObject):
         playlist_to_be_queued = [None] * len(search_results['playlists']['items'])
         playlist_ids = [None] * len(search_results['playlists']['items'])
 
+        # Clear the search list
+        self.search_list.clear()
+        # Add the playlists to the search list
         for songz in range(0, len(search_results['playlists']['items'])):
-            playlist_to_be_queued[playlist_index] = str(playlist_number) + ') ' + \
-                                                    search_results['playlists']['items'][songz]['name']
+            name = str(playlist_number) + ') ' + search_results['playlists']['items'][songz]['name']
+            author = search_results['playlists']['items'][songz]['owner']['display_name']
             playlist_ids[playlist_index] = search_results['playlists']['items'][songz]['uri']
+
+            self.search_list.appendRow(SpotipyModule.SongWrapper(name, author, "", self.search_list))
             playlist_number += 1
             playlist_index += 1
+
         self.playlist_ids = playlist_ids
         self.playlist_names = playlist_to_be_queued
-
         return self.playlist_ids
+    
+    # plays songs from a specific playlist
+    @qtc.Slot(int)
+    def queue_music_from_playlist(self, index):
+        
+        # Clear the search list
+        self.search_list.clear()
+
+        playlist = self.playlist_ids[index]
+        self.current_queue = playlist
+        self.queue_changed = True
+        self.play_music()
+
+        # gets a list of tracks from a user inputted name of playlist
+        '''
+        offset = 0
+        songs_from_playlist = self.token.playlist_tracks(playlist_id=playlist, fields='items(track(uri))', offset=0, limit=100)
+        print(songs_from_playlist)
+        
+        while len(songs_from_playlist['items']) != 0 and offset < 500:
+            for song in songs_from_playlist['items']:
+                song_uri = song['track']['uri']
+                self.token.user_playlist_add_tracks(self.user, self.queue_id, tracks=[song_uri])
+            offset += 100
+            time.sleep(0.1)
+            songs_from_playlist = self.token.playlist_tracks(playlist_id=playlist, fields='items(track(uri))', offset=offset, limit=100)
+        '''
+        return
 
     def current_queue(self):
         return self.queue
@@ -341,13 +383,12 @@ print(spotify.title)
 print(spotify.picture)
 time.sleep(5)
 '''
-
-
-spotify = SpotipyModule(environ.get('USER'), environ.get('CLIENT_ID'), environ.get('CLIENT_SECRET'),environ.get("REDIRECT_URI"), environ.get('USERNAME'))
-print(spotify.find_a_playlist('no u'))
-spotify.queue_music_from_playlist('spotify:playlist:6W1hJjo7L6zbqT0mNQUmFx')
-print(spotify.devices)
-#print('\n')
+if __name__ == "__main__":
+    spotify = SpotipyModule(environ.get('USER'), environ.get('CLIENT_ID'), environ.get('CLIENT_SECRET'),environ.get("REDIRECT_URI"), environ.get('USERNAME'))
+    print(spotify.find_a_playlist('no u'))
+    spotify.queue_music_from_playlist('spotify:playlist:6W1hJjo7L6zbqT0mNQUmFx')
+    print(spotify.devices)
+    #print('\n')
 '''
 spotify.set_current_song_info()
 '''
