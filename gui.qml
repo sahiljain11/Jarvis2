@@ -43,13 +43,13 @@ ApplicationWindow{
         //flushMode: VideoOutput.FirstFrame
     }
 
-   /*Covid{
+    /*Covid{
         id: graph2
         width: 1200/1.5
         height: 550/1.5
     }*/
 
-    /*Spotify{
+    Spotify{
         id: spotify_widget
         width: 1200/1.5
         height: 550/1.5
@@ -61,9 +61,8 @@ ApplicationWindow{
             window.newX = spotify_widget.x + spotify_widget.width
             window.newY = spotify_widget.y
         }       
-    }*/
+    }
 
-    /*
     Gmail{
         id: gmail_widget
         width: 2000/2.5
@@ -76,7 +75,7 @@ ApplicationWindow{
         }       
     }
 
-    Weather{
+   /* Weather{
         id: weather_widget
         width: 500
         height: 550
@@ -86,7 +85,7 @@ ApplicationWindow{
             window.newX = 0
             window.newY = spotify_widget.y + spotify_widget.height
         }  
-    }
+    }*/
 
     Signaling {
         id: calendar_widget
@@ -96,13 +95,13 @@ ApplicationWindow{
             x = window.newX 
             y = window.newY
         }  
-    }*/
+    }
 
-    Clockwindow{
+    /*Clockwindow{
         id: clock
         width: 2000/2.5
         height: 1200/2.5
-    }
+    }*/
 
     /*Button{
         x: parent.width-50
