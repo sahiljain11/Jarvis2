@@ -19,24 +19,13 @@ JarvisWidget{
 
     //Background
     Rectangle{
-        property alias vis: new_email.visible
         id: back 
         color:"#00FFF5"
         anchors.fill: parent
         opacity: 0.4
     }
 
-    Image{
-        id: jarvis
-        source: '../images/Jarvis_Placeholder_1.png'
-        anchors{
-            verticalCenter: parent.verticalCenter
-            horizontalCenter: parent.horizontalCenter
-        }
-        width: parent.width/2.5
-        height: parent.height/1.5
-    }
-
+    //List of Email Previews
     ListView{
 
         id: emails
@@ -59,8 +48,8 @@ JarvisWidget{
             Gmail_Butt{
                 width: emails.width
                 height: emails.height/3.5
-                tit: subject
-                sen: sender
+                tit: "Subj: " + subject
+                sen: "Sen.: " + sender
                 snip: snippet
             }
         }
@@ -161,184 +150,20 @@ JarvisWidget{
             topMargin: parent.height/25
         }
         onTouched: {
-            back.vis= true
+            compbox.vis= true
         }
     }
 
     //Email Box
-    Rectangle{
-        id: new_email
-        color: '#21ADE8'
-        border.color: 'black'
-        border.width: 5
-        radius: 15
-        visible: false
-
-        anchors.fill: jarvis
-
-        // Receiver
-        Rectangle{
-            id: sendto
-            anchors{
-                top: parent.top
-                topMargin: parent.height/15
-                left: parent.left
-                leftMargin: parent.width/15
-                right: parent.right
-                rightMargin: parent.width/15
-                bottom: parent.bottom
-                bottomMargin: parent.height/1.2
-            }
-            color: 'white'
-
-            radius: 15
-
-            // Input Receiver
-            TextEdit{
-                id: sendtotext
-                anchors{
-                    left: parent.left
-                    leftMargin: parent.width/30
-                    top: parent.top
-                    topMargin: parent.height/10
-                    bottom: parent.bottom
-                    bottomMargin: parent.height/50
-                    right: parent.right
-                    rightMargin: parent.width/30
-                }
-                wrapMode: TextEdit.Wrap
-            }
+    ComposeBox{
+        id: compbox
+        anchors{
+            verticalCenter: parent.verticalCenter
+            horizontalCenter: parent.horizontalCenter
         }
 
-        //Subject Box
-        Rectangle{
-            id: subjectText
-            color: '#251fa1'
-            radius: 15
-            opacity: 0.5
-            layer.enabled: true
-            anchors{
-                top: sendto.bottom
-                topMargin: sendto.height/2
-                bottom: parent.bottom
-                bottomMargin: parent.height/1.4
-                left: sendto.left
-                right: sendto.right
-            }
-
-            // Subject input
-            TextEdit{
-                id: subjectStringText
-                text: ""
-                anchors{
-                    left: parent.left
-                    leftMargin: parent.width/30
-                    top: parent.top
-                    topMargin: parent.height/9
-                    bottom: parent.bottom
-                    bottomMargin: parent.height/50
-                    right: parent.right
-                    rightMargin: parent.width/30
-                }
-                wrapMode: TextEdit.Wrap
-            }
-        }
-
-        Rectangle{
-            id: bodyText
-            color: 'white'
-            radius: 15
-            anchors{
-                top: subjectText.bottom
-                topMargin: subjectText.height/1.5
-                bottom: parent.bottom
-                bottomMargin: parent.height/5
-                left: subjectText.left
-                right: subjectText.right
-            }
-            TextEdit{
-                id: bodyStringText
-                text: ""
-                anchors{
-                    left: parent.left
-                    leftMargin: parent.width/35
-                    top: parent.top
-                    topMargin: parent.height/30
-                    bottom: parent.bottom
-                    bottomMargin: parent.height/35
-                    right: parent.right
-                    rightMargin: parent.width/35
-                }
-                wrapMode: TextEdit.Wrap
-            }
-        }
-
-        // Labels for text boxes
-        Label{
-            color: 'blue'
-            text: 'Recipient'
-            fontSizeMode: Text.Fit
-            anchors{
-                top: parent.top
-                topMargin: parent.height/40
-                bottom: sendto.top
-                left: sendto.left
-                right: sendto.right
-                rightMargin: sendto.width/1.2
-            }
-        }
-
-        Label{
-            color: 'blue'
-            text: 'Subject'
-            fontSizeMode: Text.Fit
-            anchors{
-                top: sendto.bottom
-                bottom: subjectText.top
-                left: subjectText.left
-                right: subjectText.right
-                rightMargin: subjectText.width/1.2
-            }
-        }
-        
-        Label{
-            color: 'blue'
-            text: 'Message'
-            fontSizeMode: Text.Fit
-            anchors{
-                top: subjectText.bottom
-                bottom: bodyText.top
-                left: bodyText.left
-                right: bodyText.right
-                rightMargin: bodyText.width/1.2
-            }
-        }
-
-        // Send email button
-        Butt{
-            id: send_butt
-
-            image: '../images/SendEmailIcon.png'
-            anchors{
-                top: parent.top
-                topMargin: parent.height/1.2
-                bottom: parent.bottom
-                bottomMargin: parent.height/30
-                right: parent.right
-                rightMargin: parent.width/25
-                left: parent.left
-                leftMargin: parent.width/2
-            }
-            onTouched:{
-
-                gmail.send_message("me", sendtotext.text, subjectStringText.text, bodyStringText.text)
-
-                back.vis = false
-                sendtotext.text=""
-                subjectStringText.text=""
-                bodyStringText.text= ""
-            }
-        }
+        width: parent.width/2.5
+        height: parent.height/1.5
     }
 
     // Query bar for new emails
@@ -355,7 +180,7 @@ JarvisWidget{
 
         }
         Keys.onPressed:{
-            if(event.key == Qt.Key_Left){
+            if(event.key == Qt.Key_Return){
                 gmail.get_messages_from_query(searchbar.text)
             }
         }
@@ -364,9 +189,9 @@ JarvisWidget{
         //Styling
         color: 'black'
         font.pixelSize: searchbar.height/3
-        background: Picture{
+        /*background: Picture{
             anchors.fill: parent
             image: "../images/SearchBar.png"
-        }
+        }*/
     }
 }

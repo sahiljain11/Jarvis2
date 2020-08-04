@@ -91,7 +91,6 @@ class GmailModule(qtc.QObject):
             return label_list
 
     def get_list_of_users_message_ids(self):
-
         emails = self.service.users().messages().list(userId='me').execute()
         list_of_msg_ids = [None] * len(emails['messages'])
         index = 0
@@ -242,7 +241,15 @@ class GmailModule(qtc.QObject):
                                                                 pageToken=page_token).execute()
                 messages.extend(response['messages'])
 
-            return messages
+            self.currentEmailList.clear()
+            #print(messages)]
+            i = 0
+            while i < 10 and i < len(messages):
+                message = self.messages.get(userId='me', id=messages[i]['id'], format='metadata', metadataHeaders=["To", "From", "Subject"]).execute()
+                self.currentEmailList.appendRow(GmailModule.EmailObject(sender=self.GetSender(message), snippet=self.GetSnippet(message), subject=self.GetSubjectTitle(message)))
+                i += 1
+            return 
+
         except apiclient.errors.HttpError as error:
 
             return
@@ -303,6 +310,11 @@ class GmailModule(qtc.QObject):
 
     @qtc.Slot(str,str,str,str)
     def send_message(self, sender,to,subject,message_text):
+
+        # Return early if there is no sender
+        if(sender == "" or sender.isspace() or sender is None):
+            return
+
         premessage = self.create_basic_email(sender,to,subject,message_text)
         try:
             message = (self.service.users().messages().send(userId=sender, body=premessage)
@@ -382,5 +394,6 @@ if __name__ == '__main__':
         timer += ends-starts
     end = time.time()
     print(end-start)
+    gmail.get_messages_from_query('google')
     print(gmail.time_elapsed)
     print(timer)
