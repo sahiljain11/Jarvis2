@@ -11,8 +11,8 @@ import "../components"
 import "."
 
 
-ApplicationWindow{
-visibility: "Maximized"
+//ApplicationWindow{
+//visibility: "Maximized"
 JarvisWidget{
     id: wid
     width: 700*1.67
@@ -156,5 +156,4 @@ JarvisWidget{
             height: parent.height/20
         }
     }
-}
 }
