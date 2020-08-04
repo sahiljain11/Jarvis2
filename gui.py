@@ -56,18 +56,20 @@ if __name__ == '__main__':
     
 
     # Load Gmail
-    #gmail = GmailModule()
-    #root_context.setContextProperty("gmail", gmail)
-    #root_context.setContextProperty("emailPreview", gmail.currentEmailList)
+    gmail = GmailModule()
+    root_context.setContextProperty("gmail", gmail)
+    root_context.setContextProperty("emailPreview", gmail.currentEmailList)
 
     # Load Weather
-    weather = WeatherWrapper()
-    weather.api_key = "API_HERE"
-    root_context.setContextProperty("weather", weather)
+    #weather = WeatherWrapper()
+    #weather.api_key = "API_HERE"
+    #root_context.setContextProperty("weather", weather)
 
     # Load Covid
-    covid = Stats()
-    root_context.setContextProperty("covid", covid)
+    #covid = Stats()
+    #root_context.setContextProperty("corona", covid)
+
+    # Load time widget
 
 
     # Load the main gui qml
