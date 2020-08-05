@@ -32,6 +32,20 @@ ApplicationWindow{
         source: "./images/elec_back.png"
         anchors.fill: parent
     } */
+    
+
+    /*Timer{
+        id: mouseTimer
+        running: true
+        repeat: true
+        interval: 80
+
+        onTriggered:{
+            hand.set_gest_data()
+            hand.setMouse()
+        }
+    }*/
+    
 
     Video{
         id: media
@@ -43,11 +57,11 @@ ApplicationWindow{
         //flushMode: VideoOutput.FirstFrame
     }
 
-    /*Covid{
+    Covid{
         id: graph2
         width: 1200/1.5
         height: 550/1.5
-    }*/
+    }
 
     Spotify{
         id: spotify_widget
@@ -97,11 +111,16 @@ ApplicationWindow{
         }  
     }
 
-    /*Clockwindow{
+    Clockwindow{
         id: clock
         width: 2000/2.5
         height: 1200/2.5
-    }*/
+    }
+    
+    Component.onCompleted:{
+        console.log("width ", window.width)
+        console.log("height ", window.height)
+    }
 
     /*Button{
         x: parent.width-50
