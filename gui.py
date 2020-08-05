@@ -2,10 +2,12 @@ import math
 import numpy as np
 import sys
 import os
+import pyautogui
 from Spotify.Spotify_Module import SpotipyModule
 from Gmail.GmailModule import GmailModule
 from Weather.Weather import WeatherWrapper
 from Calendar.API_setup import CalendarProvider
+from HandGest import HandGest
 from CovidGraphing.Covid19Data import Stats 
 from PySide2 import QtWidgets as qtw
 from PySide2 import QtGui as qtg
@@ -56,9 +58,13 @@ if __name__ == '__main__':
     
 
     # Load Gmail
-    gmail = GmailModule()
-    root_context.setContextProperty("gmail", gmail)
-    root_context.setContextProperty("emailPreview", gmail.currentEmailList)
+    #gmail = GmailModule()
+    #root_context.setContextProperty("gmail", gmail)
+    #root_context.setContextProperty("emailPreview", gmail.currentEmailList)
+
+    # Load HandGest
+    hand = HandGest()
+    root_context.setContextProperty("hand", hand)
 
     # Load Weather
     #weather = WeatherWrapper()
@@ -66,8 +72,8 @@ if __name__ == '__main__':
     #root_context.setContextProperty("weather", weather)
 
     # Load Covid
-    #covid = Stats()
-    #root_context.setContextProperty("corona", covid)
+    covid = Stats()
+    root_context.setContextProperty("corona", covid)
 
     # Load time widget
 
