@@ -240,7 +240,7 @@ ApplicationWindow {
 
                         onTouched: {
                             console.log("touched")
-                            //Cal2.createevent(eventinfo.text)
+                            cal2.createevent(eventinfo.text)
                         }
                     }
 

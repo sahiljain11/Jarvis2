@@ -3,19 +3,17 @@ import os
 import pickle
 import sys
 import threading
-
 from PySide2 import QtCore, QtGui, QtQml
 
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
-import httplib2
 
-from apiclient import discovery
-import oauth2client
-from oauth2client import client
-from oauth2client import tools
 
+# from apiclient import discovery
+# import oauth2client
+# from oauth2client import client
+# from oauth2client import tools
 import datetime
 
 
@@ -124,35 +122,51 @@ class AddToCalendar(QtCore.QObject):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._data = dict()
-
     @QtCore.Slot(str)
     def createevent(self, eventinfo: str):
         try:
             event = {
-                'summary': 'Pick Exactly Enough Strawberries to fill a Fishbowl',
+                'summary': eventinfo, #'Pick Exactly Enough Strawberries to fill a Fishbowl',
                 'start': {
-                    'dateTime': '2020-08-10T09:00:00-07:00',
+                    'dateTime': '2020-09-10T09:00:00-06:00',
                     'timeZone': 'America/Chicago',
                 },
                 'end': {
-                    'dateTime': '2020-08-10T17:00:00-07:00',
+                    'dateTime': '2020-09-10T17:00:00-06:00',
                     'timeZone': 'America/Chicago',
                 }
             }
-
-        event = service.events().insert(calendarId='primary', body=event).execute()
-        print
-        'Event created: %s' % (event.get('htmlLink'))
-
-
+        except:
+            pass
+        event = self._service.events().insert(calendarId='primary', body=event).execute()
+        print('Event created: %s' % (event.get('htmlLink')))
 
 
-def main():
+
+
+# def main():
+#     app = QtGui.QGuiApplication(sys.argv)
+#
+#     QtQml.qmlRegisterType(CalendarProvider, "MyCalendar", 1, 0, "CalendarProvider")
+#
+#     engine = QtQml.QQmlApplicationEngine()
+#     engine.rootContext().setContextProperty("cal2", cal2)
+#     filename = os.path.join(CURRENT_DIR, "CalendarDraft.qml")
+#     engine.load(QtCore.QUrl.fromLocalFile(filename))
+#
+#     if not engine.rootObjects():
+#         sys.exit(-1)
+#
+#     sys.exit(app.exec_())
+
+
+if __name__ == "__main__":
     app = QtGui.QGuiApplication(sys.argv)
 
     QtQml.qmlRegisterType(CalendarProvider, "MyCalendar", 1, 0, "CalendarProvider")
 
     engine = QtQml.QQmlApplicationEngine()
+    engine.rootContext().setContextProperty("calll", calll)
     filename = os.path.join(CURRENT_DIR, "CalendarDraft.qml")
     engine.load(QtCore.QUrl.fromLocalFile(filename))
 
@@ -160,7 +174,3 @@ def main():
         sys.exit(-1)
 
     sys.exit(app.exec_())
-
-
-if __name__ == "__main__":
-    main()
