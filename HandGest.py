@@ -1,6 +1,7 @@
 import sys
 import time
 import requests
+import pyautogui
 from os import environ
 from PySide2 import QtWidgets as qtw
 from PySide2 import QtGui as qtg
@@ -22,12 +23,15 @@ class HandGest(qtc.QObject):
         self.x = 0
         self.y = 0
         self.z = 0
+        self.old_gest = 0
         self._gest = 0
         self.cursor = qtg.QCursor()
     
     # Sets the current gesture data
+    @qtc.Slot()
     def set_gest_data(self):
         res = requests.post("http://127.0.0.1:5000/determine-gesture/", json=send).json()
+        self.old_gest = self._gest
         self.setGest(res['gesture'])
         '''self.setX(res['x'])
         self.setY(res['y'])
@@ -39,8 +43,26 @@ class HandGest(qtc.QObject):
     
     @qtc.Slot()
     def setMouse(self):
-        #self.set_gest_data()
-        self.cursor.setPos(0, 0)
+        self.cursor.setPos(self.x, self.y)
+
+        # Case for mouse up after performing a mouse down
+        if self._gest == 0 and (self.old_gest == 1 or self.old_gest == 2):
+            if(self.old_gest == 2):
+                pyautogui.keyUp("alt")
+            pyautogui.mouseUp()
+            
+        # Case for clicking
+        elif self._gest == 3 and self.old_gest != 3:
+            pyautogui.click()
+
+        # Case mouse down
+        elif self._gest == 1 and self.old_gest != 1:
+            pyautogui.mouseDown()
+        
+        # Case for mouse down and drag
+        elif self._gest == 2 and self.old_gest != 2:
+            pyautogui.keyDown("alt") 
+            pyautogui.mouseDown()
 
     @qtc.Property(int, notify=gestChanged)
     def gest(self):
