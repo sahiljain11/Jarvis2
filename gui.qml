@@ -32,7 +32,7 @@ Item{
     } */
     
 
-    Timer{
+    /*Timer{
         id: mouseTimer
         running: true
         repeat: true
@@ -46,7 +46,7 @@ Item{
 
             console.log("Current Gest ", new_gest)
             console.log("Old Gest ", old_gest)
-            consoloe.log("Position ", point)
+            console.log("Position ", point)
 
             //Case for mouse up after performing a mouse down
             if (new_gest == 0 && (old_gest == 1 || old_gest == 2)){
@@ -68,7 +68,7 @@ Item{
                 hand.mousePress(window, Qt.LeftButton, Qt.NoModifier, point)
             }
         }
-    }
+    }*/
 
     Video{
         id: media
@@ -145,6 +145,24 @@ Item{
         Binding on scaleVal{
             when: clock.activeFocus == true
             value: sizeAdjust.value
+        }
+    }
+
+    MouseArea{
+        id: mouseArea
+        anchors.fill: parent
+        propagateComposedEvents: true
+
+        onClicked:{
+            mouse.accepted = false
+        }
+
+        onPressed:{
+            mouse.accepted = false
+        }
+
+        onReleased:{
+            mouse.accepted = false
         }
     }
 
