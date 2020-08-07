@@ -32,7 +32,7 @@ Item{
     } */
     
 
-    /*Timer{
+    Timer{
         id: mouseTimer
         running: true
         repeat: true
@@ -68,7 +68,7 @@ Item{
                 hand.mousePress(window, Qt.LeftButton, Qt.NoModifier, point)
             }
         }
-    }*/
+    }
 
     Video{
         id: media
