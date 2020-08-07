@@ -25,11 +25,11 @@ Item{
     property double newY: 0
 
     //background
-    /*Image{
+    Image{
         id: grad
         source: "./images/elec_back.png"
         anchors.fill: parent
-    } */
+    } 
     
 
     Timer{
@@ -65,12 +65,12 @@ Item{
 
             //Case for mouse down and drag
             else if (new_gest == 2 && old_gest != 2) {
-                hand.mousePress(window, Qt.LeftButton, Qt.NoModifier, point)
+                hand.mousePress(window, Qt.LeftButton, Qt.AltModifier, point)
             }
         }
     }
 
-    Video{
+    /*Video{
         id: media
         source:  "./images/Background_slowmo.mkv"
         anchors.fill: parent
@@ -81,7 +81,7 @@ Item{
             focus = true
         }
         //flushMode: VideoOutput.FirstFrame
-    }
+    }*/
 
     Covid{
         id: graph2
@@ -89,7 +89,7 @@ Item{
         height: 550/1.5
     }
 
-    /*Spotify{
+    Spotify{
         id: spotify_widget
         width: 1200/1.5
         height: 550/1.5
@@ -101,7 +101,7 @@ Item{
             window.newX = spotify_widget.x + spotify_widget.width
             window.newY = spotify_widget.y
         }       
-    }*/
+    }
 
     Gmail{
         id: gmail_widget
@@ -115,7 +115,7 @@ Item{
         }       
     }
 
-   /*Weather{
+   Weather{
         id: weather_widget
         width: 500
         height: 550
@@ -125,7 +125,7 @@ Item{
             window.newX = 0
             window.newY = spotify_widget.y + spotify_widget.height
         }  
-    }*/
+    }
 
     Signaling {
         id: calendar_widget

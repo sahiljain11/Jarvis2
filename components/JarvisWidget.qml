@@ -17,7 +17,7 @@ Item{
     property int maxZ: 0
 
     //defaults
-    state: "BASE"
+    /*state: "BASE"
     scale: scaleVal
 
     states: [
@@ -30,7 +30,7 @@ Item{
             name: "DRAGGING"
             PropertyChanges {target: mouseArea; drag.target: jarvis}
         }
-    ]
+    ]*/
 
     //Sets up dragging functionality of window
     MouseArea{
@@ -92,16 +92,16 @@ Item{
         }
 
         //Enable dragging when "Alt" is pressed
-        if(event.key == Qt.Key_Alt){
+        /*if(event.key == Qt.Key_Alt){
             state = "DRAGGING"
-        }
+        }*/
 
     }
 
     //Disable dragging when the "Alt" is not pressed
-    Keys.onReleased:{
+    /*Keys.onReleased:{
         if(event.key == Qt.Key_Alt){
             state = "BASE"
         }
-    }
+    }*/
 }
