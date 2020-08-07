@@ -55,9 +55,9 @@ if __name__ == '__main__':
     #root_context = engine.rootContext()
 
     #Load Spotify
-    spotify = SpotipyModule(os.environ.get('USER'), os.environ.get('CLIENT_ID'), os.environ.get('CLIENT_SECRET'), os.environ.get('REDIRECT_URI'),os.environ.get(('USERNAME')))
-    root_context.setContextProperty("spotify", spotify)
-    root_context.setContextProperty("searchList", spotify.search_list)
+    #spotify = SpotipyModule(os.environ.get('USER'), os.environ.get('CLIENT_ID'), os.environ.get('CLIENT_SECRET'), os.environ.get('REDIRECT_URI'),os.environ.get(('USERNAME')))
+    #root_context.setContextProperty("spotify", spotify)
+    #root_context.setContextProperty("searchList", spotify.search_list)
     
     #Load Simulator
     #mouse_emulator = MouseEmulator()

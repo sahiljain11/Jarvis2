@@ -44,6 +44,10 @@ Item{
             var new_gest = gest[0]
             var old_gest = gest[1]
 
+            console.log("Current Gest ", new_gest)
+            console.log("Old Gest ", old_gest)
+            consoloe.log("Position ", point)
+
             //Case for mouse up after performing a mouse down
             if (new_gest == 0 && (old_gest == 1 || old_gest == 2)){
                 hand.mouseRelease(window, Qt.LeftButton, Qt.NoModifier, point)
@@ -60,7 +64,7 @@ Item{
             }
 
             //Case for mouse down and drag
-            else if (self._gest == 2 && self.old_gest != 2) {
+            else if (new_gest == 2 && old_gest != 2) {
                 hand.mousePress(window, Qt.LeftButton, Qt.NoModifier, point)
             }
         }
@@ -85,7 +89,7 @@ Item{
         height: 550/1.5
     }
 
-    Spotify{
+    /*Spotify{
         id: spotify_widget
         width: 1200/1.5
         height: 550/1.5
@@ -97,7 +101,7 @@ Item{
             window.newX = spotify_widget.x + spotify_widget.width
             window.newY = spotify_widget.y
         }       
-    }
+    }*/
 
     Gmail{
         id: gmail_widget
@@ -143,6 +147,7 @@ Item{
             value: sizeAdjust.value
         }
     }
+
     
     // Slider to adjust size of widgets
     /*Slider{
