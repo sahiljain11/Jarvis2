@@ -49,12 +49,12 @@ Item{
             console.log("Position ", point)
 
             //Case for mouse up after performing a mouse down
-            if (new_gest == 0 && (old_gest == 1 || old_gest == 2)){
+            if (new_gest == 0){
                 hand.mouseRelease(window, Qt.LeftButton, Qt.NoModifier, point)
             }
 
             //Case for clicking
-            else if (new_gest == 3 && old_gest != 3) {
+            else if (new_gest == 3) {
                 hand.mouseClick(window, Qt.LeftButton, Qt.NoModifier, point)
             }
                 
@@ -152,6 +152,7 @@ Item{
         id: mouseArea
         anchors.fill: parent
         propagateComposedEvents: true
+        hoverEnabled: true
 
         onClicked:{
             mouse.accepted = false

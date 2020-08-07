@@ -57,13 +57,13 @@ class HandGest(qtc.QObject):
         self.cursor.setPos(self.x, self.y)
         
         # Case for mouse up after performing a mouse down
-        if self._gest == 0 and (self.old_gest == 1 or self.old_gest == 2):
-            if(self.old_gest == 2):
-                pyautogui.keyUp("alt")
+        #if self._gest == 0 and (self.old_gest == 1 or self.old_gest == 2):
+        #    if(self.old_gest == 2):
+        #        pyautogui.keyUp("alt")
 
         # Case for mouse down and drag
-        elif self._gest == 2 and self.old_gest != 2:
-            pyautogui.keyDown("alt")
+        #elif self._gest == 2 and self.old_gest != 2:
+        #    pyautogui.keyDown("alt")
         
         '''
         # Case for clicking
