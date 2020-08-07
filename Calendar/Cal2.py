@@ -1,8 +1,10 @@
+#imports
 import logging
 import os
 import pickle
 import sys
 import threading
+import datetime
 from PySide2 import QtCore, QtGui, QtQml
 
 from googleapiclient.discovery import build
@@ -10,11 +12,6 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 
 
-# from apiclient import discovery
-# import oauth2client
-# from oauth2client import client
-# from oauth2client import tools
-import datetime
 
 
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
@@ -36,9 +33,10 @@ class CalendarBackend(QtCore.QObject):
         return self._service
 
     def updateListEvents(self, kw):
-        # "separate flow of execution"
+        # threading creates separate flow of execution
         threading.Thread(target=self._update_list_events, args=(kw,)).start()
 
+    #gathers next 10 events from google calendar and appends to qt_events
     def _update_list_events(self, kw):
         self._update_credentials()
 
@@ -62,8 +60,8 @@ class CalendarBackend(QtCore.QObject):
 
         self.eventsChanged.emit(qt_events)
 
+    #OAuth with Google API
     def _update_credentials(self):
-        #oauth with google api
         creds = None
         if os.path.exists("token.pickle"):
             with open("token.pickle", "rb") as token:
@@ -81,7 +79,7 @@ class CalendarBackend(QtCore.QObject):
 
         self._service = build("calendar", "v3", credentials=creds)
 
-
+#connects events to calendar window
 class CalendarProvider(QtCore.QObject):
     loaded = QtCore.Signal()
 
@@ -118,55 +116,44 @@ class CalendarProvider(QtCore.QObject):
         self.loaded.emit()
         logging.debug("Loaded")
 
+#adding an event to calendar
 class AddToCalendar(QtCore.QObject):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._data = dict()
+        #using instance var from another class
+        self.A = CalendarBackend()
     @QtCore.Slot(str)
-    def createevent(self, eventinfo: str):
+    def createevent(self, eventinfo: str, eventstart: str, eventend: str):
+        starttime = str(datetime.datetime.strptime(eventstart, "%m/%d/%Y %H:%M:%S"))
+
+        endtime = str(datetime.datetime.strptime(eventend, "%m/%d/%Y %H:%M:%S"))
         try:
             event = {
-                'summary': eventinfo, #'Pick Exactly Enough Strawberries to fill a Fishbowl',
+                'summary': eventinfo,
                 'start': {
-                    'dateTime': '2020-09-10T09:00:00-06:00',
+                    'dateTime':  (starttime[0:10]+"T"+starttime[11:]+"-06:00"),
                     'timeZone': 'America/Chicago',
                 },
                 'end': {
-                    'dateTime': '2020-09-10T17:00:00-06:00',
+                    'dateTime': (endtime[0:10]+"T"+endtime[11:]+"-06:00"),
                     'timeZone': 'America/Chicago',
                 }
             }
         except:
             pass
-        event = self._service.events().insert(calendarId='primary', body=event).execute()
+        event = self.A._service.events().insert(calendarId='primary', body=event).execute()
         print('Event created: %s' % (event.get('htmlLink')))
 
-
-
-
-# def main():
-#     app = QtGui.QGuiApplication(sys.argv)
-#
-#     QtQml.qmlRegisterType(CalendarProvider, "MyCalendar", 1, 0, "CalendarProvider")
-#
-#     engine = QtQml.QQmlApplicationEngine()
-#     engine.rootContext().setContextProperty("cal2", cal2)
-#     filename = os.path.join(CURRENT_DIR, "CalendarDraft.qml")
-#     engine.load(QtCore.QUrl.fromLocalFile(filename))
-#
-#     if not engine.rootObjects():
-#         sys.exit(-1)
-#
-#     sys.exit(app.exec_())
 
 
 if __name__ == "__main__":
     app = QtGui.QGuiApplication(sys.argv)
 
     QtQml.qmlRegisterType(CalendarProvider, "MyCalendar", 1, 0, "CalendarProvider")
-
+    cal2 = AddToCalendar()
     engine = QtQml.QQmlApplicationEngine()
-    engine.rootContext().setContextProperty("calll", calll)
+    engine.rootContext().setContextProperty("cal2", cal2)
     filename = os.path.join(CURRENT_DIR, "CalendarDraft.qml")
     engine.load(QtCore.QUrl.fromLocalFile(filename))
 
