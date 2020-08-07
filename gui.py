@@ -8,7 +8,6 @@ from Gmail.GmailModule import GmailModule
 from Weather.Weather import WeatherWrapper
 from Calendar.API_setup import CalendarProvider
 from HandGest import HandGest
-from MouseSimulator import MouseEmulator
 from CovidGraphing.Covid19Data import Stats
 from PySide2.QtQuick import QQuickItem, QQuickView 
 from PySide2 import QtWidgets as qtw
