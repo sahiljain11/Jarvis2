@@ -76,6 +76,11 @@ Item{
             jarvis.focus = true
             mouseArea.entered.connect(gainedFocus)
         }
+
+        onReleased:{
+            drag.target = undefined
+            mouse.accepted = false
+        }
     }
 
     //Defines key event changes
