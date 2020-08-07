@@ -16,13 +16,11 @@ import "./Calendar"
 import "./CovidGraphing"
 import "./DateTime"
 
-ApplicationWindow{
+Item{
     id: window
     visible: true
-    //width: 600
-    //height: 600
-    visibility: "Maximized"
-    title: qsTr("Jarvis2")
+    width: 1920
+    height: 1080
     property double newX: 0
     property double newY: 0
 
@@ -34,18 +32,39 @@ ApplicationWindow{
     } */
     
 
-    /*Timer{
+    Timer{
         id: mouseTimer
         running: true
         repeat: true
         interval: 80
 
         onTriggered:{
-            hand.set_gest_data()
-            hand.setMouse()
+            var point = hand.set_gest_data()
+            var gest = hand.setMouse()
+            var new_gest = gest[0]
+            var old_gest = gest[1]
+
+            //Case for mouse up after performing a mouse down
+            if (new_gest == 0 && (old_gest == 1 || old_gest == 2)){
+                hand.mouseRelease(window, Qt.LeftButton, Qt.NoModifier, point)
+            }
+
+            //Case for clicking
+            else if (new_gest == 3 && old_gest != 3) {
+                hand.mouseClick(window, Qt.LeftButton, Qt.NoModifier, point)
+            }
+                
+            //Case mouse down
+            else if (new_gest == 1 && old_gest != 1) {
+                hand.mousePress(window, Qt.LeftButton, Qt.NoModifier, point)
+            }
+
+            //Case for mouse down and drag
+            else if (self._gest == 2 && self.old_gest != 2) {
+                hand.mousePress(window, Qt.LeftButton, Qt.NoModifier, point)
+            }
         }
-    }*/
-    
+    }
 
     Video{
         id: media
@@ -54,6 +73,9 @@ ApplicationWindow{
         loops: MediaPlayer.Infinite
         fillMode: VideoOutput.Stretch
         autoPlay: true
+        Component.onCompleted:{
+            focus = true
+        }
         //flushMode: VideoOutput.FirstFrame
     }
 
@@ -89,7 +111,7 @@ ApplicationWindow{
         }       
     }
 
-   /* Weather{
+   /*Weather{
         id: weather_widget
         width: 500
         height: 550
@@ -115,12 +137,31 @@ ApplicationWindow{
         id: clock
         width: 2000/2.5
         height: 1200/2.5
+
+        Binding on scaleVal{
+            when: clock.activeFocus == true
+            value: sizeAdjust.value
+        }
     }
     
-    Component.onCompleted:{
-        console.log("width ", window.width)
-        console.log("height ", window.height)
-    }
+    // Slider to adjust size of widgets
+    /*Slider{
+        id: sizeAdjust 
+        // Positioning 
+        anchors{
+            right: window.right
+            rightMargin: window.right/10
+            bottom: window.bottom
+            bottomMargin: window.bottom/10
+        }
+        //Size
+        width: 500 
+        height: 1000
+
+        //Slider sizes
+        from: 0
+        to: 4
+    }*/
 
     /*Button{
         x: parent.width-50
