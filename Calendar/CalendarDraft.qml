@@ -8,7 +8,7 @@ import "../components"
 
 ApplicationWindow {
     visible: true
-    width: 640
+    width: 700
     height: 400
     minimumWidth: 400
     minimumHeight: 300
@@ -210,22 +210,41 @@ ApplicationWindow {
                     }
 
 
-
+                    TextField {
+                        id: eventstart
+                        anchors.bottom: eventend.top
+                        anchors.right: parent.right
+                        anchors.left: parent.left
+                        placeholderText: qsTr("Start Time 01/12/2020 14:35:00")
+                        selectByMouse: true
+                    }
+                    TextField {
+                        id: eventend
+                        anchors.bottom: eventinfo.top
+                        anchors.right: parent.right
+                        anchors.left: parent.left
+                        placeholderText: qsTr("End Time")
+                        selectByMouse: true
+                    }
                     TextField {
                         id: eventinfo
-                        anchors.bottom: parent.bottom
+                        anchors.bottom: buttonn.top
+                        anchors.right: parent.right
+                        anchors.left: parent.left
                         placeholderText: qsTr("Event Name")
                         selectByMouse: true
                     }
                     Butt {
+                        id: buttonn
                         width: rect.width
                         anchors.bottom: parent.bottom
                         anchors.right: parent.right
+                        anchors.left: parent.left
                         height: rect.height
 
                         Rectangle {
                             id: rect
-                            implicitWidth: 70
+                            implicitWidth: rect.width
                             implicitHeight: 25
                             color: "#282828"
                             radius: 10
@@ -238,9 +257,11 @@ ApplicationWindow {
                             color: "white"
                         }
 
+
+
                         onTouched: {
                             console.log("touched")
-                            cal2.createevent(eventinfo.text)
+                            cal2.createevent(eventinfo.text, eventstart.text, eventend.text)
                         }
                     }
 

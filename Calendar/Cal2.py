@@ -122,51 +122,38 @@ class AddToCalendar(QtCore.QObject):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._data = dict()
+        self.A = CalendarBackend()
     @QtCore.Slot(str)
-    def createevent(self, eventinfo: str):
+    def createevent(self, eventinfo: str, eventstart: str, eventend: str):
+        starttime = str(datetime.datetime.strptime(eventstart, "%m/%d/%Y %H:%M:%S"))
+
+        endtime = str(datetime.datetime.strptime(eventend, "%m/%d/%Y %H:%M:%S"))
         try:
             event = {
-                'summary': eventinfo, #'Pick Exactly Enough Strawberries to fill a Fishbowl',
+                'summary': eventinfo,
                 'start': {
-                    'dateTime': '2020-09-10T09:00:00-06:00',
+                    'dateTime':  (starttime[0:10]+"T"+starttime[11:]+"-06:00"),
                     'timeZone': 'America/Chicago',
                 },
                 'end': {
-                    'dateTime': '2020-09-10T17:00:00-06:00',
+                    'dateTime': (endtime[0:10]+"T"+endtime[11:]+"-06:00"),
                     'timeZone': 'America/Chicago',
                 }
             }
         except:
             pass
-        event = self._service.events().insert(calendarId='primary', body=event).execute()
+        event = self.A._service.events().insert(calendarId='primary', body=event).execute()
         print('Event created: %s' % (event.get('htmlLink')))
 
-
-
-
-# def main():
-#     app = QtGui.QGuiApplication(sys.argv)
-#
-#     QtQml.qmlRegisterType(CalendarProvider, "MyCalendar", 1, 0, "CalendarProvider")
-#
-#     engine = QtQml.QQmlApplicationEngine()
-#     engine.rootContext().setContextProperty("cal2", cal2)
-#     filename = os.path.join(CURRENT_DIR, "CalendarDraft.qml")
-#     engine.load(QtCore.QUrl.fromLocalFile(filename))
-#
-#     if not engine.rootObjects():
-#         sys.exit(-1)
-#
-#     sys.exit(app.exec_())
 
 
 if __name__ == "__main__":
     app = QtGui.QGuiApplication(sys.argv)
 
     QtQml.qmlRegisterType(CalendarProvider, "MyCalendar", 1, 0, "CalendarProvider")
-
+    cal2 = AddToCalendar()
     engine = QtQml.QQmlApplicationEngine()
-    engine.rootContext().setContextProperty("calll", calll)
+    engine.rootContext().setContextProperty("cal2", cal2)
     filename = os.path.join(CURRENT_DIR, "CalendarDraft.qml")
     engine.load(QtCore.QUrl.fromLocalFile(filename))
 
