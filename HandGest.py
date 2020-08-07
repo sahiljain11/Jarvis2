@@ -41,15 +41,13 @@ class HandGest(qtc.QObject):
     @qtc.Slot(result='QVariant')
     def set_gest_data(self):
         
-        res = requests.post("http://127.0.0.1:5000/determine-gesture/").json()
         self.old_gest = self._gest
+        res = requests.get("http://127.0.0.1:5000/get-gesture/").json()
         self.setGest(res['gesture'])
         self.setX(res['x'])
         self.setY(res['y'])
-        self.setZ(res['z'])
         self.x = res['x']
         self.y = res['y']
-        self.z = res['z']
         
         return QPointF(self.x, self.y)
     
