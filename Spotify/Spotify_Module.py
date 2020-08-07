@@ -28,17 +28,14 @@ class SpotipyModule(qtc.QObject):
         self.redirect_url = redirect_url
         self.scope = 'user-library-read user-read-playback-state streaming' \
                      ' playlist-modify-public user-modify-playback-state playlist-modify-private ' \
-                     'user-read-playback-position user-read-currently-playing user-read-private'  \
-
+                     'user-read-playback-position user-read-currently-playing user-read-private'
         self.user = user
         self.spellchecker = spellchecker.SpellChecker(language=u'en', distance=2)
         self.queue_id = None
         self.playing = False
-
         self.queue_uri = None
         self.queue_changed = False
         self.current_queue = None
-
         self.playlist_ids = None
         self.playlist_names = None
         self.search_results = None
@@ -55,19 +52,22 @@ class SpotipyModule(qtc.QObject):
     def generate_token(self):
         token = util.prompt_for_user_token(self.username, self.scope, self.client_id, self.client_secret,
                                            self.redirect_url)
-        # returns an authorized spotify object
+        #returns an authorized Spotify object if token is valid
         if token:
             sp = spy.Spotify(auth=token)
             return sp
 
+    #generates a playlist that acts as a queue
     def generate_queue(self):
         playlists = self.token.user_playlists(self.user)
+        #Checks Each Playlist to see if Queue exists
         for playlist in playlists['items']:
+            #Sets Class Variables to Current Queue Variables if Queue exists
             if (playlist['name']) == 'Queue':
                 self.queue_id = playlist['id']
                 self.queue_uri = playlist['uri']
                 self.current_queue = self.queue_uri
-
+        #Makes Queue Playlist if not found
         if(self.queue_id is None):
             self.token.user_playlist_create(self.user,'Queue', public=True, description="Queue made by Yours Truly, Jarvis")
             playlists = self.token.user_playlists(self.user)
@@ -76,6 +76,10 @@ class SpotipyModule(qtc.QObject):
             self.current_queue = self.queue_uri
         return
 
+    '''
+    Adds a song to the queue playlist and Obtains title, picture, and artist for QML Display
+    Args: str(spotify id of a song)
+    '''
     @qtc.Slot(str)
     def add_song_to_queue(self, song_title):
         # search_query = song_title.replace(" ", "&20")
@@ -93,6 +97,10 @@ class SpotipyModule(qtc.QObject):
             self.search_list.appendRow(SpotipyModule.SongWrapper(title, artist, picture_image, self.search_list))
         return
 
+    '''
+    Allows User to Choose a Song Based on Search Results from query.
+    Args: Number of Chosen song
+    '''
     @qtc.Slot(int)
     def helper_add_song_to_queue(self, number):
 
@@ -102,15 +110,17 @@ class SpotipyModule(qtc.QObject):
             self.queue_changed = True
 
         self.search_list.clear()
+        #Obtains specific song Information from Queried Song List based on Number
         temp = self.search_results['tracks']['items'][number]
         song = temp['uri']
+        #Adds specifcied song into Playlist
         self.token.user_playlist_add_tracks(self.user, self.queue_id, tracks=[song])
         return
 
-    # play music
+    # Plays Music from Queue Playlist or a Specified Playlist
     @qtc.Slot()
     def play_music(self):
-
+        #Starts Playing Songs in Queue and Sets the current playing song info in Front end
         if(self.playing == False):
             print("Entered")
             self.token.start_playback(context_uri=self.current_queue)
@@ -118,7 +128,9 @@ class SpotipyModule(qtc.QObject):
             time.sleep(.1)
             self.set_current_song_info()
 
+
         else:
+            # Starts the playback of specified Playlist
             if self.queue_changed:
                 self.token.start_playback(context_uri=self.current_queue)
                 self.queue_changed = False
@@ -129,17 +141,21 @@ class SpotipyModule(qtc.QObject):
         self.playing = True
         return
 
-    # pause music
+    # Pauses music
     @qtc.Slot()
     def pause_music(self):
         self.token.pause_playback()
         return
 
+    #Sets the Current time of the song, Artist, Picture, and Title of the song that is playing
     @qtc.Slot()
     def set_current_song_info(self):
         try:
+            #Obtain Current Song Data
             temp = self.token.current_user_playing_track()['item']
             song_title = temp['name']
+
+            #Checks if information is already set
             if(song_title == self.title):
                 return
             self.set_durTime(temp['duration_ms'])
@@ -147,34 +163,39 @@ class SpotipyModule(qtc.QObject):
             self.set_currIcon(temp['album']['images'][0]['url'])
             self.set_currTitle(song_title)
             return
+        # If Spotipy is not playing anything... ie self.token.set_current_song_info = None; return
         except TypeError:
             return
 
-
+    #Gets the Progression of the Time of the Current Song
     @qtc.Slot(result=int)
     def get_current_time(self):
-        
+        #If song is not playing, Time is 0
         if(not self.playing):
             return 0
         songtime = self.token.current_user_playing_track()['progress_ms']
         time.sleep(.03)
         return songtime
 
+    #Returns Title of Current Song
     @qtc.Property(str, notify=currTitleChanged)
     def currTitle(self):
         return self.title
 
+    #Sends Signal when Current Title is Changed
     @currTitle.setter
     def set_currTitle(self, new_title):
         if self.title == new_title:
             return
         self.title = new_title
         self.currTitleChanged.emit()
-        
+
+    #Returns Album/Playlist Cover of Song
     @qtc.Property(qtc.QUrl, notify=currIconChanged)
     def currIcon(self):
         return self.picture
-    
+
+    #Sends Signal when Current Picture is Changed
     @currIcon.setter
     def set_currIcon(self, new_icon):
         if self.picture == new_icon:
@@ -182,10 +203,12 @@ class SpotipyModule(qtc.QObject):
         self.picture = new_icon
         self.currIconChanged.emit()
 
+    #Returns Artist of Current Song
     @qtc.Property(qtc.QUrl, notify=currArtistChanged)
     def currArtist(self):
         return self.artist
 
+    #Sends Signal when Current Artist is Changed
     @currArtist.setter
     def set_currArtist(self, new_artist):
         if self.artist == new_artist:
@@ -193,12 +216,14 @@ class SpotipyModule(qtc.QObject):
         self.artist = new_artist
         self.currArtistChanged.emit()
 
+    #Returns Time of Progress of Song in seconds
     @qtc.Property(float, notify=durTimeChanged)
     def durTime(self):
         if self.dur_time == 0:
             return 10000
         return self.dur_time
 
+    #Sends Signal when Progression of Song is changed
     @durTime.setter
     def set_durTime(self,time):
         if self.dur_time == time:
@@ -218,6 +243,7 @@ class SpotipyModule(qtc.QObject):
     # allows user to start playing in middle of song
     @qtc.Slot(int, result=int)
     def change_time(self, song_time):
+        #If User sets a songtime within the time limit, time sets: else, dur_time remains the same
         if song_time >= 0 and song_time < self.dur_time:
             self.token.seek_track(position_ms=song_time)
             return song_time
@@ -242,15 +268,19 @@ class SpotipyModule(qtc.QObject):
         self.set_current_song_info()
         return
 
+    '''
+    Finds a List of Playlist based on a Query
+    Args: Playlist_title: A query for a playlist name
+    Returns: A list of playlists that matches closely to query
+    '''
     @qtc.Slot(str)
     def find_a_playlist(self, playlist_title):
-
-        # format_for_query =  playlist_title.replace(" ", "&20")
-        # This needs to be tested
+        #Obtains list of 20 playlist id's
         search_results = self.token.search(playlist_title, 20, 0, 'playlist')
         if len(search_results['playlists']['items']) == 0:
             self.spellchecker.split_words(playlist_title)
 
+        #initalizes list to hold data from each playlist
         playlist_number = 1
         playlist_index = 0
         playlist_to_be_queued = [None] * len(search_results['playlists']['items'])
@@ -283,21 +313,6 @@ class SpotipyModule(qtc.QObject):
         self.current_queue = playlist
         self.queue_changed = True
         self.play_music()
-
-        # gets a list of tracks from a user inputted name of playlist
-        '''
-        offset = 0
-        songs_from_playlist = self.token.playlist_tracks(playlist_id=playlist, fields='items(track(uri))', offset=0, limit=100)
-        print(songs_from_playlist)
-        
-        while len(songs_from_playlist['items']) != 0 and offset < 500:
-            for song in songs_from_playlist['items']:
-                song_uri = song['track']['uri']
-                self.token.user_playlist_add_tracks(self.user, self.queue_id, tracks=[song_uri])
-            offset += 100
-            time.sleep(0.1)
-            songs_from_playlist = self.token.playlist_tracks(playlist_id=playlist, fields='items(track(uri))', offset=offset, limit=100)
-        '''
         return
 
     def current_queue(self):
@@ -346,59 +361,14 @@ class SpotipyModule(qtc.QObject):
         def __repr__(self):
             return str(self)
 
-'''
-spotify = SpotipyModule(environ.get('USER'), environ.get('CLIENT_ID'), environ.get('CLIENT_SECRET'),environ.get("REDIRECT_URI"),environ.get("USERNAME"))
-spotify.add_song_to_queue('mask off')
-spotify.helper_add_song_to_queue(0)
-spotify.add_song_to_queue('Baby baby')
-spotify.helper_add_song_to_queue(0)
-spotify.add_song_to_queue('24 hours')
-spotify.helper_add_song_to_queue(0)
-spotify.add_song_to_queue('Just give me a reason')
-spotify.helper_add_song_to_queue(0)
-spotify.add_song_to_queue('tequila')
-spotify.helper_add_song_to_queue(0)
-time.sleep(5)
-spotify.play_music()
-print(spotify.queue_uri)
-print(spotify.artist)
-print(spotify.title)
-print(spotify.picture)
-time.sleep(10)
-spotify.change_time(1000000)
-time.sleep(5)
-spotify.next_song()
-print(spotify.artist)
-print(spotify.title)
-print(spotify.picture)
-time.sleep(5)
-spotify.next_song()
-print(spotify.artist)
-print(spotify.title)
-print(spotify.picture)
-time.sleep(5)
-spotify.next_song()
-print(spotify.artist)
-print(spotify.title)
-print(spotify.picture)
-time.sleep(5)
-'''
+        def destroyer(self):
+            self.token.user_playlist_unfollow(user=self.user, playlist_id=self.queue_id)
+            return
+
+
 if __name__ == "__main__":
     spotify = SpotipyModule(environ.get('USER'), environ.get('CLIENT_ID'), environ.get('CLIENT_SECRET'),environ.get("REDIRECT_URI"), environ.get('USERNAME'))
     print(spotify.find_a_playlist('no u'))
     spotify.queue_music_from_playlist('spotify:playlist:6W1hJjo7L6zbqT0mNQUmFx')
     print(spotify.devices)
     #print('\n')
-'''
-spotify.set_current_song_info()
-'''
-'''
-Clean up CODE
--Implement anything that requires terminal input as parameters of a function (e.g. querying for a song, going back and forth within a song)
--Implement a function to return an array of the possible song choices after querying it
--Store current song as a class variable (self.current) and just make the function current_song() return self.current
--Store volume as a class variable 
--Account for skipping to next song and skipping to previous song when there is no next or previous song 
--Implement pop after song is done
--Cram play_music_from_queue and play_music_from_playlist into play_music
-'''
