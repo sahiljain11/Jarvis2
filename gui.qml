@@ -25,11 +25,11 @@ Item{
     property double newY: 0
 
     //background
-    /*Image{
+    Image{
         id: grad
         source: "./images/elec_back.png"
         anchors.fill: parent
-    } */
+    } 
     
 
     Timer{
@@ -43,6 +43,10 @@ Item{
             var gest = hand.setMouse()
             var new_gest = gest[0]
             var old_gest = gest[1]
+
+            console.log("Current Gest ", new_gest)
+            console.log("Old Gest ", old_gest)
+            console.log("Position ", point)
 
             //Case for mouse up after performing a mouse down
             if (new_gest == 0 && (old_gest == 1 || old_gest == 2)){
@@ -60,13 +64,13 @@ Item{
             }
 
             //Case for mouse down and drag
-            else if (self._gest == 2 && self.old_gest != 2) {
-                hand.mousePress(window, Qt.LeftButton, Qt.NoModifier, point)
+            else if (new_gest == 2 && old_gest != 2) {
+                hand.mousePress(window, Qt.LeftButton, Qt.AltModifier, point)
             }
         }
     }
 
-    Video{
+    /*Video{
         id: media
         source:  "./images/Background_slowmo.mkv"
         anchors.fill: parent
@@ -77,7 +81,7 @@ Item{
             focus = true
         }
         //flushMode: VideoOutput.FirstFrame
-    }
+    }*/
 
     Covid{
         id: graph2
@@ -111,7 +115,7 @@ Item{
         }       
     }
 
-   /*Weather{
+   Weather{
         id: weather_widget
         width: 500
         height: 550
@@ -121,7 +125,7 @@ Item{
             window.newX = 0
             window.newY = spotify_widget.y + spotify_widget.height
         }  
-    }*/
+    }
 
     Signaling {
         id: calendar_widget
@@ -143,6 +147,25 @@ Item{
             value: sizeAdjust.value
         }
     }
+
+    MouseArea{
+        id: mouseArea
+        anchors.fill: parent
+        propagateComposedEvents: true
+
+        onClicked:{
+            mouse.accepted = false
+        }
+
+        onPressed:{
+            mouse.accepted = false
+        }
+
+        onReleased:{
+            mouse.accepted = false
+        }
+    }
+
     
     // Slider to adjust size of widgets
     /*Slider{

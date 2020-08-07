@@ -11,13 +11,13 @@ Item{
     id: jarvis
     width: 600
     height: 600
-
+    signal gainedFocus()
     //custom properties
     property var scaleVal: 1
     property int maxZ: 0
 
     //defaults
-    state: "BASE"
+    /*state: "BASE"
     scale: scaleVal
 
     states: [
@@ -30,7 +30,7 @@ Item{
             name: "DRAGGING"
             PropertyChanges {target: mouseArea; drag.target: jarvis}
         }
-    ]
+    ]*/
 
     //Sets up dragging functionality of window
     MouseArea{
@@ -46,7 +46,6 @@ Item{
 
         //Allow mouse pressed events through if we are in the base state
         onPressed: {
-
             if(jarvis.focus != true){
                 jarvis.z = maxZ
                 maxZ += 1
@@ -54,17 +53,28 @@ Item{
             
             jarvis.focus = true
 
-            if(parent.state == "BASE"){
+            /*if(parent.state == "BASE"){
                 mouse.accepted = false
             }
 
             if(parent.state == "DRAGGING"){
                 mouse.accepted = true
+            }*/
+        
+            if (mouse.modifiers == Qt.AltModifier){
+                drag.target = jarvis
+                mouse.accepted = true
+            }
+
+            else{
+                drag.target = undefined
+                mouse.accepted = false
             }
         }
 
         onEntered:{
             jarvis.focus = true
+            mouseArea.entered.connect(gainedFocus)
         }
     }
 
@@ -76,20 +86,22 @@ Item{
             scaleVal = scaleVal + 0.05
         }
 
+
         if(event.key == Qt.Key_Down){
             scaleVal = scaleVal - 0.05
         }
 
-        //Enable dragging when "Shift" is pressed
-        if(event.key == Qt.Key_Alt){
+        //Enable dragging when "Alt" is pressed
+        /*if(event.key == Qt.Key_Alt){
             state = "DRAGGING"
-        }
+        }*/
+
     }
 
-    //Disable dragging when the "Shift" is not pressed
-    Keys.onReleased:{
+    //Disable dragging when the "Alt" is not pressed
+    /*Keys.onReleased:{
         if(event.key == Qt.Key_Alt){
             state = "BASE"
         }
-    }
+    }*/
 }
