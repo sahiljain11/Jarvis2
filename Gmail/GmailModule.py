@@ -11,13 +11,12 @@ import mimetypes
 import os
 import time
 from PySide2 import QtCore as qtc
-from PySide2 import QtGui as qtg
 from ListModel import ListModel
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 import apiclient.errors
-import re
+
 
 ''' 
 Gmail Module Functionality Description
@@ -111,7 +110,7 @@ class GmailModule(qtc.QObject):
     @qtc.Slot(int)
     def get_preview_message_info(self, num_messages):
         for index in range(0, num_messages):
-            message = self.messages.get(userId='me', id=self.message_ids[index]['id'], format='metadata', metadataHeaders=["To", "From", "Subject"]).execute()
+            message = self.messages.get(userId='me', id=self.message_ids[index]['id'], format='metadata', metadataHeaders=["To", "From", "Subject","threadId"]).execute()
             self.currentEmailList.appendRow(GmailModule.EmailObject(sender=self.GetSender(message), snippet=self.GetSnippet(message), subject=self.GetSubjectTitle(message)))
         return 
 
@@ -164,7 +163,6 @@ class GmailModule(qtc.QObject):
                     return sender
             return
         except apiclient.errors.HttpError:
-
             return
 
     @qtc.Slot(str,result=str)
@@ -256,7 +254,6 @@ class GmailModule(qtc.QObject):
 
     def list_message_ids(self):
         emails = self.service.users().messages().list(userId='me').execute()
-
         return emails
 
     def create_email(self, sender, to, subject, message_text, file_dir, filename):
@@ -297,8 +294,6 @@ class GmailModule(qtc.QObject):
 
         return {'raw': base64.urlsafe_b64encode(message.as_string())}
 
-    # create email- use message returned as input for send_message
-
     @qtc.Slot(str,str,str,str,result=dict)
     def create_basic_email(self, sender, to, subject, message_text):
         message = MIMEText(message_text)
@@ -324,7 +319,36 @@ class GmailModule(qtc.QObject):
         except apiclient.errors.HttpError as error:
             print('error')
             return
-    
+    def get_thread(self, query=''):
+        response = self.service.users().threads().list(userId='me',q=query).execute()
+        print(response)
+        return
+
+    def get_messages_from_a_thread(self,thread_id):
+        response = self.service.users().threads().get(userId='me', id=thread_id).execute()
+        all_messages = response['messages']
+        for message in range(0, len(all_messages)):
+            raw_msg = (all_messages[message]['payload']['parts'][0]['body']['data'])
+            msg_str = (base64.urlsafe_b64decode(raw_msg.encode())).decode('utf-8')
+            print(msg_str)
+        return
+
+    def respond_to_thread(self, thread_id, sender, to, subject, message_text):
+
+        # Return early if there is no sender
+        if(sender == "" or sender.isspace() or sender is None):
+            return
+        premessage = self.create_basic_email(sender,to,subject,message_text)
+        try:
+            message = (self.service.users().messages().send(userId=sender, body=premessage, threadId=thread_id )
+                       .execute())
+
+            return message
+        except apiclient.errors.HttpError as error:
+            print('error')
+            return
+        return
+
     class EmailObject(qtc.QObject):
 
         # Roles
@@ -377,9 +401,6 @@ class GmailModule(qtc.QObject):
         
         def __repr__(self):
             return str(self)
-        
-
-
 
 if __name__ == '__main__':
     gmail = GmailModule()
@@ -387,13 +408,18 @@ if __name__ == '__main__':
 
     start = time.time()
     timer = 0
-    for i in range(0,50):
+    '''
+        for i in range(0,20):
         starts = time.time()
-        (gmail.get_preview_message_info(i))
+        gmail.send_message(sender='me', to='conradliste@gmail.com', subject=str(i), message_text=str(i)+'test')
+        time.sleep(1)
         ends = time.time()
         timer += ends-starts
     end = time.time()
     print(end-start)
     gmail.get_messages_from_query('google')
+    '''
+    #gmail.get_thread('dsfdsf')
+    gmail.get_messages_from_a_thread('173cb3d9a758c831')
     print(gmail.time_elapsed)
     print(timer)
