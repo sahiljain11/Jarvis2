@@ -16,6 +16,22 @@ Item{
     property var scaleVal: 1
     property int maxZ: 0
 
+    //Test box
+    /*Rectangle{
+        id: testBox
+        property alias word: textBox.text
+        x: 0
+        y: 0
+        width: 50
+        height: 50
+        color: "red"
+
+        Text{
+            id: textBox
+            text: ""
+        }
+    }*/
+
     //defaults
     /*state: "BASE"
     scale: scaleVal
@@ -47,7 +63,14 @@ Item{
 
         //Allow mouse pressed events through if we are in the base state
         onPressed: {
-            console.log("This widget was pressed")
+
+            // Debugging 
+            console.log("Pressed at Actual Pos: ", mouseArea.mapToGlobal(mouse.x, mouse.y))
+            //testBox.x = mouse.x
+            //testBox.y = mouse.y
+            //testBox.word = mouse.x.toString()  + " " + mouse.y.toString()
+            
+
             if(jarvis.focus != true){
                 jarvis.z = maxZ
                 maxZ += 1
@@ -75,13 +98,13 @@ Item{
         }
 
         onEntered:{
-            console.log("New Widget Entered")
+            console.log("A new widget was entered")
             jarvis.focus = true
             mouseArea.entered.connect(gainedFocus)
         }
 
         onReleased:{
-            console.log("This widget was released")
+            //console.log("This widget was released at (", mouse.x, ",", mouse.y, ")")
             drag.target = undefined
             mouse.accepted = false
         }

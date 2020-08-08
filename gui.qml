@@ -29,6 +29,7 @@ Item{
         id: grad
         source: "./images/elec_back.png"
         anchors.fill: parent
+        z: -2
     } 
     
 
@@ -44,9 +45,11 @@ Item{
             var new_gest = gest[0]
             var old_gest = gest[1]
 
-            console.log("Current Gest ", new_gest)
-            console.log("Old Gest ", old_gest)
-            console.log("Position ", point)
+            //console.log("Current Gest ", new_gest)
+            //console.log("Old Gest ", old_gest)
+            //console.log("Position ", point)
+
+            testWord.text = "Current Gest: " + new_gest.toString() + "\n" + "Old Gest: " + old_gest.toString() + "\n" + "Mouse Pos: " + point
 
             //Case for mouse up after performing a mouse down
             if (new_gest == 0){
@@ -67,6 +70,23 @@ Item{
             else if (new_gest == 2 && old_gest != 2) {
                 hand.mousePress(window, Qt.LeftButton, Qt.AltModifier, point)
             }
+        }
+    }
+    Rectangle{
+        id: testWord
+        property alias text: word.text
+        width: 50
+        height: 50
+        x: parent.width-50
+        y: 0
+        z: -1
+        color: "black"
+        Text{
+            id: word
+            anchors.fill: parent
+            width: 50
+            height: 50
+            color: "red"
         }
     }
 
@@ -141,11 +161,6 @@ Item{
         id: clock
         width: 2000/2.5
         height: 1200/2.5
-
-        Binding on scaleVal{
-            when: clock.activeFocus == true
-            value: sizeAdjust.value
-        }
     }
 
     MouseArea{
@@ -159,6 +174,9 @@ Item{
         }
 
         onPressed:{
+            testWord.x = mouse.x
+            testWord.y = mouse.y
+            //console.log("Pressed at Actual Pos: " + mouse.x.toString() + " " + mouse.y.toString())
             mouse.accepted = false
         }
 
