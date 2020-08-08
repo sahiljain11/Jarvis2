@@ -11,9 +11,9 @@ import "."
 
 Rectangle{
     id: new_email
-    color: '#42d7f5'
+    color: '#42d7f5'"
     border.color: 'blue'
-    opacity: .7
+    opacity: .7"
     //border.width: 5
     //radius: 15
 
