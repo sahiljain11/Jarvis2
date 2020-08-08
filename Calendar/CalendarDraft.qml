@@ -12,6 +12,7 @@ ApplicationWindow {
     height: 400
     minimumWidth: 400
     minimumHeight: 300
+        // create frame and background
         Image{
             id: back
             source: "frame2.png"
@@ -19,7 +20,6 @@ ApplicationWindow {
             smooth: true
             opacity: 1
             focus: true
-
 
             Rectangle{
                 z: -2
@@ -35,6 +35,7 @@ ApplicationWindow {
         id: systemPalette
     }
 
+
     CalendarProvider {
         id: eventModel
         onLoaded: {
@@ -42,11 +43,13 @@ ApplicationWindow {
             loader.sourceComponent = null
             loader.sourceComponent = page_component
         }
+        // loads calendar events
         Component.onCompleted: {
+
             eventModel.updateListEvents({
                 calendarId: "primary",
                 timeMin: new Date(),
-                maxResults: 10,
+                maxResults: 20,
                 singleEvents: true,
                 orderBy: "startTime",
             })
@@ -120,6 +123,7 @@ ApplicationWindow {
                 }
             }
 
+            // list of events for selected date
             Component {
                 id: eventListHeader
 
@@ -209,7 +213,7 @@ ApplicationWindow {
                         }
                     }
 
-
+                    // creating an event from the calendar
                     TextField {
                         id: eventstart
                         anchors.bottom: eventend.top
@@ -234,7 +238,7 @@ ApplicationWindow {
                         placeholderText: qsTr("Event Name")
                         selectByMouse: true
                     }
-                    Butt {
+                    Butt{
                         id: buttonn
                         width: rect.width
                         anchors.bottom: parent.bottom
@@ -256,14 +260,41 @@ ApplicationWindow {
                             anchors.verticalCenter: parent.verticalCenter
                             color: "white"
                         }
-
-
-
                         onTouched: {
-                            console.log("touched")
-                            cal2.createevent(eventinfo.text, eventstart.text, eventend.text)
+                            var dt_start = Date.fromLocaleString(Qt.locale(), eventstart.text, "MM/dd/yyyy hh:mm:ss")
+                            var dt_end = Date.fromLocaleString(Qt.locale(), eventend.text, "MM/dd/yyyy hh:mm:ss")
+                            if(dt_start.getDate() && dt_end.getDate()){
+                                eventModel.createEvent({
+                                    calendarId: "primary",
+                                    body: {
+                                        summary: eventinfo.text,
+                                        start: {
+                                            dateTime: dt_start,
+                                            timeZone: "America/Chicago",
+                                        },
+                                        end: {
+                                            dateTime: dt_end,
+                                            timeZone: "America/Chicago",
+                                        },
+                                    }
+                                })
+                            }
+                            //reloads loader,
+
+                            eventModel.updateListEvents({
+                            calendarId: "primary",
+                            timeMin: new Date(),
+                            maxResults: 20,
+                            singleEvents: true,
+                            orderBy: "startTime",
+                        })
+                            loader.active = !loader.active
+
+                            loader.active = !loader.active
+
                         }
                     }
+
 
 
                 }

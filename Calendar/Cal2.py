@@ -5,6 +5,7 @@ import pickle
 import sys
 import threading
 import datetime
+import functools
 from PySide2 import QtCore, QtGui, QtQml
 
 from googleapiclient.discovery import build
@@ -20,6 +21,64 @@ CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 
 logging.basicConfig(level=logging.DEBUG)
 
+def qdatetime_to_string(x):
+    if isinstance(x, dict):
+        for k, v in x.items():
+            if isinstance(v, QtCore.QDateTime):
+                x[k] = v.toString(QtCore.Qt.ISODate)
+            else:
+                qdatetime_to_string(v)
+    elif isinstance(x, list):
+        for i, e in enumerate(x):
+            if isinstance(e, QtCore.QDateTime):
+                x[i] = e.toString(QtCore.Qt.ISODate)
+            else:
+                qdatetime_to_string(v)
+
+class Reply(QtCore.QObject):
+    finished = QtCore.Signal()
+
+    def __init__(self, func, args=(), kwargs=None, parent=None):
+        super().__init__(parent)
+        self._results = None
+        self._is_finished = False
+        self._error_str = ""
+        threading.Thread(
+            target=self._execute, args=(func, args, kwargs), daemon=True
+        ).start()
+
+    @property
+    def results(self):
+        return self._results
+
+    @property
+    def error_str(self):
+        return self._error_str
+
+    def is_finished(self):
+        return self._is_finished
+
+    def has_error(self):
+        return bool(self._error_str)
+
+    def _execute(self, func, args, kwargs):
+        if kwargs is None:
+            kwargs = {}
+        try:
+            self._results = func(*args, **kwargs)
+        except Exception as e:
+            self._error_str = str(e)
+        self._is_finished = True
+        self.finished.emit()
+
+
+def convert_to_reply(func):
+    def wrapper(*args, **kwargs):
+        reply = Reply(func, args, kwargs)
+        return reply
+
+    return wrapper
+
 
 class CalendarBackend(QtCore.QObject):
     eventsChanged = QtCore.Signal(list)
@@ -30,6 +89,15 @@ class CalendarBackend(QtCore.QObject):
 
     @property
     def service(self):
+        if self._service is None:
+            reply = self._update_credentials()
+            loop = QtCore.QEventLoop()
+            reply.finished.connect(loop.quit)
+            loop.exec_()
+            if not reply.has_error():
+                self._service = reply.results
+            else:
+                logging.debug(reply.error_str)
         return self._service
 
     def updateListEvents(self, kw):
@@ -61,6 +129,7 @@ class CalendarBackend(QtCore.QObject):
         self.eventsChanged.emit(qt_events)
 
     #OAuth with Google API
+    @convert_to_reply
     def _update_credentials(self):
         creds = None
         if os.path.exists("token.pickle"):
@@ -76,8 +145,11 @@ class CalendarBackend(QtCore.QObject):
                 creds = flow.run_local_server(port=0)
             with open("token.pickle", "wb") as token:
                 pickle.dump(creds, token)
+        return build("calendar", "v3", credentials=creds, cache_discovery=False)
 
-        self._service = build("calendar", "v3", credentials=creds)
+    @convert_to_reply
+    def insert(self, **kwargs):
+        return self.service.events().insert(**kwargs).execute()
 
 #connects events to calendar window
 class CalendarProvider(QtCore.QObject):
@@ -89,6 +161,25 @@ class CalendarProvider(QtCore.QObject):
         self._cache_events = []
         self._backend = CalendarBackend()
         self._backend.eventsChanged.connect(self._handle_events)
+
+    @QtCore.Slot("QVariant")
+    def createEvent(self, parameters):
+        kw = parameters.toVariant()
+        if isinstance(kw, dict):
+            qdatetime_to_string(kw)
+            reply = self._backend.insert(**kw)
+            wrapper = functools.partial(self.handle_finished_create_event, reply)
+            reply.finished.connect(wrapper)
+
+    def handle_finished_create_event(self, reply):
+        if reply.has_error():
+            logging.debug(reply.error_str)
+        else:
+            event = reply.results
+            link = event.get("htmlLink", "")
+            logging.debug("Event created: %s" % (link,))
+            QtGui.QDesktopServices.openUrl(QtCore.QUrl(link))
+
 
     @QtCore.Slot("QVariant")
     def updateListEvents(self, parameters):
@@ -142,6 +233,7 @@ class AddToCalendar(QtCore.QObject):
             }
         except:
             pass
+
         event = self.A._service.events().insert(calendarId='primary', body=event).execute()
         print('Event created: %s' % (event.get('htmlLink')))
 
