@@ -65,7 +65,7 @@ Item{
         onPressed: {
 
             // Debugging 
-            console.log("Pressed at Actual Pos: ", mouseArea.mapToGlobal(mouse.x, mouse.y))
+            console.log("Widget Pressed")
             //testBox.x = mouse.x
             //testBox.y = mouse.y
             //testBox.word = mouse.x.toString()  + " " + mouse.y.toString()

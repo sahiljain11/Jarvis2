@@ -32,62 +32,14 @@ Item{
         z: -2
     } 
     
-    
     Timer{
         id: mouseTimer
         running: true
         repeat: true
         interval: 80
-
         onTriggered:{
-            var point = hand.set_gest_data()
-            var gest = hand.setMouse()
-            var new_gest = gest[0]
-            var old_gest = gest[1]
-
-            //console.log("Current Gest ", new_gest)
-            //console.log("Old Gest ", old_gest)
-            //console.log("Position ", point)
-
-            testWord.text = "Current Gest: " + new_gest.toString() + "\n" + "Old Gest: " + old_gest.toString() + "\n" + "Mouse Pos: " + point
-
-            //Case for mouse up after performing a mouse down
-            if (new_gest == 0){
-                hand.mouseRelease(window, Qt.LeftButton, Qt.NoModifier, point)
-            }
-
-            //Case for clicking
-            else if (new_gest == 3) {
-                hand.mouseClick(window, Qt.LeftButton, Qt.NoModifier, point)
-            }
-                
-            //Case mouse down
-            else if (new_gest == 1 && old_gest != 1) {
-                hand.mousePress(window, Qt.LeftButton, Qt.NoModifier, point)
-            }
-
-            //Case for mouse down and drag
-            else if (new_gest == 2 && old_gest != 2) {
-                hand.mousePress(window, Qt.LeftButton, Qt.AltModifier, point)
-            }
-        }
-    }
-    
-    Rectangle{
-        id: testWord
-        property alias text: word.text
-        width: 50
-        height: 50
-        x: parent.width-50
-        y: 0
-        z: -1
-        color: "black"
-        Text{
-            id: word
-            anchors.fill: parent
-            width: 50
-            height: 50
-            color: "red"
+            hand.set_gest_data()
+            hand.setMouse()
         }
     }
 
@@ -175,9 +127,6 @@ Item{
         }
 
         onPressed:{
-            testWord.x = mouse.x
-            testWord.y = mouse.y
-            //console.log("Pressed at Actual Pos: " + mouse.x.toString() + " " + mouse.y.toString())
             mouse.accepted = false
         }
 
