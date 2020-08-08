@@ -40,12 +40,14 @@ Item{
         hoverEnabled: true
         
         onClicked: {
+            console.log("This widget was clicked")
             jarvis.focus = true 
             mouse.accepted = false
         }
 
         //Allow mouse pressed events through if we are in the base state
         onPressed: {
+            console.log("This widget was pressed")
             if(jarvis.focus != true){
                 jarvis.z = maxZ
                 maxZ += 1
@@ -73,11 +75,13 @@ Item{
         }
 
         onEntered:{
+            console.log("New Widget Entered")
             jarvis.focus = true
             mouseArea.entered.connect(gainedFocus)
         }
 
         onReleased:{
+            console.log("This widget was released")
             drag.target = undefined
             mouse.accepted = false
         }
