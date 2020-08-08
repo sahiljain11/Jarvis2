@@ -31,7 +31,7 @@ Item{
         anchors.fill: parent
     } 
     
-
+    /*
     Timer{
         id: mouseTimer
         running: true
@@ -69,6 +69,7 @@ Item{
             }
         }
     }
+    /*
 
     /*Video{
         id: media
