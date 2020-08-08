@@ -340,7 +340,7 @@ class GmailModule(qtc.QObject):
             return
         premessage = self.create_basic_email(sender,to,subject,message_text)
         try:
-            message = (self.service.users().messages().send(userId=sender, body=premessage, threadId=thread_id )
+            message = (self.service.users().messages().send(userId=sender, body=premessage, threadId=thread_id)
                        .execute())
 
             return message

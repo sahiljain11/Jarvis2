@@ -11,8 +11,9 @@ import "."
 
 Rectangle{
     id: new_email
-    color: '#42d7f5'
+    color: '#42d7f5'"
     border.color: 'blue'
+    opacity: .7"
     //border.width: 5
     //radius: 15
 
@@ -59,7 +60,7 @@ Rectangle{
         id: subjectText
         color: 'white'
         //radius: 15
-        opacity: 0.5
+        opacity: 0.7
         layer.enabled: true
         anchors{
             top: sendto.bottom
@@ -92,7 +93,7 @@ Rectangle{
         id: bodyText
         color: 'white'
         //radius: 15
-        opacity: 0.5
+        opacity: 0.7
         anchors{
             top: subjectText.bottom
             topMargin: subjectText.height/1.5
@@ -173,7 +174,7 @@ Rectangle{
             right: new_email.right
             rightMargin: new_email.width/25
             left: new_email.left
-            leftMargin: new_email.width/2
+            leftMargin: new_email.width/1.5
         }
 
         onTouched:{

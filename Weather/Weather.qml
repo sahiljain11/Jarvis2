@@ -6,8 +6,7 @@ import QtGraphicalEffects 1.12
 import QtQuick.Layouts 1.12
 import "../components"
 
-ApplicationWindow{
-    visible: true
+JarvisWidget{
     width: 500
     height: 550
 
@@ -98,24 +97,6 @@ ApplicationWindow{
                 anchors.horizontalCenter: parent.horizontalCenter
             }
 
-            Rectangle {
-                width: animation.width;
-                height: animation.height + 8
-
-                AnimatedImage {
-                    id: animation;
-                    source: "runrundog.gif"
-                }
-
-                Rectangle {
-                    property int frames: animation.frameCount
-
-                    width: 4; height: 8
-                    x: (animation.width - width) * animation.currentFrame / frames
-                    y: animation.height
-                    color: "red"
-                }
-            }
 
             Label{
                 id: checking

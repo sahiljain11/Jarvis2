@@ -32,7 +32,7 @@ Item{
         z: -2
     } 
     
-
+    
     Timer{
         id: mouseTimer
         running: true
@@ -72,6 +72,7 @@ Item{
             }
         }
     }
+    
     Rectangle{
         id: testWord
         property alias text: word.text
