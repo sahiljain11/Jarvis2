@@ -26,6 +26,12 @@ class ListModel(qtc.QAbstractListModel):
         self.beginInsertRows(parent, len(self._list), len(self._list))
         self._list.append(item)
         self.endInsertRows()
+
+    # Clears the list and sets a new list
+    def setList(self, newList, parent=qtc.QModelIndex()):
+        self.beginInsertRows(parent, 0, len(self._list)-1)
+        self._list = newList
+        self.endInsertRows()
     
     # Clears the list
     def clear(self, parent=qtc.QModelIndex()):
@@ -42,6 +48,10 @@ class ListModel(qtc.QAbstractListModel):
         row = index.row()
         if index.isValid() and 0 <= row < self.rowCount():
             return self._list[index.row()].data(role)
+
+    def get(self, index, role):
+        if(index < len(self._list)):
+            return self._list[index].data(role)
     
     def __str__(self):
         return str(self._list)
