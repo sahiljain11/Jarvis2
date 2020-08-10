@@ -24,14 +24,80 @@ Item{
     property double newX: 0
     property double newY: 0
 
-    //background
+    /*background
     Image{
         id: grad
         source: "./images/elec_back.png"
         anchors.fill: parent
         z: -2
-    } 
-    
+    }
+    */
+     Video{
+        id: media
+        source:  "./images/Background.mkv"
+        anchors.fill: parent
+        loops: MediaPlayer.Infinite
+        fillMode: VideoOutput.Stretch
+        autoPlay: true
+        Component.onCompleted:{
+            focus = true
+        }
+        //flushMode: VideoOutput.FirstFrame
+    }
+    //Icons
+    RowLayout{
+        id: iconrow
+        anchors{
+            top: parent.top
+            topMargin: parent.height/1.4
+            bottom: parent.bottom
+            bottomMargin: parent.height/10
+            left:parent.left
+            leftMargin: parent.width/11
+            }
+        spacing: 2
+         Butt{
+            id: weather_Icon
+            image: "./images/Weather_Icon.png"
+            Layout.preferredWidth:250
+            Layout.preferredHeight:200
+            onTouched: {
+                if weather_Icon.width == 0
+            }
+        }
+         Butt{
+            id: gmail_Icon
+            image: "./images/Gmail_Icon.png"
+            Layout.preferredWidth:250
+            Layout.preferredHeight:200
+        }
+        Butt{
+            id: calandar_Icon
+            image: "./images/Calandar_Icon.png"
+            Layout.preferredWidth:250
+            Layout.preferredHeight:200
+        }
+        Butt{
+            id: time_Icon
+            image: "./images/Time_Icon.png"
+            Layout.preferredWidth:250
+            Layout.preferredHeight:200
+        }
+        Butt{
+            id: corona_Icon
+            image: "./images/Corona_Icon.png"
+            Layout.preferredWidth:250
+            Layout.preferredHeight:200
+        }
+        Butt{
+            id: spotify_Icon
+            image: "./images/Spotify_Icon.png"
+            Layout.preferredWidth:250
+            Layout.preferredHeight:200
+        }
+
+}
+/*
     Timer{
         id: mouseTimer
         running: true
@@ -42,19 +108,8 @@ Item{
             hand.setMouse()
         }
     }
+*/
 
-    /*Video{
-        id: media
-        source:  "./images/Background_slowmo.mkv"
-        anchors.fill: parent
-        loops: MediaPlayer.Infinite
-        fillMode: VideoOutput.Stretch
-        autoPlay: true
-        Component.onCompleted:{
-            focus = true
-        }
-        //flushMode: VideoOutput.FirstFrame
-    }*/
 
     Covid{
         id: graph2
@@ -99,7 +154,7 @@ Item{
             window.newY = spotify_widget.y + spotify_widget.height
         }  
     }
-
+    /*
     Signaling {
         id: calendar_widget
         width: 2000/2.5
@@ -109,7 +164,7 @@ Item{
             y = window.newY
         }  
     }
-
+    */
     Clockwindow{
         id: clock
         width: 2000/2.5
