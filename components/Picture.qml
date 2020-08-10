@@ -2,7 +2,7 @@ import QtQuick 2.5
 import QtGraphicalEffects 1.12
 
 Rectangle{
-    property url image: "../images/play.png"
+    property url image: ""
     property var sourceWidth: pic.sourceSize.width
     property var sourceHeight: pic.sourceSize.height
     property string tint: "transparent"

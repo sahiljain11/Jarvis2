@@ -12,14 +12,19 @@ ChartView {
     id: graph
     title: "Cases per Country"
     //antialiasing: true
-    theme: ChartView.ChartThemeDark
+    theme: ChartView.ChartThemeBlueCerulean
 
     property var type: ""
     property var country: ""
+    property var sta: ""
     property alias series_name: graphData.name
     
     //Animates the grid lines
     animationOptions: {ChartView.GridAxisAnimations}
+
+    //Set the background colors
+    //backgroundColor: "#00FFF5"
+    backgroundRoundness: 5
     
     //Controls the legend
 
@@ -42,17 +47,20 @@ ChartView {
         Component.onCompleted:{
             axisY.applyNiceNumbers()
         }
+        color: "orange"
     }
     
     Component.onCompleted:{
         if(graph.addNewSeries(country, type) == 0){
             graphData.name = country
-            if(type == "cases"){
-                console.log("cases")
-                graph.title = "Confirmed Cases in " + country
+            if(type == "countrycases" || type == "countycases"){
+                graph.title = "Total Confirmed Cases in " + country
             } 
-            else if(type == "deathes"){
-                graph.title = "Confirmed Deathes in " + country
+            else if(type == "countrydeathes" || type == "countydeathes"){
+                graph.title = "Total Confirmed Deathes in " + country
+            }
+            else if(type == "countryrecovered"){
+                graph.title = "Total Recovered in " + country
             }
         }
     }
@@ -68,15 +76,33 @@ ChartView {
         var data = null
         
         // Set the data to the appropriate times series data as indicated by type
-        if (type == "cases"){
+        if (type == "countrycases"){
             data = corona.countryallconfirmed(country)
         }
-        else if (type == "deathes"){
+
+        else if (type == "countrydeathes"){
             data = corona.countryalldeath(country)            
         }
+
+        else if (type == "countryrecovered"){
+            data = corona.countryallrecovered(country)
+        }
+
+        else if (type == "countycases"){
+            console.log(country)
+            console.log(sta)
+            data = corona.countyallconfirmed(country, sta)
+        }
+
+        else if (type == "countydeathes"){
+            data = corona.countyalldeath(country, sta)
+        }
+
         if (data == null){
             return -1
         }
+
+        console.log(data)
 
         var max = 0
         var i = 0

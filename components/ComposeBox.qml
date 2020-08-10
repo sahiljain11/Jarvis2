@@ -10,6 +10,7 @@ import "."
 
 
 Rectangle{
+    signal bumped()
     id: new_email
     color: '#42d7f5'
     border.color: 'blue'
@@ -18,7 +19,12 @@ Rectangle{
     //radius: 15
 
     property alias vis: new_email.visible
-
+    property alias subj: subjectStringText.text
+    property alias send: sendtotext.text
+    property alias body: bodyStringText.text
+    property bool replying: false
+    property alias readOnlySubj: subjectStringText.readOnly
+    property alias readOnlySend: sendtotext.readOnly
     visible: false
 
     // Receiver
@@ -42,6 +48,7 @@ Rectangle{
     // Input Receiver
     TextEdit{
         id: sendtotext
+        clip: true
         anchors{
             left: sendto.left
             leftMargin: sendto.width/30
@@ -75,6 +82,7 @@ Rectangle{
     // Subject input
     TextEdit{
         id: subjectStringText
+        clip: true
         text: ""
         anchors{
             left: subjectText.left
@@ -82,7 +90,7 @@ Rectangle{
             top: subjectText.top
             topMargin: subjectText.height/9
             bottom: subjectText.bottom
-            bottomMargin: subjectText.height/50
+            bottomMargin: subjectText.height/5
             right: subjectText.right
             rightMargin: subjectText.width/30
         }
@@ -107,6 +115,7 @@ Rectangle{
     TextEdit{
         id: bodyStringText
         text: ""
+        clip: true
         anchors{
             left: bodyText.left
             leftMargin: bodyText.width/35
@@ -178,13 +187,8 @@ Rectangle{
         }
 
         onTouched:{
-
-            gmail.send_message("me", sendtotext.text, subjectStringText.text, bodyStringText.text)
-
             new_email.visible = false
-            sendtotext.text=""
-            subjectStringText.text=""
-            bodyStringText.text= ""
+            touched.connect(bumped)
         }
     }
 }

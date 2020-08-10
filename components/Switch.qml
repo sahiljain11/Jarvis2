@@ -51,11 +51,15 @@ Picture{
 
         // Darken the icon when moving over it
         onEntered: {
+            console.log("Entered")
             back.tint = "#80800000"
-            entered.connect(inside)
+            //entered.connect(inside)
         }
-        onExited: back.tint = "transparent"
 
+        onExited: {
+            console.log("Exited")
+            back.tint = "transparent"
+        }
         onClicked: {
 
             //Change the on/off status of the switch

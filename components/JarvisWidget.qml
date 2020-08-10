@@ -15,6 +15,7 @@ Item{
     //custom properties
     property var scaleVal: 1
     property int maxZ: 0
+    scale: scaleVal
 
     //Test box
     /*Rectangle{
