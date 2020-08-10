@@ -8,6 +8,7 @@ from PySide2 import QtGui as qtg
 from PySide2 import QtCore as qtc
 from PySide2 import QtQuick as qtq
 from PySide2 import QtQml as qtm
+from spellchecker import SpellChecker
 #import collections #METHOD BETA
 
 
@@ -89,7 +90,8 @@ class Stats(qtc.QObject):
         self.reference = pd.read_csv(REFERENCE)
         self.counties = self.reference[(self.reference.Country_Region == "US") & (self.reference.Province_State.notnull()) & (self.reference.Admin2.notnull()) & (self.reference.Lat.notnull()) & (self.reference.Long_.notnull()) ][["Admin2", "Province_State", "Lat", "Long_"]].values.tolist()
         self.countries = self.reference[self.reference.Province_State.isnull()][["Country_Region", "Lat", "Long_"]].values.tolist()
-        
+
+        self.spell = self.initspeller()
 
     def show(self, *args):
         for i in args:
@@ -252,6 +254,37 @@ class Stats(qtc.QObject):
     def epoch_to_date(self, num_days, epoch):
         date = epoch + datetime.timedelta(num_days)
         return date.strftime("%Y-%m-%d")
+
+    #Autocorrects Users input query
+    def auto_correct_state_query(self,input_message):
+        #
+        if input_message.lower() in [state.lower() for state in self.states]:
+            return input_message
+        else:
+            #corrects the input message to a state
+            return self.spell.correction(input_message)
+
+    def auto_correct_country_query(self, input_message):
+        #if input message is a country return
+        if input_message.lower() in [country.lower() for country in self.countries]:
+            return input_message
+        #corrects the input message to country
+        else:
+            return self.spell.correction(input_message)
+
+    def auto_correct_county_query(self,input_message):
+        #if input message is a county return
+        if input_message.lower() in [county.lower() for county in self.counties]:
+            return input_message
+        #corrects the input message to a county
+        else:
+            return self.spell.correction(input_message)
+
+    def initspeller(self):
+        spell = SpellChecker(language=None, case_sensitive= False)
+        spell._word_frequency.load_words(self.counties)
+        spell._word_frequency.load_words(self.countries)
+        spell._word_frequency.load_words(self.states)
 
 
 if __name__ == '__main__':

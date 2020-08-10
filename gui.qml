@@ -61,9 +61,7 @@ Item{
             image: "./images/Weather_Icon.png"
             Layout.preferredWidth:250
             Layout.preferredHeight:200
-            onTouched: {
-                if weather_Icon.width == 0
-            }
+
         }
          Butt{
             id: gmail_Icon
@@ -154,7 +152,7 @@ Item{
             window.newY = spotify_widget.y + spotify_widget.height
         }  
     }
-    /*
+
     Signaling {
         id: calendar_widget
         width: 2000/2.5
@@ -164,7 +162,7 @@ Item{
             y = window.newY
         }  
     }
-    */
+
     Clockwindow{
         id: clock
         width: 2000/2.5
