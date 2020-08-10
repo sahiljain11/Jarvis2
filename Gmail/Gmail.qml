@@ -11,6 +11,10 @@ import "../components"
 // Initialize application window
 JarvisWidget{
 
+    //Boolean to tell if we are replying
+    property bool replying: false
+    property bool justStarted: true
+
     //border
     Picture{
         image: "../images/Gmail_Frame.png"
@@ -27,7 +31,6 @@ JarvisWidget{
 
     //List of Email Previews
     ListView{
-
         id: emails
         width: parent.width/4
         height: parent.height
@@ -37,6 +40,11 @@ JarvisWidget{
         anchors{
             left: parent.left
             leftMargin: parent.width/48
+        }
+
+        onCurrentItemChanged:{
+            threads.scale = 1
+            gmail.add_thread_messages(emails.currentIndex)
         }
 
         //Define model
@@ -51,6 +59,10 @@ JarvisWidget{
                 tit: "Subj: " + subject
                 sen: "Sen.: " + sender
                 snip: snippet
+
+                onTouched:{
+                    emails.currentIndex = index
+                }
             }
         }
         
@@ -65,6 +77,74 @@ JarvisWidget{
             policy: Qt.ScrollBarAlwaysOn
             stepSize: .005
             anchors.right: parent.right
+        }
+    }
+
+    ListView {
+        id: threads
+        anchors{
+            verticalCenter: parent.verticalCenter
+            horizontalCenter: parent.horizontalCenter
+        }
+        
+        //Orients the list model side ways 
+        snapMode: ListView.SnapOneItem
+        highlightRangeMode: ListView.StrictlyEnforceRange
+        highlightMoveDuration: 250
+        orientation: ListView.Horizontal
+        boundsBehavior: Flickable.StopAtBounds
+        clip: true
+
+        model: threadMessages
+
+        //Gmail button delgate
+        delegate: Component {
+            id: thread_delegate
+            Gmail_Msg{
+                width: threads.width
+                height: threads.height
+                msg: message
+            }
+        }
+
+        width: parent.width/2.5
+        height: parent.height/1.5
+    }
+
+    //Replying button
+    Butt{
+        id: reply
+        image: "../images/replyArrow.png"
+        //Positioning 
+        anchors{
+            top: threads.bottom
+            topMargin: parent.height/50
+            right: threads.right
+        }
+        width: 50
+        height: 50
+        scale: threads.scale
+
+        onTouched:{
+
+            //Reduce the message disaply to 0
+            threads.scale = 0
+            var index = emails.currentIndex
+
+            //Grab the current subject, sender, and threadid
+            compbox.subj = gmail.get_current_subject(index)
+            compbox.send = gmail.get_current_sender(index)
+            compbox.threadid = gmail.get_current_threadid(index)
+            compbox.reply_msgid = gmail.get_current_message_id(index)
+            compbox.references = gmail.get_current_references(index)
+            compbox.readOnlySubj = true
+            compbox.readOnlySend = true
+            console.log(compbox.references)
+            console.log(compbox.subj)
+
+            //We are now replying to the same thread
+            compbox.replying = true
+            compbox.vis = true
         }
     }
 
@@ -87,6 +167,18 @@ JarvisWidget{
 
         focus: true
 
+        onCurrentItemChanged:{
+            console.log("The current item changed")
+            
+            //Avoids the issue where the current item changes automatically when the app opens
+            if(!parent.justStarted){
+                gmail.get_messages_with_labels(gmail.get_label(labels.currentIndex))
+            }
+            else{
+                parent.justStarted = false
+            }
+        }
+
         //define model
         model: labellist
 
@@ -103,6 +195,10 @@ JarvisWidget{
                 halign: Text.AlignHCenter
                 valign: Text.AlignVCenter
                 fontSize: height/2.7
+                
+                onTouched:{
+                    labels.currentIndex = index
+                }
             }
         }
 
@@ -137,7 +233,7 @@ JarvisWidget{
     }
 
     
-    // Compose email button
+    // New email button
     Butt{
         image: '../images/NewEmailIcon.png'
 
@@ -149,8 +245,21 @@ JarvisWidget{
             top: parent.top
             topMargin: parent.height/25
         }
+        
         onTouched: {
-            compbox.vis= true
+            compbox.vis = !compbox.vis
+            compbox.subj = ""
+            compbox.send = ""
+            compbox.body = ""
+            compbox.readOnlySubj = false
+            compbox.readOnlySend = false
+            if (compbox.vis == true){
+                compbox.replying = true
+                threads.scale = 0
+            }
+            else{
+                threads.scale = 1
+            }
         }
     }
 
@@ -162,8 +271,30 @@ JarvisWidget{
             horizontalCenter: parent.horizontalCenter
         }
 
+        property string threadid: ""
+        property string reply_msgid: ""
+        property string references: ""
+
         width: parent.width/2.5
         height: parent.height/1.5
+
+        onBumped:{
+            console.log("Bumped")
+            threads.scale = 1
+            compbox.readOnlySubj = false
+            compbox.readOnlySend = false
+            // We are writing a new message
+            if (!replying) {
+                gmail.send_message("me", send, subj, body)
+            }
+            // We are responding to the current thread
+            else {
+                gmail.respond_to_thread(threadid, "me", send, subj, reply_msgid, references, body)
+                send = ""
+                subj = ""
+                body = ""
+            }
+        }
     }
 
     // Query bar for new emails

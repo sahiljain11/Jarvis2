@@ -1,5 +1,7 @@
 import pandas as pd
 import sys
+import time
+import numpy
 import datetime
 from PySide2 import QtWidgets as qtw
 from PySide2 import QtGui as qtg
@@ -46,27 +48,48 @@ class Stats(qtc.QObject):
         df_usdeaths = df_usdeaths.reset_index()
         self.usdeaths_dict = dict(zip(df_usdeaths['Province_State'], df_usdeaths.iloc[:, -1]))
 
-
-        # #METHOD ALPHA, not the most effective bc using rows n dictionaries, getting data over a period of time
-        # URL_DATASET5 = r'https://raw.githubusercontent.com/datasets/covid-19/master/data/countries-aggregated.csv'
-        # # dates days since day 1
-        # df1 = pd.read_csv(URL_DATASET5, parse_dates=['Date'])
-        # first_date = df1.loc[0, 'Date']
-        # df1['Date'] = (df1['Date'] - first_date).dt.days
-        # self.stats_by_country = collections.defaultdict(list)   #collections is a dict variant: unlike a normal dict that raises a KeyError when you try to access a key that's not there, a defaultdict instead gives you some default. In this case, an empty list, commonly used for counting
-        # for row in df1.itertuples():
-        #     self.stats_by_country[row.Country].append(row)
-
-        #METHOD BETA, i believe by using dataframes, this is more efficient
+        #Aggregate ecountry data
         URL_DATASET5 = r'https://raw.githubusercontent.com/datasets/covid-19/master/data/countries-aggregated.csv'
         # dates days since day 1
         df1 = pd.read_csv(URL_DATASET5, parse_dates=['Date'])
         first_date = df1.loc[0, 'Date']
         df1['Date'] = (df1['Date'] - first_date).dt.days
-
         df1.sort_values(by=["Country", "Date"], inplace=True)
         df1.set_index(keys=["Country"], inplace=True)
         self._data = df1
+
+        # Aggregate state data
+        URL_DATASET6 = r'https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv'
+        # dates days since day 1
+        self.covid_states = pd.read_csv(URL_DATASET6, parse_dates=['date'])
+        first_date = self.covid_states.loc[0, 'date']
+        self.covid_states['date'] = (self.covid_states['date'] - first_date).dt.days
+        self.covid_states.sort_values(by=["state", "date"], inplace=True)
+        self.covid_states.set_index(keys=["state"], inplace=True)
+
+        # Aggregate county data
+        URL_DATASET7 = r'https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv'
+        self.covid_counties = pd.read_csv(URL_DATASET7, parse_dates=['date'])
+        first_date = self.covid_counties.loc[0, 'date']
+        self.covid_counties['date'] =  (self.covid_counties['date'] - first_date).dt.days
+        self.covid_counties.sort_values(by=["county", "state", "date"], inplace=True)
+        self.covid_counties.set_index(keys=["county"], inplace=True)
+
+
+        yesterday = (datetime.datetime.now() -  datetime.timedelta(days=1)).strftime('%m-%d-%Y')
+        url = r'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports_us/' + yesterday + ".csv"
+        URL_DATASET8 = url
+        self.covid_states = pd.read_csv(URL_DATASET8)
+        self.covid_states.set_index(keys=["Province_State"], inplace=True)
+        self.states = self.covid_states.index.tolist()
+
+        
+        # Geographical data for each country and state
+        REFERENCE = r"https://raw.githubusercontent.com/datasets/covid-19/master/data/reference.csv"
+        self.reference = pd.read_csv(REFERENCE)
+        self.counties = self.reference[(self.reference.Country_Region == "US") & (self.reference.Province_State.notnull()) & (self.reference.Admin2.notnull()) & (self.reference.Lat.notnull()) & (self.reference.Long_.notnull()) ][["Admin2", "Province_State", "Lat", "Long_"]].values.tolist()
+        self.countries = self.reference[self.reference.Province_State.isnull()][["Country_Region", "Lat", "Long_"]].values.tolist()
+        
 
     def show(self, *args):
         for i in args:
@@ -81,29 +104,112 @@ class Stats(qtc.QObject):
             else:
                 print ("that's not even a dictionary bruh")
 
-    # latest date confirmed cases for given country
-    def confirmglobal(self, country):
-        return self.confirm_dict[country]
-
-    # latest date deaths for given country
-    def deathglobal(self, country):
-        return self.deaths_dict[country]
-
     # latest date confirmed cases for given state
+    @qtc.Slot(str, result=int)
     def confirmus(self, state):
-        return self.usconfirm_dict[state]
+        query = self.usconfirm_dict.get(state)
+        if query is None:
+            return 0
+        return query
 
     # latest date confirmed cases for given state
+    @qtc.Slot(str, result=int)
     def deathus(self, state):
-        return self.usdeaths_dict[state]
+        query = self.usdeaths_dict.get(state)
+        if query is None:
+            return 0
+        return query
 
-    #METHOD BETA (3)
+    #Get the time data for a county
+    @qtc.Slot(str, str, result='QVariant')       
+    def get_data_for_county(self, county, state):
+        result = self.covid_counties[(self.covid_counties.index == county) & (self.covid_counties.state == state)]
+        if result.empty:
+            return 
+        return result
+    
+    #Get the time data for a state
+    @qtc.Slot(str, result='QVariant')
+    def get_data_for_state(self, state):
+        result = self.covid_states[self.covid_states.index == state]
+        if result.empty:
+            return 
+        return result.to_dict()
+
     # all time, all data for a given country
+    @qtc.Slot(str, result='QVariant')
     def get_data_for_country(self, country):
         result = self._data[self._data.index == country]
         if result.empty:
-            return
+            return 
         return result
+    
+    @qtc.Slot(result='QVariant')
+    def get_countries(self):
+        return self.countries
+    
+    @qtc.Slot(result=int)
+    def get_num_countries(self):
+        return len(self.countries)
+    
+    @qtc.Slot(result='QVariant')
+    def get_states(self):
+        return self.states
+
+    @qtc.Slot(result=int)
+    def get_num_counties(self):
+        return len(self.counties)
+
+    # latest date confirmed cases for given country
+    @qtc.Slot(str, result=int)
+    def confirmglobal(self, country):
+        query = self.confirm_dict.get(country)
+        if query is None:
+            return 0
+        return query
+
+    # latest date deaths for given country
+    @qtc.Slot(str, result=int)
+    def deathglobal(self, country):
+        query = self.deaths_dict.get(country)
+        if query is None:
+            return 0
+        return query
+    
+    @qtc.Slot(str, result=int)
+    def recoverglobal(self, country):
+        query = self.get_data_for_country(country)
+        # Return nothing if the country is not found
+        if (query is None):
+            return
+        # Retrieve the time series data for deathes
+        aye = query[["Date", "Recovered"]]
+        return aye.tail(1).at[country,"Recovered"]
+    
+    @qtc.Slot(str, str, result='QVariant')
+    def countyallconfirmed(self, county, state):
+        # Attempt to query for the given country
+        query = self.get_data_for_county(county, state)
+        # Return nothing if the country is not found
+        if (query is None):
+            return
+        # Retrieve the time series data for deathes
+        aye = query[["date", "cases"]]
+        # Zip the data into a dict and convert the time data to dates
+        return dict(zip(aye.date.apply(lambda x: self.epoch_to_date(x, datetime.datetime(2020, 1, 22, 0, 0))), aye.cases))
+    
+
+    @qtc.Slot(str, str, result='QVariant')
+    def countyalldeath(self, county, state):
+        # Attempt to query for the given country
+        query = self.get_data_for_county(county, state)
+        # Return nothing if the country is not found
+        if (query is None):
+            return
+        # Retrieve the time series data for deathes
+        aye = query[["date", "deaths"]]
+        # Zip the data into a dict and convert the time data to dates
+        return dict(zip(aye.date.apply(lambda x: self.epoch_to_date(x, datetime.datetime(2020, 1, 22, 0, 0))), aye.deaths))
 
     # dictionary of alltime confirmed cases for given country; hey is a dataframe
     @qtc.Slot(str, result='QVariant')
@@ -130,6 +236,17 @@ class Stats(qtc.QObject):
         aye = query[["Date", "Deaths"]]
         # Zip the data into a dict and convert the time data to dates
         return dict(zip(aye.Date.apply(lambda x: self.epoch_to_date(x, datetime.datetime(2020, 1, 22, 0, 0))), aye.Deaths))
+    
+    @qtc.Slot(str, result='QVariant')
+    def countryallrecovered(self, country):
+        query = self.get_data_for_country(country)
+        # Return nothing if the country is not found
+        if (query is None):
+            return
+        # Retrieve the time series data for deathes
+        aye = query[["Date", "Recovered"]]
+        # Zip the data into a dict and convert the time data to dates
+        return dict(zip(aye.Date.apply(lambda x: self.epoch_to_date(x, datetime.datetime(2020, 1, 22, 0, 0))), aye.Recovered))
 
     # Converts the number of days since the given epoch to a date in the form Year-Month-Day
     def epoch_to_date(self, num_days, epoch):

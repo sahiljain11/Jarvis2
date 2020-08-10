@@ -43,6 +43,7 @@ class GmailModule(qtc.QObject):
         self.time_elapsed = 0
         self.messages = self.service.users().messages()
         self.currentEmailList = ListModel(GmailModule.EmailObject)
+        self.threadMessages = ListModel(GmailModule.EmailObject)
         self.get_preview_message_info(50)
         print(self.currentEmailList.rowCount())
         
@@ -110,8 +111,8 @@ class GmailModule(qtc.QObject):
     @qtc.Slot(int)
     def get_preview_message_info(self, num_messages):
         for index in range(0, num_messages):
-            message = self.messages.get(userId='me', id=self.message_ids[index]['id'], format='metadata', metadataHeaders=["To", "From", "Subject","threadId"]).execute()
-            self.currentEmailList.appendRow(GmailModule.EmailObject(sender=self.GetSender(message), snippet=self.GetSnippet(message), subject=self.GetSubjectTitle(message)))
+            message = self.messages.get(userId='me', id=self.message_ids[index]['id'], format='metadata', metadataHeaders=["To", "From", "Subject", "References", "Message-ID"]).execute()
+            self.currentEmailList.appendRow(GmailModule.EmailObject(sender=self.GetSender(message), snippet=self.GetSnippet(message), subject=self.GetSubjectTitle(message), threadid=self.GetThread(message), references=self.GetReferences(message), messageid=self.GetMessageID(message)))
         return 
 
     @qtc.Slot(str,result=str)
@@ -182,6 +183,33 @@ class GmailModule(qtc.QObject):
             return snippet
         except apiclient.errors.HttpError:
             return
+    
+    @qtc.Slot(str, result=str)
+    def GetThread(self, message):
+        try: 
+            return message['threadId']
+        except apiclient.errors.HttpError:
+            return
+    
+    @qtc.Slot(str, result=str)
+    def GetReferences(self, message):
+        try:
+            for i in range(0,len((message['payload']['headers']))):
+                if (message['payload']['headers'][i]['name']) == 'References':
+                    references = ((message['payload']['headers'][i]['value']))
+                    return references
+        except apiclient.errors.HttpError:
+            return
+    
+    @qtc.Slot(str, result=str)
+    def GetMessageID(self, message):
+        try:
+            for i in range(0,len((message['payload']['headers']))):
+                if (message['payload']['headers'][i]['name']) == 'Message-ID':
+                    messageID = ((message['payload']['headers'][i]['value']))
+                    return messageID
+        except apiclient.errors.HttpError:
+            return
 
     @qtc.Slot()
     def ListMessagesMatchingQuery(self, user_id,query=''):
@@ -203,31 +231,38 @@ class GmailModule(qtc.QObject):
         except apiclient.errors.HttpError as error:
             return
 
-    @qtc.Slot()
-    def ListMessagesWithLabels(self, user_id, label_ids=''):
+    @qtc.Slot(str)
+    def get_messages_with_labels(self, label_ids=''):
 
         try:
-            response = self.service.users().messages().list(userId=user_id,
+            response = self.service.users().messages().list(userId='me',
                                                             labelIds=label_ids).execute()
-            messagess = []
+            messages = []
             if 'messages' in response:
-                messagess.extend(response['messages'])
+                messages.extend(response['messages'])
 
-            while 'nextPageToken' in response:
+            while 'nextPageToken' in response and len(messages) <= 50:
                 page_token = response['nextPageToken']
-                response = self.service.users().messages().list(userId=user_id,
+                response = self.service.users().messages().list(userId='me',
                                                            labelIds=label_ids,
                                                            pageToken=page_token).execute()
-                messagess.extend(response['messages'])
-
-            return messagess
+                messages.extend(response['messages'])
+            
+            # Add the response to the list of emails
+            self.currentEmailList.clear()
+            i = 0
+            while i < 20 and i < len(messages):
+                message = self.messages.get(userId='me', id=messages[i]['id'], format='metadata', metadataHeaders=["To", "From", "Subject", "References", "Message-ID"]).execute()
+                self.currentEmailList.appendRow(GmailModule.EmailObject(sender=self.GetSender(message), snippet=self.GetSnippet(message), subject=self.GetSubjectTitle(message), threadid=self.GetThread(message), references=self.GetReferences(message), messageid=self.GetMessageID(message)))
+                i += 1
+            return messages
         except apiclient.errors.HttpError as error:
             return
 
     @qtc.Slot(str)
     def get_messages_from_query(self, query=''):
         try:
-            response = self.service.users().messages().list(userId='me',
+            response = self.service.users().messages().list(userId='me', maxResults=50,
                                                             q=query).execute()
             messages = []
             if 'messages' in response:
@@ -243,13 +278,12 @@ class GmailModule(qtc.QObject):
             #print(messages)]
             i = 0
             while i < 10 and i < len(messages):
-                message = self.messages.get(userId='me', id=messages[i]['id'], format='metadata', metadataHeaders=["To", "From", "Subject"]).execute()
-                self.currentEmailList.appendRow(GmailModule.EmailObject(sender=self.GetSender(message), snippet=self.GetSnippet(message), subject=self.GetSubjectTitle(message)))
+                message = self.messages.get(userId='me', id=messages[i]['id'], format='metadata', metadataHeaders=["To", "From", "Subject", "References", "Message-ID"]).execute()
+                self.currentEmailList.appendRow(GmailModule.EmailObject(sender=self.GetSender(message), snippet=self.GetSnippet(message), subject=self.GetSubjectTitle(message), threadid=self.GetThread(message), references=self.GetReferences(message), messageid=self.GetMessageID(message)))
                 i += 1
             return 
 
         except apiclient.errors.HttpError as error:
-
             return
 
     def list_message_ids(self):
@@ -294,13 +328,19 @@ class GmailModule(qtc.QObject):
 
         return {'raw': base64.urlsafe_b64encode(message.as_string())}
 
-    @qtc.Slot(str,str,str,str,result=dict)
-    def create_basic_email(self, sender, to, subject, message_text):
+    @qtc.Slot(str,str,str,str, str,result=dict)
+    def create_basic_email(self, sender, to, subject, message_text, ref=None, in_reply=None):
         message = MIMEText(message_text)
         message['to'] = to
         message['from'] = sender
         message['subject'] = subject
 
+        # Add referecena and in reply to headers if they are set
+        if(not(ref is None) and not (in_reply is None)):
+            message['References'] = ref
+            message['In-Reply-To'] = in_reply
+            #print(ref)
+            #print(in_reply)
         return {'raw': base64.urlsafe_b64encode((message.as_bytes())).decode()}
 
     @qtc.Slot(str,str,str,str)
@@ -319,28 +359,56 @@ class GmailModule(qtc.QObject):
         except apiclient.errors.HttpError as error:
             print('error')
             return
+
     def get_thread(self, query=''):
         response = self.service.users().threads().list(userId='me',q=query).execute()
-        print(response)
         return
 
     def get_messages_from_a_thread(self,thread_id):
         response = self.service.users().threads().get(userId='me', id=thread_id).execute()
         all_messages = response['messages']
+        result = []
         for message in range(0, len(all_messages)):
-            raw_msg = (all_messages[message]['payload']['parts'][0]['body']['data'])
+            try:
+                raw_msg = (all_messages[message]['payload']['parts'][0]['body']['data'])
+                print(type(raw_msg))
+            except KeyError:
+                raw_msg = all_messages[message]['payload']['body']['data']
+                msg_str = self.GetSender(all_messages[message]) + "\n" + base64.urlsafe_b64decode(raw_msg.encode('ASCII')).decode('utf-8')
+                result.append(msg_str)
+                return result
             msg_str = (base64.urlsafe_b64decode(raw_msg.encode())).decode('utf-8')
-            print(msg_str)
-        return
+            result.append(msg_str)
+        return result
 
-    def respond_to_thread(self, thread_id, sender, to, subject, message_text):
+    @qtc.Slot(int)
+    def add_thread_messages(self, index):
+        self.threadMessages.clear()
+        threadid = self.currentEmailList.get(index, qtc.Qt.UserRole + 9)
+        thread_messages = self.get_messages_from_a_thread(threadid)
+        if(thread_messages is None):
+            return
+        for msg in thread_messages:
+            self.threadMessages.appendRow(GmailModule.EmailObject(sender="", snippet="", subject="", threadid=threadid, message=msg))
+
+    @qtc.Slot(str, str, str, str, str, str, str, result=str)
+    def respond_to_thread(self, thread_id, sender, to, subject, msg_id, references, message_text):
 
         # Return early if there is no sender
         if(sender == "" or sender.isspace() or sender is None):
             return
-        premessage = self.create_basic_email(sender,to,subject,message_text)
+        ref = references
+        if(references != ""):
+            ref = references + " " + msg_id
+        else:
+            ref = msg_id
+        premessage = self.create_basic_email(sender, to, subject, message_text, ref=ref, in_reply=msg_id)
+        premessage['threadId'] = thread_id
+        print("References ", ref)
+        print("Message ID ", msg_id)
+        print("Subject ", subject)
         try:
-            message = (self.service.users().messages().send(userId=sender, body=premessage, threadId=thread_id)
+            message = (self.service.users().messages().send(userId=sender, body=premessage)
                        .execute())
 
             return message
@@ -348,6 +416,26 @@ class GmailModule(qtc.QObject):
             print('error')
             return
         return
+    
+    @qtc.Slot(int, result=str)
+    def get_current_threadid(self, index):
+        return self.currentEmailList.get(index, qtc.Qt.UserRole + 9)
+    
+    @qtc.Slot(int, result=str)
+    def get_current_sender(self, index):
+        return self.currentEmailList.get(index, qtc.Qt.UserRole + 4)
+
+    @qtc.Slot(int, result=str)
+    def get_current_subject(self, index):
+        return self.currentEmailList.get(index, qtc.Qt.UserRole + 6)
+    
+    @qtc.Slot(int, result=str)
+    def get_current_message_id(self, index):
+        return self.currentEmailList.get(index, qtc.Qt.UserRole + 10)
+    
+    @qtc.Slot(int, result=str)
+    def get_current_references(self, index):
+        return self.currentEmailList.get(index, qtc.Qt.UserRole + 11)
 
     class EmailObject(qtc.QObject):
 
@@ -357,7 +445,10 @@ class GmailModule(qtc.QObject):
             qtc.Qt.UserRole + 5: b'receiver',
             qtc.Qt.UserRole + 6: b'subject',
             qtc.Qt.UserRole + 7: b'snippet',
-            qtc.Qt.UserRole + 8: b'message'
+            qtc.Qt.UserRole + 8: b'message',
+            qtc.Qt.UserRole + 9: b'threadid',
+            qtc.Qt.UserRole + 10: b'messageid',
+            qtc.Qt.UserRole + 11: b'references'
         }
 
         # Signals
@@ -366,11 +457,12 @@ class GmailModule(qtc.QObject):
         subjectChanged = qtc.Signal()
         snippetChanged = qtc.Signal()
         messageChanged = qtc.Signal()
+        threadidChanged = qtc.Signal()
 
         # Initializer for email object
-        def __init__(self, sender=None, receiver=None, subject=None, snippet=None, message=None):
+        def __init__(self, sender=None, receiver=None, subject=None, snippet=None, message=None, threadid=None, messageid=None, references=None):
             super(GmailModule.EmailObject, self).__init__()
-            self._data = {b'sender': sender, b'receiver': receiver, b'subject': subject, b'snippet': snippet, b'message': message}
+            self._data = {b'sender': sender, b'receiver': receiver, b'subject': subject, b'snippet': snippet, b'message': message, b'threadid': threadid, b'messageid': messageid, b'references': references}
         
         # Retrieves the data
         def data(self, key):
@@ -395,6 +487,18 @@ class GmailModule(qtc.QObject):
         @qtc.Property(str)
         def message(self):
             return self._data[b'message']
+        
+        @qtc.Property(str)
+        def threadid(self):
+            return self._data[b'threadid']
+
+        @qtc.Property(str)
+        def messageid(self):
+            return self._data[b'messageid']
+        
+        @qtc.Property(str)
+        def references(self):
+            return self._data[b'references']
 
         def __str__(self):
             return "[" + self.sender + " " + self.receiver + " " + self.subject + ']'
