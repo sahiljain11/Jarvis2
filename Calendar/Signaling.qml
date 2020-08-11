@@ -5,8 +5,9 @@ import QtQuick.Controls.Styles 1.4
 import MyCalendar 1.0
 import "../components"
 
+
 JarvisWidget {
- 
+
         Image{
             id: back
             source: "frame2.png"
@@ -28,6 +29,7 @@ JarvisWidget {
         id: systemPalette
     }
 
+
     CalendarProvider {
         id: eventModel
         onLoaded: {
@@ -35,11 +37,13 @@ JarvisWidget {
             loader.sourceComponent = null
             loader.sourceComponent = page_component
         }
+        // loads calendar events
         Component.onCompleted: {
+
             eventModel.updateListEvents({
                 calendarId: "primary",
                 timeMin: new Date(),
-                maxResults: 10,
+                maxResults: 20,
                 singleEvents: true,
                 orderBy: "startTime",
             })
@@ -57,7 +61,7 @@ JarvisWidget {
         Flow {
             id: row
             anchors.fill: parent
-            anchors.margins: 20
+            anchors.margins: 30
             spacing: 10
             layoutDirection: Qt.RightToLeft
 
@@ -71,7 +75,7 @@ JarvisWidget {
                 style: CalendarStyle {
                     dayDelegate: Item {
                         readonly property color sameMonthDateTextColor: "#444"
-                        readonly property color selectedDateColor: Qt.platform.os === "osx" ? "#3778d0" : systemPalette.highlight
+                        readonly property color selectedDateColor: Qt.platform.os === "osx" ? "#282828" : systemPalette.highlight
                         readonly property color selectedDateTextColor: "white"
                         readonly property color differentMonthDateTextColor: "#bbb"
                         readonly property color invalidDatecolor: "#dddddd"
@@ -113,6 +117,7 @@ JarvisWidget {
                 }
             }
 
+            // list of events for selected date
             Component {
                 id: eventListHeader
 
@@ -149,7 +154,7 @@ JarvisWidget {
                 width: (parent.width > parent.height ? parent.width * 0.4 - parent.spacing : parent.width)
                 height: (parent.height > parent.width ? parent.height * 0.4 - parent.spacing : parent.height)
                 border.color: Qt.darker(color, 1.2)
-
+                anchors.margins: 30
                 ListView {
                     id: eventsListView
                     spacing: 4
@@ -201,8 +206,96 @@ JarvisWidget {
                             }
                         }
                     }
+
+                    // creating an event from the calendar
+                    TextField {
+                        id: eventstart
+                        anchors.bottom: eventend.top
+                        anchors.right: parent.right
+                        anchors.left: parent.left
+                        placeholderText: qsTr("Start Time 01/12/2020 14:35:00")
+                        selectByMouse: true
+                    }
+                    TextField {
+                        id: eventend
+                        anchors.bottom: eventinfo.top
+                        anchors.right: parent.right
+                        anchors.left: parent.left
+                        placeholderText: qsTr("End Time")
+                        selectByMouse: true
+                    }
+                    TextField {
+                        id: eventinfo
+                        anchors.bottom: buttonn.top
+                        anchors.right: parent.right
+                        anchors.left: parent.left
+                        placeholderText: qsTr("Event Name")
+                        selectByMouse: true
+                    }
+                    Butt{
+                        id: buttonn
+                        width: rect.width
+                        anchors.bottom: parent.bottom
+                        anchors.right: parent.right
+                        anchors.left: parent.left
+                        height: rect.height
+
+                        Rectangle {
+                            id: rect
+                            implicitWidth: rect.width
+                            implicitHeight: 25
+                            color: "#282828"
+                            radius: 10
+                        }
+
+                        Text {
+                            text: "Add Event"
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.verticalCenter: parent.verticalCenter
+                            color: "white"
+                        }
+                        onTouched: {
+                            var dt_start = Date.fromLocaleString(Qt.locale(), eventstart.text, "MM/dd/yyyy hh:mm:ss")
+                            var dt_end = Date.fromLocaleString(Qt.locale(), eventend.text, "MM/dd/yyyy hh:mm:ss")
+                            if(dt_start.getDate() && dt_end.getDate()){
+                                eventModel.createEvent({
+                                    calendarId: "primary",
+                                    body: {
+                                        summary: eventinfo.text,
+                                        start: {
+                                            dateTime: dt_start,
+                                            timeZone: "America/Chicago",
+                                        },
+                                        end: {
+                                            dateTime: dt_end,
+                                            timeZone: "America/Chicago",
+                                        },
+                                    }
+                                })
+                            }
+                            //reloads loader,
+
+                            eventModel.updateListEvents({
+                            calendarId: "primary",
+                            timeMin: new Date(),
+                            maxResults: 20,
+                            singleEvents: true,
+                            orderBy: "startTime",
+                        })
+                            loader.active = !loader.active
+
+                            loader.active = !loader.active
+
+                        }
+                    }
+
+
+
                 }
             }
         }
     }
 }
+
+
+

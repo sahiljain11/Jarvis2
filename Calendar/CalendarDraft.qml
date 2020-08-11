@@ -281,16 +281,16 @@ ApplicationWindow {
                             }
                             //reloads loader,
 
-                            eventModel.updateListEvents({
-                            calendarId: "primary",
-                            timeMin: new Date(),
-                            maxResults: 20,
-                            singleEvents: true,
-                            orderBy: "startTime",
-                        })
-                            loader.active = !loader.active
+                            //eventModel.updateListEvents({
+                            //calendarId: "primary",
+                            //timeMin: new Date(),
+                            //maxResults: 20,
+                            //singleEvents: true,
+                            //orderBy: "startTime",
+                        //})
+                            //loader.active = !loader.active
 
-                            loader.active = !loader.active
+                            //loader.active = !loader.active
 
                         }
                     }

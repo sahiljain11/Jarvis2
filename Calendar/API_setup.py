@@ -1,9 +1,11 @@
+#imports
 import logging
 import os
 import pickle
 import sys
 import threading
-
+import datetime
+import functools
 from PySide2 import QtCore, QtGui, QtQml
 
 from googleapiclient.discovery import build
@@ -11,33 +13,106 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 
 
+
+
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 
 
-#logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG)
+
+#date conversion methods when pulling from qml textfields
+def qdatetime_to_string(x):
+    if isinstance(x, dict):
+        for k, v in x.items():
+            if isinstance(v, QtCore.QDateTime):
+                x[k] = v.toString(QtCore.Qt.ISODate)
+            else:
+                qdatetime_to_string(v)
+    elif isinstance(x, list):
+        for i, e in enumerate(x):
+            if isinstance(e, QtCore.QDateTime):
+                x[i] = e.toString(QtCore.Qt.ISODate)
+            else:
+                qdatetime_to_string(v)
 
 
-class CalendarBackend(QtCore.QObject): #qobject handles signals and slots
+class Reply(QtCore.QObject):
+    finished = QtCore.Signal()
+
+    def __init__(self, func, args=(), kwargs=None, parent=None):
+        super().__init__(parent)
+        self._results = None
+        self._is_finished = False
+        self._error_str = ""
+        threading.Thread(
+            target=self._execute, args=(func, args, kwargs), daemon=True
+        ).start()
+
+    @property
+    def results(self):
+        return self._results
+
+    @property
+    def error_str(self):
+        return self._error_str
+
+    def is_finished(self):
+        return self._is_finished
+
+    def has_error(self):
+        return bool(self._error_str)
+
+    def _execute(self, func, args, kwargs):
+        if kwargs is None:
+            kwargs = {}
+        try:
+            self._results = func(*args, **kwargs)
+        except Exception as e:
+            self._error_str = str(e)
+        self._is_finished = True
+        self.finished.emit()
+
+
+def convert_to_reply(func):
+    def wrapper(*args, **kwargs):
+        reply = Reply(func, args, kwargs)
+        return reply
+
+    return wrapper
+
+#
+class CalendarBackend(QtCore.QObject):
     eventsChanged = QtCore.Signal(list)
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        #service is a calendar instance,
         self._service = None
 
     @property
     def service(self):
+        if self._service is None:
+            reply = self._update_credentials()
+            loop = QtCore.QEventLoop()
+            reply.finished.connect(loop.quit)
+            loop.exec_()
+            if not reply.has_error():
+                self._service = reply.results
+            else:
+                logging.debug(reply.error_str)
         return self._service
 
     def updateListEvents(self, kw):
-        # "separate flow of execution"
-        threading.Thread(target=self._update_list_events, args=(kw,)).start() #threading here prevents a loading lag and runs this in the background
+        # threading creates separate flow of execution so this doesn't block the eventloop
+        threading.Thread(target=self._update_list_events, args=(kw,)).start()
 
+    #gathers future events from google calendar and appends to qt_events
     def _update_list_events(self, kw):
         self._update_credentials()
 
         events_result = self.service.events().list(**kw).execute()
-        events = events_result.get("items", []) #gets val from events_results based off key
+        events = events_result.get("items", [])
 
         qt_events = []
         if not events:
@@ -51,13 +126,15 @@ class CalendarBackend(QtCore.QObject): #qobject handles signals and slots
             end_dt = QtCore.QDateTime.fromString(end, QtCore.Qt.ISODate)
             summary = event["summary"]
 
-            e = {"start": start_dt, "end": end_dt, "summary": summary} #a dictionary for each event
-            qt_events.append(e) #an array of dictionaries, each of which is an event
+            e = {"start": start_dt, "end": end_dt, "summary": summary}
+            qt_events.append(e)
 
         self.eventsChanged.emit(qt_events)
 
+    #OAuth with Google API
+    @convert_to_reply
+    #decorator
     def _update_credentials(self):
-        #oauth with google api
         creds = None
         if os.path.exists("token.pickle"):
             with open("token.pickle", "rb") as token:
@@ -72,10 +149,13 @@ class CalendarBackend(QtCore.QObject): #qobject handles signals and slots
                 creds = flow.run_local_server(port=0)
             with open("token.pickle", "wb") as token:
                 pickle.dump(creds, token)
+        return build("calendar", "v3", credentials=creds, cache_discovery=False)
 
-        self._service = build("calendar", "v3", credentials=creds)
+    @convert_to_reply
+    def insert(self, **kwargs):
+        return self.service.events().insert(**kwargs).execute()
 
-
+#connects events to calendar window
 class CalendarProvider(QtCore.QObject):
     loaded = QtCore.Signal()
 
@@ -85,6 +165,27 @@ class CalendarProvider(QtCore.QObject):
         self._cache_events = []
         self._backend = CalendarBackend()
         self._backend.eventsChanged.connect(self._handle_events)
+
+
+    @QtCore.Slot("QVariant")
+    def createEvent(self, parameters):
+        kw = parameters.toVariant()
+        if isinstance(kw, dict):
+            qdatetime_to_string(kw)
+            reply = self._backend.insert(**kw)
+            #partial allows u to modify the number of arg taken from upstream
+            wrapper = functools.partial(self.handle_finished_create_event, reply)
+            reply.finished.connect(wrapper)
+
+    def handle_finished_create_event(self, reply):
+        if reply.has_error():
+            logging.debug(reply.error_str)
+        else:
+            event = reply.results
+            link = event.get("htmlLink", "")
+            logging.debug("Event created: %s" % (link,))
+            QtGui.QDesktopServices.openUrl(QtCore.QUrl(link))
+
 
     @QtCore.Slot("QVariant")
     def updateListEvents(self, parameters):
@@ -113,20 +214,18 @@ class CalendarProvider(QtCore.QObject):
         logging.debug("Loaded")
 
 
-def main():
+
+if __name__ == "__main__":
     app = QtGui.QGuiApplication(sys.argv)
 
     QtQml.qmlRegisterType(CalendarProvider, "MyCalendar", 1, 0, "CalendarProvider")
-
+    cal2 = CalendarProvider()
     engine = QtQml.QQmlApplicationEngine()
-    filename = os.path.join(CURRENT_DIR, "signaling.qml")
+    engine.rootContext().setContextProperty("cal2", cal2)
+    filename = os.path.join(CURRENT_DIR, "Signaling.qml")
     engine.load(QtCore.QUrl.fromLocalFile(filename))
 
     if not engine.rootObjects():
         sys.exit(-1)
 
     sys.exit(app.exec_())
-
-
-if __name__ == "__main__":
-    main()

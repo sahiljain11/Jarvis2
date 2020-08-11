@@ -21,6 +21,7 @@ CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 
 logging.basicConfig(level=logging.DEBUG)
 
+#date conversion methods when pulling from qml textfields
 def qdatetime_to_string(x):
     if isinstance(x, dict):
         for k, v in x.items():
@@ -34,6 +35,7 @@ def qdatetime_to_string(x):
                 x[i] = e.toString(QtCore.Qt.ISODate)
             else:
                 qdatetime_to_string(v)
+
 
 class Reply(QtCore.QObject):
     finished = QtCore.Signal()
@@ -79,12 +81,13 @@ def convert_to_reply(func):
 
     return wrapper
 
-
+#
 class CalendarBackend(QtCore.QObject):
     eventsChanged = QtCore.Signal(list)
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        #service is a calendar instance,
         self._service = None
 
     @property
@@ -101,10 +104,10 @@ class CalendarBackend(QtCore.QObject):
         return self._service
 
     def updateListEvents(self, kw):
-        # threading creates separate flow of execution
+        # threading creates separate flow of execution so this doesn't block the eventloop
         threading.Thread(target=self._update_list_events, args=(kw,)).start()
 
-    #gathers next 10 events from google calendar and appends to qt_events
+    #gathers future events from google calendar and appends to qt_events
     def _update_list_events(self, kw):
         self._update_credentials()
 
@@ -130,6 +133,7 @@ class CalendarBackend(QtCore.QObject):
 
     #OAuth with Google API
     @convert_to_reply
+    #decorator
     def _update_credentials(self):
         creds = None
         if os.path.exists("token.pickle"):
@@ -162,12 +166,14 @@ class CalendarProvider(QtCore.QObject):
         self._backend = CalendarBackend()
         self._backend.eventsChanged.connect(self._handle_events)
 
+
     @QtCore.Slot("QVariant")
     def createEvent(self, parameters):
         kw = parameters.toVariant()
         if isinstance(kw, dict):
             qdatetime_to_string(kw)
             reply = self._backend.insert(**kw)
+            #partial allows u to modify the number of arg taken from upstream
             wrapper = functools.partial(self.handle_finished_create_event, reply)
             reply.finished.connect(wrapper)
 
@@ -207,43 +213,13 @@ class CalendarProvider(QtCore.QObject):
         self.loaded.emit()
         logging.debug("Loaded")
 
-#adding an event to calendar
-class AddToCalendar(QtCore.QObject):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self._data = dict()
-        #using instance var from another class
-        self.A = CalendarBackend()
-    @QtCore.Slot(str)
-    def createevent(self, eventinfo: str, eventstart: str, eventend: str):
-        starttime = str(datetime.datetime.strptime(eventstart, "%m/%d/%Y %H:%M:%S"))
-
-        endtime = str(datetime.datetime.strptime(eventend, "%m/%d/%Y %H:%M:%S"))
-        try:
-            event = {
-                'summary': eventinfo,
-                'start': {
-                    'dateTime':  (starttime[0:10]+"T"+starttime[11:]+"-06:00"),
-                    'timeZone': 'America/Chicago',
-                },
-                'end': {
-                    'dateTime': (endtime[0:10]+"T"+endtime[11:]+"-06:00"),
-                    'timeZone': 'America/Chicago',
-                }
-            }
-        except:
-            pass
-
-        event = self.A._service.events().insert(calendarId='primary', body=event).execute()
-        print('Event created: %s' % (event.get('htmlLink')))
-
 
 
 if __name__ == "__main__":
     app = QtGui.QGuiApplication(sys.argv)
 
     QtQml.qmlRegisterType(CalendarProvider, "MyCalendar", 1, 0, "CalendarProvider")
-    cal2 = AddToCalendar()
+    cal2 = CalendarProvider()
     engine = QtQml.QQmlApplicationEngine()
     engine.rootContext().setContextProperty("cal2", cal2)
     filename = os.path.join(CURRENT_DIR, "CalendarDraft.qml")
