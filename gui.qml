@@ -32,6 +32,7 @@ Item{
         z: -2
     }
     */
+
      Video{
         id: media
         source:  "./images/Background.mkv"
@@ -44,6 +45,7 @@ Item{
         }
         //flushMode: VideoOutput.FirstFrame
     }
+
     //Icons
     RowLayout{
         id: iconrow
@@ -52,51 +54,112 @@ Item{
             topMargin: parent.height/1.4
             bottom: parent.bottom
             bottomMargin: parent.height/10
-            left:parent.left
+            left: parent.left
             leftMargin: parent.width/11
-            }
+        }
         spacing: 2
-         Butt{
+
+        Switch{
             id: weather_Icon
-            image: "./images/Weather_Icon.png"
+            iconOn: "./images/Weather_Icon.png"
+            iconOff: "./images/Weather_Icon.png"
             Layout.preferredWidth:250
             Layout.preferredHeight:200
-
+            onTouched: {
+                if (state == "ON"){
+                   weather_widget.state = "opened"
+                }
+                else {
+                    weather_widget.state = "closed"
+                }
+            }
         }
-         Butt{
+        
+        Switch{
             id: gmail_Icon
-            image: "./images/Gmail_Icon.png"
+            iconOn: "./images/Gmail_Icon.png"
+            iconOff: "./images/Gmail_Icon.png"
             Layout.preferredWidth:250
             Layout.preferredHeight:200
-        }
-        Butt{
-            id: calandar_Icon
-            image: "./images/Calandar_Icon.png"
-            Layout.preferredWidth:250
-            Layout.preferredHeight:200
-        }
-        Butt{
-            id: time_Icon
-            image: "./images/Time_Icon.png"
-            Layout.preferredWidth:250
-            Layout.preferredHeight:200
-        }
-        Butt{
-            id: corona_Icon
-            image: "./images/Corona_Icon.png"
-            Layout.preferredWidth:250
-            Layout.preferredHeight:200
-        }
-        Butt{
-            id: spotify_Icon
-            image: "./images/Spotify_Icon.png"
-            Layout.preferredWidth:250
-            Layout.preferredHeight:200
+            onTouched: {
+                if (state == "ON"){
+                    gmail_widget.state = "opened"
+                }
+                else {
+                    gmail_widget.state = "closed"
+                }
+            }
         }
 
-}
-/*
-    Timer{
+        Switch{
+            id: calandar_Icon
+            iconOn: "./images/Calandar_Icon.png"
+            iconOff: "./images/Calandar_Icon.png"
+            Layout.preferredWidth:250
+            Layout.preferredHeight:200
+
+            onTouched: {
+                if (state == "ON"){
+                    calendar_widget.state = "opened"
+                }
+                else {
+                    calendar_widget.state = "closed"
+                }
+            }
+        }
+
+        Switch{
+            id: time_Icon
+            iconOn: "./images/Time_Icon.png"
+            iconOff: "./images/Time_Icon.png"
+            Layout.preferredWidth:250
+            Layout.preferredHeight:200
+            onTouched: {
+                if (state == "ON"){
+                    clock_widget.state = "opened"
+                }
+                else {
+                    clock_widget.state = "closed"
+                }
+            }
+        }
+
+        Switch{
+            id: corona_Icon
+            iconOn: "./images/Corona_Icon.png"
+            iconOff: "./images/Corona_Icon.png"
+            Layout.preferredWidth:250
+            Layout.preferredHeight:200
+            onTouched: {
+                if (state == "ON"){
+                    covid_widget.state = "opened"
+                }
+                else {
+                    covid_widget.state = "closed"
+                }
+            }
+        }
+
+        Switch{
+            id: spotify_Icon
+            iconOn: "./images/Spotify_Icon.png"
+            iconOff: "./images/Spotify_Icon.png"
+            Layout.preferredWidth:250
+            Layout.preferredHeight:200
+            onTouched: {
+                if (state == "ON"){
+                    spotify_widget.state = "opened"
+                }
+                else {
+                    spotify_widget.state = "closed"
+                }
+            }
+        }
+    }
+
+
+
+    /*Timer{
         id: mouseTimer
         running: true
         repeat: true
@@ -105,71 +168,57 @@ Item{
             hand.set_gest_data()
             hand.setMouse()
         }
-    }
-*/
-
+    }*/
 
     Covid{
-        id: graph2
+        id: covid_widget
         width: 1200/1.5
         height: 550/1.5
+        x: parent.width/2 - width/2
+        y: parent.height/2.6 - height/2
     }
 
     Spotify{
         id: spotify_widget
         width: 1200/1.5
         height: 550/1.5
-        //x: window.newX
-        //y: window.newY
-        Component.onCompleted:{
-            x = window.newX 
-            y = window.newY
-            window.newX = spotify_widget.x + spotify_widget.width
-            window.newY = spotify_widget.y
-        }       
+        x: parent.width/2 - width/2
+        y: parent.height/2.6 - height/2
     }
 
     Gmail{
         id: gmail_widget
         width: 2000/2.5
         height: 1200/2.5
-        Component.onCompleted:{
-            x = window.newX 
-            y = window.newY
-            window.newX = gmail_widget.x + gmail_widget.width
-            window.newY = gmail_widget.y
-        }       
+        x: parent.width/2 - width/2
+        y: parent.height/2.6 - height/2
     }
 
    Weather{
         id: weather_widget
         width: 500
         height: 550
-        Component.onCompleted:{
-            x = window.newX 
-            y = window.newY
-            window.newX = 0
-            window.newY = spotify_widget.y + spotify_widget.height
-        }  
+        x: parent.width/2 - width/2
+        y: parent.height/2.6 - height/2
     }
 
     Signaling {
         id: calendar_widget
         width: 2000/2.5
         height: 1200/2.5
-        Component.onCompleted:{
-            x = window.newX 
-            y = window.newY
-        }  
+        x: parent.width/2 - width/2
+        y: parent.height/2.6 - height/2
     }
-
+    
     Clockwindow{
-        id: clock
+        id: clock_widget
         width: 2000/2.5
         height: 1200/2.5
+        x: parent.width/2 - width/2
+        y: parent.height/2.6 - height/2
     }
 
-    MouseArea{
+    /* MouseArea{
         id: mouseArea
         anchors.fill: parent
         propagateComposedEvents: true
@@ -186,8 +235,7 @@ Item{
         onReleased:{
             mouse.accepted = false
         }
-    }
-
+    } */
     
     // Slider to adjust size of widgets
     /*Slider{

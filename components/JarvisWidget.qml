@@ -16,6 +16,7 @@ Item{
     property var scaleVal: 1
     property int maxZ: 0
     scale: scaleVal
+    state: "closed"
 
     //Test box
     /*Rectangle{
@@ -33,21 +34,30 @@ Item{
         }
     }*/
 
-    //defaults
-    /*state: "BASE"
-    scale: scaleVal
-
-    states: [
-        State {
-            name: "BASE"
-            PropertyChanges {target: mouseArea; drag.target: undefined}
+    states: [ 
+        State{
+            name: "opened"
+            PropertyChanges { target: jarvis; scale: 1}
         },
-
         State {
-            name: "DRAGGING"
-            PropertyChanges {target: mouseArea; drag.target: jarvis}
+            name: "closed"
+            PropertyChanges { target: jarvis; x: parent.width/2 - width/2; y: parent.height/2.6 - height/2; scale: 0}
         }
-    ]*/
+    ]
+
+    transitions: [ 
+        Transition {
+            from: "closed"
+            to: "opened"
+            reversible: true
+            PropertyAnimation {
+                target: jarvis
+                property: "scale"
+                easing.bezierCurve: [0.175, 0.885, 0.32, 1.27, 1, 1]
+                duration: 700
+            }
+        }
+    ]
 
     //Sets up dragging functionality of window
     MouseArea{
@@ -119,22 +129,8 @@ Item{
             scaleVal = scaleVal + 0.05
         }
 
-
         if(event.key == Qt.Key_Down){
             scaleVal = scaleVal - 0.05
         }
-
-        //Enable dragging when "Alt" is pressed
-        /*if(event.key == Qt.Key_Alt){
-            state = "DRAGGING"
-        }*/
-
     }
-
-    //Disable dragging when the "Alt" is not pressed
-    /*Keys.onReleased:{
-        if(event.key == Qt.Key_Alt){
-            state = "BASE"
-        }
-    }*/
 }
