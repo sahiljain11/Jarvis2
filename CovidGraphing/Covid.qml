@@ -274,26 +274,38 @@ JarvisWidget{
             bottom: parent.bottom
             bottomMargin: parent.height/20
         }
+
         
         width: parent.width/8
         height: parent.height/15
 
         Keys.onPressed:{
             if(event.key == Qt.Key_Return){
+                
+                //Capitalize the first letter of the query
+                chart_search.text = chart_search.text.charAt(0).toUpperCase() + chart_search.text.slice(1)
 
                 //Case for searching for a country
                 if (toggle.word == "Search Countries"){
+
+                    var country  = chart_search.text
+
                     //Replace United States with US to match data
-                    if (chart_search.text == "United States"){
-                        chart_search.text = "US"
+                    if (country == "United States" || country == "United states"){
+                        country = "US"
                     }
 
-                    //Replace Taiwan with Taiwant* to match data
-                    if (chart_search.text == "Taiwan") {
-                        chart_search.text = "Taiwan*"
+                    //Replace Taiwan with Taiwan* to match data
+                    else if (country == "Taiwan") {
+                        country = "Taiwan*"
                     }
 
-                    var country = corona.auto_correct_country_query(chart_search.text)
+                    //Replace South Korea with "Korea, South" to match data
+                    else if (country == "South Korea" || country  == "South korea"){
+                        country = "Korea, South"
+                    }
+
+                    country = corona.auto_correct_country_query(country)
                     
                     //Clear the graphs
                     corona_graphs.clear()
@@ -308,6 +320,17 @@ JarvisWidget{
                     corona_graphs.append({coun: country, stat: "", graph_type: "countrydeathes"})
                     corona_graphs.append({coun: country, stat: "", graph_type: "countryrecovered"})
 
+                    //Correct the country names so that they are more mainstream
+                    if(country = "Korea, South"){
+                        country = "South Korea"
+                    }
+                    else if (country = "Taiwan*"){
+                        country = "Taiwan"
+                    }
+                    else if (country = "US"){
+                        country = 'United States'
+                    }
+
                     //Set the words
                     var cases = corona.confirmglobal(country)
                     var deathes = corona.deathglobal(country)
@@ -317,7 +340,7 @@ JarvisWidget{
                     
                    
                     // Query for the location and center the camera in it
-                    parent.findLocation(country)
+                    parent.findLocation(chart_search.text)
                 }
                 
                 //Case for searching for counties
@@ -375,8 +398,7 @@ JarvisWidget{
                     parent.findLocation(county + " County, " + state)
                 }
 
-
-
+                chart_search.text = ""
             }
         }
     }
