@@ -96,6 +96,7 @@ class Stats(qtc.QObject):
         self.countries_names = self.name_list_maker(self.countries)
         self.states_names = self.name_list_maker(self.states)
         self.spell = self.initspeller()
+
     def show(self, *args):
         for i in args:
             if i == 'death':
@@ -267,6 +268,7 @@ class Stats(qtc.QObject):
             #corrects the input message to a state
             return self.spell.correction(input_message)
 
+    @qtc.Slot(str, result=str)
     def auto_correct_country_query(self, input_message):
         #if input message is a country return
         if input_message.lower() in [country.lower() for country in self.countries_names]:
@@ -275,6 +277,7 @@ class Stats(qtc.QObject):
         else:
             return self.spell.correction(input_message)
 
+    @qtc.Slot(str, result=str)
     def auto_correct_county_query(self,input_message):
         #if input message is a county return
         if input_message.lower() in [county.lower() for county in self.counties_names]:
@@ -289,6 +292,7 @@ class Stats(qtc.QObject):
         spell.word_frequency.load_words(self.countries_names)
         spell.word_frequency.load_words(self.states_names)
         return spell
+
     def name_list_maker(self,list_of_lists):
         output_list = [None] * len(list_of_lists)
         #print(list_of_lists[0][0], 'hi')

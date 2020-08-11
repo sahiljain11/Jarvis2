@@ -5,6 +5,7 @@ import QtQuick.Controls.Styles 1.4
 import QtQuick.Layouts 1.12
 import QtGraphicalEffects 1.12
 import QtMultimedia 5.0
+import GmailMod 1.0
 
 import "../components"
 
@@ -14,6 +15,18 @@ JarvisWidget{
     //Boolean to tell if we are replying
     property bool replying: false
     property bool justStarted: true
+
+    GmailModule {
+        //Initializes the gmail widget
+        Component.onCompleted:{
+            //Retrieve the first 50 emails from the all mail inbox
+            gmail.init_gmail_in_widget(50)
+            //Add the labels
+            for (var i = 0; i < 5; i++) {
+                labellist.append({label: gmail.get_label(i)})
+            }
+        }
+    }
 
     //border
     Picture{
@@ -45,6 +58,7 @@ JarvisWidget{
         onCurrentItemChanged:{
             threads.scale = 1
             gmail.add_thread_messages(emails.currentIndex)
+
         }
 
         //Define model
@@ -218,18 +232,6 @@ JarvisWidget{
     ListModel{
     id: labellist
 
-        Component.onCompleted:{
-            for (var i = 0; i < 5; i++) {
-                labellist.append(label(i))
-            }
-        }
-
-        function label(i) {
-
-            return{
-                label: gmail.get_label(i)
-            };
-        }
     }
 
     

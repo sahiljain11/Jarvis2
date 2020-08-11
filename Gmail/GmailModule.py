@@ -10,6 +10,7 @@ from email.mime.text import MIMEText
 import mimetypes
 import os
 import time
+import threading
 from PySide2 import QtCore as qtc
 from ListModel import ListModel
 from googleapiclient.discovery import build
@@ -33,20 +34,26 @@ Gmail Module Functionality Description
 
 
 class GmailModule(qtc.QObject):
-
+    loaded = qtc.Signal()
+    
     def __init__(self):
         super(GmailModule, self).__init__()
         self.scopes = ['https://mail.google.com/']
-        self.service = self.use_token_pickle_to_get_service()
-        self.message_ids = self.get_list_of_users_message_ids()
-        self.label_list = self.get_labels()
         self.time_elapsed = 0
-        self.messages = self.service.users().messages()
         self.currentEmailList = ListModel(GmailModule.EmailObject)
         self.threadMessages = ListModel(GmailModule.EmailObject)
-        self.get_preview_message_info(50)
-        print(self.currentEmailList.rowCount())
-        
+        #self.get_preview_message_info(50)
+        print("Gmail finished")
+
+    # Initializes the gmail widget in the qml file
+    @qtc.Slot(int)
+    def init_gmail_in_widget(self, parm):
+        self.service = self.use_token_pickle_to_get_service()
+        self.messages = self.service.users().messages()
+        self.message_ids = self.get_list_of_users_message_ids()
+        self.label_list = self.get_labels()
+        threading.Thread(target=self.get_preview_message_info, args=(parm,)).start()
+       
     '''
     Accesses a file to gain saved credentials
     if no file exists the file is generated and user is asked to put in creds
@@ -91,7 +98,7 @@ class GmailModule(qtc.QObject):
             return label_list
 
     def get_list_of_users_message_ids(self):
-        emails = self.service.users().messages().list(userId='me').execute()
+        emails = self.messages.list(userId='me').execute()
         list_of_msg_ids = [None] * len(emails['messages'])
         index = 0
         for email in range(0, len(emails['messages'])):
@@ -103,7 +110,7 @@ class GmailModule(qtc.QObject):
     def get_message_id(self, i):
         return self.message_ids[i]['id']
 
-    @qtc.Slot(int,result=str)
+    @qtc.Slot(int, result=str)
     def get_label(self,i):
         return self.label_list[i]
 
@@ -215,7 +222,7 @@ class GmailModule(qtc.QObject):
     def ListMessagesMatchingQuery(self, user_id,query=''):
 
         try:
-            response = self.service.users().messages().list(userId='me',
+            response = self.messages.list(userId='me',
                                                             q=query).execute()
             messages = []
             if 'messages' in response:
@@ -223,7 +230,7 @@ class GmailModule(qtc.QObject):
 
             while 'nextPageToken' in response:
                 page_token = response['nextPageToken']
-                response = self.service.users().messages().list(userId=user_id, q=query,
+                response = self.messages.list(userId=user_id, q=query,
                                                                 pageToken=page_token).execute()
                 messages.extend(response['messages'])
 
@@ -235,7 +242,7 @@ class GmailModule(qtc.QObject):
     def get_messages_with_labels(self, label_ids=''):
 
         try:
-            response = self.service.users().messages().list(userId='me',
+            response = self.messages.list(userId='me',
                                                             labelIds=label_ids).execute()
             messages = []
             if 'messages' in response:
@@ -243,7 +250,7 @@ class GmailModule(qtc.QObject):
 
             while 'nextPageToken' in response and len(messages) <= 50:
                 page_token = response['nextPageToken']
-                response = self.service.users().messages().list(userId='me',
+                response = self.messages.list(userId='me',
                                                            labelIds=label_ids,
                                                            pageToken=page_token).execute()
                 messages.extend(response['messages'])
@@ -262,7 +269,7 @@ class GmailModule(qtc.QObject):
     @qtc.Slot(str)
     def get_messages_from_query(self, query=''):
         try:
-            response = self.service.users().messages().list(userId='me', maxResults=50,
+            response = self.messages.list(userId='me', maxResults=50,
                                                             q=query).execute()
             messages = []
             if 'messages' in response:
@@ -270,7 +277,7 @@ class GmailModule(qtc.QObject):
 
             while 'nextPageToken' in response:
                 page_token = response['nextPageToken']
-                response = self.service.users().messages().list(userId='me', q=query,
+                response = self.messages.list(userId='me', q=query,
                                                                 pageToken=page_token).execute()
                 messages.extend(response['messages'])
 
@@ -287,7 +294,7 @@ class GmailModule(qtc.QObject):
             return
 
     def list_message_ids(self):
-        emails = self.service.users().messages().list(userId='me').execute()
+        emails = self.messages.list(userId='me').execute()
         return emails
 
     def create_email(self, sender, to, subject, message_text, file_dir, filename):
@@ -352,7 +359,7 @@ class GmailModule(qtc.QObject):
 
         premessage = self.create_basic_email(sender,to,subject,message_text)
         try:
-            message = (self.service.users().messages().send(userId=sender, body=premessage)
+            message = (self.messages.send(userId=sender, body=premessage)
                        .execute())
 
             return message
@@ -408,7 +415,7 @@ class GmailModule(qtc.QObject):
         print("Message ID ", msg_id)
         print("Subject ", subject)
         try:
-            message = (self.service.users().messages().send(userId=sender, body=premessage)
+            message = (self.messages.send(userId=sender, body=premessage)
                        .execute())
 
             return message

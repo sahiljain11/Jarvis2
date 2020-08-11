@@ -49,6 +49,7 @@ if __name__ == '__main__':
     # Initializes the app, engine, and classes 
     app = qtw.QApplication(sys.argv)
     qtm.qmlRegisterType(CalendarProvider, "MyCalendar", 1, 0, "CalendarProvider")
+    qtm.qmlRegisterType(GmailModule, "GmailMod", 1, 0, "GmailModule")
     view = QQuickView()
     root_context = view.rootContext()
     #engine = qtm.QQmlApplicationEngine()
@@ -64,9 +65,10 @@ if __name__ == '__main__':
     #view.rootContext().setContextProperty("mouse_emulator", mouse_emulator)
 
     # Load Gmail
-    #gmail = GmailModule()
-    #root_context.setContextProperty("gmail", gmail)
-    #root_context.setContextProperty("emailPreview", gmail.currentEmailList)
+    gmail = GmailModule()
+    root_context.setContextProperty("gmail", gmail)
+    root_context.setContextProperty("emailPreview", gmail.currentEmailList)
+    root_context.setContextProperty("threadMessages", gmail.threadMessages)
 
     # Load HandGest
     hand = HandGest()

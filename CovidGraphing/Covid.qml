@@ -311,30 +311,32 @@ JarvisWidget{
                     if (chart_search.text == "Taiwan") {
                         chart_search.text = "Taiwan*"
                     }
+
+                    var country = corona.auto_correct_country_query(chart_search.text)
                     
                     //Clear the graphs
                     corona_graphs.clear()
 
                     //Return early if there is no match
-                    if(corona.get_data_for_country(chart_search.text) == null){
+                    if(corona.get_data_for_country(country) == null){
                         return
                     }
 
                     //Set new covid graphs for the query                    
-                    corona_graphs.append({coun: chart_search.text, stat: "", graph_type: "countrycases"})
-                    corona_graphs.append({coun: chart_search.text, stat: "", graph_type: "countrydeathes"})
-                    corona_graphs.append({coun: chart_search.text, stat: "", graph_type: "countryrecovered"})
+                    corona_graphs.append({coun: country, stat: "", graph_type: "countrycases"})
+                    corona_graphs.append({coun: country, stat: "", graph_type: "countrydeathes"})
+                    corona_graphs.append({coun: country, stat: "", graph_type: "countryrecovered"})
 
                     //Set the words
-                    var cases = corona.confirmglobal(chart_search.text)
-                    var deathes = corona.deathglobal(chart_search.text)
-                    var recovered = corona.recoverglobal(chart_search.text)
+                    var cases = corona.confirmglobal(country)
+                    var deathes = corona.deathglobal(country)
+                    var recovered = corona.recoverglobal(country)
                     var active = cases - deathes - recovered
-                    covidInfo.text = "              " + chart_search.text + "\nTotal Cases: " + Number(cases).toLocaleString(Qt.locale("en"),'f', 0) + "\nTotal Deathes: " + Number(deathes).toLocaleString(Qt.locale("en"),'f', 0) + "\nActive Cases: " + Number(active).toLocaleString(Qt.locale("en"),'f', 0)
+                    covidInfo.text = "              " + country + "\nTotal Cases: " + Number(cases).toLocaleString(Qt.locale("en"),'f', 0) + "\nTotal Deathes: " + Number(deathes).toLocaleString(Qt.locale("en"),'f', 0) + "\nActive Cases: " + Number(active).toLocaleString(Qt.locale("en"),'f', 0)
                     
                    
                     // Query for the location and center the camera in it
-                    parent.findLocation(chart_search.text)
+                    parent.findLocation(country)
                 }
                 
                 //Case for searching for counties
@@ -360,15 +362,16 @@ JarvisWidget{
                     //Parse the county and state out
                     var county = query.substring(0, i).toString()
                     var state = query.substring(i+1, query.length).toString()
-                    //console.log(county)
-                    //console.log(state)
 
                     //Remove the space if it is at the beginning
                     if(state.charAt(0) == " "){
                         state = state.substring(1, state.length).toString()
                     }
-                    //console.log(stat)
 
+                    //Auto correct the state and the county if need be
+                    county = corona.auto_correct_county_query(county)
+                    state = corona.auto_correct_state_query(state)
+                    
                     //Clear the graphs
                     corona_graphs.clear()
 

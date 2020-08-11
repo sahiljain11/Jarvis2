@@ -314,10 +314,10 @@ class SpotipyModule(qtc.QObject):
         self.queue_changed = True
         self.play_music()
         return
-
-    def current_queue(self):
-        return self.queue
-
+        
+    def destroyer(self):
+        self.token.user_playlist_unfollow(user=self.user, playlist_id=self.queue_id)
+        return
 
     #SongWrapper is a wrapper that wraps an object in a Qt object
     class SongWrapper(qtc.QObject):
@@ -360,11 +360,6 @@ class SpotipyModule(qtc.QObject):
         
         def __repr__(self):
             return str(self)
-
-        def destroyer(self):
-            self.token.user_playlist_unfollow(user=self.user, playlist_id=self.queue_id)
-            return
-
 
 if __name__ == "__main__":
     spotify = SpotipyModule(environ.get('USER'), environ.get('CLIENT_ID'), environ.get('CLIENT_SECRET'),environ.get("REDIRECT_URI"), environ.get('USERNAME'))

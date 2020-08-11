@@ -33,7 +33,7 @@ Item{
     }
     */
 
-     Video{
+    Video{
         id: media
         source:  "./images/Background.mkv"
         anchors.fill: parent
@@ -157,8 +157,6 @@ Item{
         }
     }
 
-
-
     /*Timer{
         id: mouseTimer
         running: true
@@ -194,7 +192,7 @@ Item{
         y: parent.height/2.6 - height/2
     }
 
-   Weather{
+    Weather{
         id: weather_widget
         width: 500
         height: 550
@@ -217,7 +215,7 @@ Item{
         x: parent.width/2 - width/2
         y: parent.height/2.6 - height/2
     }
-
+    
     /* MouseArea{
         id: mouseArea
         anchors.fill: parent
