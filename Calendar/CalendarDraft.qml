@@ -227,7 +227,7 @@ ApplicationWindow {
                         anchors.bottom: eventinfo.top
                         anchors.right: parent.right
                         anchors.left: parent.left
-                        placeholderText: qsTr("End Time")
+                        placeholderText: qsTr("End Time 01/12/2020 16:35:00")
                         selectByMouse: true
                     }
                     TextField {

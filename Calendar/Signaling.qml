@@ -221,7 +221,7 @@ JarvisWidget {
                         anchors.bottom: eventinfo.top
                         anchors.right: parent.right
                         anchors.left: parent.left
-                        placeholderText: qsTr("End Time")
+                        placeholderText: qsTr("End Time 01/12/2020 16:35:00")
                         selectByMouse: true
                     }
                     TextField {
@@ -275,16 +275,16 @@ JarvisWidget {
                             }
                             //reloads loader,
 
-                            eventModel.updateListEvents({
-                            calendarId: "primary",
-                            timeMin: new Date(),
-                            maxResults: 20,
-                            singleEvents: true,
-                            orderBy: "startTime",
-                        })
-                            loader.active = !loader.active
+                            //eventModel.updateListEvents({
+                            //calendarId: "primary",
+                            //timeMin: new Date(),
+                            //maxResults: 20,
+                            //singleEvents: true,
+                            //orderBy: "startTime",
+                        //})
+                            //loader.active = !loader.active
 
-                            loader.active = !loader.active
+                            //loader.active = !loader.active
 
                         }
                     }
