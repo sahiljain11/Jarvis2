@@ -91,8 +91,11 @@ class Stats(qtc.QObject):
         self.counties = self.reference[(self.reference.Country_Region == "US") & (self.reference.Province_State.notnull()) & (self.reference.Admin2.notnull()) & (self.reference.Lat.notnull()) & (self.reference.Long_.notnull()) ][["Admin2", "Province_State", "Lat", "Long_"]].values.tolist()
         self.countries = self.reference[self.reference.Province_State.isnull()][["Country_Region", "Lat", "Long_"]].values.tolist()
 
-        self.spell = self.initspeller()
 
+        self.counties_names = self.name_list_maker(self.counties)
+        self.countries_names = self.name_list_maker(self.countries)
+        self.states_names = self.name_list_maker(self.states)
+        self.spell = self.initspeller()
     def show(self, *args):
         for i in args:
             if i == 'death':
@@ -258,7 +261,7 @@ class Stats(qtc.QObject):
     #Autocorrects Users input query
     def auto_correct_state_query(self,input_message):
         #
-        if input_message.lower() in [state.lower() for state in self.states]:
+        if input_message.lower() in [state.lower() for state in self.states_names]:
             return input_message
         else:
             #corrects the input message to a state
@@ -266,7 +269,7 @@ class Stats(qtc.QObject):
 
     def auto_correct_country_query(self, input_message):
         #if input message is a country return
-        if input_message.lower() in [country.lower() for country in self.countries]:
+        if input_message.lower() in [country.lower() for country in self.countries_names]:
             return input_message
         #corrects the input message to country
         else:
@@ -274,18 +277,24 @@ class Stats(qtc.QObject):
 
     def auto_correct_county_query(self,input_message):
         #if input message is a county return
-        if input_message.lower() in [county.lower() for county in self.counties]:
+        if input_message.lower() in [county.lower() for county in self.counties_names]:
             return input_message
         #corrects the input message to a county
         else:
             return self.spell.correction(input_message)
 
     def initspeller(self):
-        spell = SpellChecker(language=None, case_sensitive= False)
-        spell._word_frequency.load_words(self.counties)
-        spell._word_frequency.load_words(self.countries)
-        spell._word_frequency.load_words(self.states)
-
+        spell = SpellChecker(language=None, case_sensitive=False)
+        spell.word_frequency.load_words(self.counties_names)
+        spell.word_frequency.load_words(self.countries_names)
+        spell.word_frequency.load_words(self.states_names)
+        return spell
+    def name_list_maker(self,list_of_lists):
+        output_list = [None] * len(list_of_lists)
+        #print(list_of_lists[0][0], 'hi')
+        for list in range(0,len(list_of_lists)):
+            output_list[list] = list_of_lists[list][0]
+        return output_list
 
 if __name__ == '__main__':
    

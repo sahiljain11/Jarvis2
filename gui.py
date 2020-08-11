@@ -64,9 +64,9 @@ if __name__ == '__main__':
     #view.rootContext().setContextProperty("mouse_emulator", mouse_emulator)
 
     # Load Gmail
-    gmail = GmailModule()
-    root_context.setContextProperty("gmail", gmail)
-    root_context.setContextProperty("emailPreview", gmail.currentEmailList)
+    #gmail = GmailModule()
+    #root_context.setContextProperty("gmail", gmail)
+    #root_context.setContextProperty("emailPreview", gmail.currentEmailList)
 
     # Load HandGest
     hand = HandGest()
