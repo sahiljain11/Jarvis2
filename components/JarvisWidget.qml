@@ -13,35 +13,17 @@ Item{
     height: 600
     signal gainedFocus()
     //custom properties
-    property var scaleVal: 1
-    property int maxZ: 0
-    scale: scaleVal
+    scale: 0
     state: "closed"
-
-    //Test box
-    /*Rectangle{
-        id: testBox
-        property alias word: textBox.text
-        x: 0
-        y: 0
-        width: 50
-        height: 50
-        color: "red"
-
-        Text{
-            id: textBox
-            text: ""
-        }
-    }*/
 
     states: [ 
         State{
             name: "opened"
-            PropertyChanges { target: jarvis; scale: 1}
+            PropertyChanges { target: jarvis; scale: 1; z: parent.maxZ}
         },
         State {
             name: "closed"
-            PropertyChanges { target: jarvis; x: parent.width/2 - width/2; y: parent.height/2.6 - height/2; scale: 0}
+            PropertyChanges { target: jarvis; x: parent.width/2 - width/2; y: parent.height/2.6 - height/2; scale: 0; z: -5}
         }
     ]
 
@@ -67,36 +49,13 @@ Item{
         hoverEnabled: true
         
         onClicked: {
-            console.log("This widget was clicked")
             jarvis.focus = true 
             mouse.accepted = false
         }
 
         //Allow mouse pressed events through if we are in the base state
         onPressed: {
-
-            // Debugging 
-            console.log("Widget Pressed")
-            //testBox.x = mouse.x
-            //testBox.y = mouse.y
-            //testBox.word = mouse.x.toString()  + " " + mouse.y.toString()
             
-
-            if(jarvis.focus != true){
-                jarvis.z = maxZ
-                maxZ += 1
-            }
-            
-            jarvis.focus = true
-
-            /*if(parent.state == "BASE"){
-                mouse.accepted = false
-            }
-
-            if(parent.state == "DRAGGING"){
-                mouse.accepted = true
-            }*/
-        
             if (mouse.modifiers == Qt.AltModifier){
                 drag.target = jarvis
                 mouse.accepted = true
@@ -109,13 +68,11 @@ Item{
         }
 
         onEntered:{
-            console.log("A new widget was entered")
             jarvis.focus = true
             mouseArea.entered.connect(gainedFocus)
         }
 
         onReleased:{
-            //console.log("This widget was released at (", mouse.x, ",", mouse.y, ")")
             drag.target = undefined
             mouse.accepted = false
         }
@@ -123,14 +80,20 @@ Item{
 
     //Defines key event changes
     Keys.onPressed: {
-    
-        //Control widget scaling with up and down keys  
-        if(event.key == Qt.Key_Up){
-            scaleVal = scaleVal + 0.05
+        
+        //Do not allow jarvis to be scaled lower than zero
+        if (jarvis.scale <= 0){
+            jarvis.scale = 0
+            jarvis.state = "closed"
         }
 
-        if(event.key == Qt.Key_Down){
-            scaleVal = scaleVal - 0.05
+        //Control widget scaling with up and down keys  
+        else if(event.key == Qt.Key_Up){
+            scale = scale + 0.05
+        }
+
+        else if(event.key == Qt.Key_Down){
+            scale = scale - 0.05
         }
     }
 }

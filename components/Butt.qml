@@ -40,18 +40,7 @@ Picture{
         onEntered: {back.tint = "#80800000"; entered.connect(inside);}
 
         onExited: {back.tint = "transparent"; exited.connect(outside)}
-
-        onClicked: {console.log("Clicked")}
-        
     }
-
-    /*Keys.onPressed:{
-        console.log("pressed key")
-        if (event.key == Qt.Key_Up){
-            console.log("pressed 0")
-            //mou.pressed()
-        }
-    }*/
 
     Component.onCompleted: {
         mou.clicked.connect(touched)

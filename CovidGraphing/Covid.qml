@@ -102,9 +102,6 @@ JarvisWidget{
             value: "sk.eyJ1IjoiY29ucmFkbGlzdGUiLCJhIjoiY2tkbDk4NGpnMDd6dTJ0cGVib2x2YTMyeiJ9.Ils_duGMNfZ551PW3FDn4w"
         }
 
-        Component.onCompleted: {
-            console.log(availableServiceProviders)
-        }
     }
 
 
@@ -156,7 +153,6 @@ JarvisWidget{
         limit: 1
 
         onLocationsChanged: {
-            console.log(count)
             if(count == 1){
                 map.zoomLevel = 4
                 map.center.latitude = get(0).coordinate.latitude
@@ -185,26 +181,12 @@ JarvisWidget{
         }
     }
 
-
-    // Handles placing the map items
-    GeocodeModel {
-        id: mapItems
-        plugin: mapPlugin
-        limit: 1
-
-        Component.onCompleted:{
-            mapItems.query = "Russia"
-            mapItems.update()
-        }
-    }
-
     // Finds the location of the 
     function findLocation (addr) {
         geoModel.query = addr
         geoModel.update()
     }
     
-
     //Adds the countries to the map
     function addCountryMapItems(){
         map.clearMapItems()
@@ -262,7 +244,6 @@ JarvisWidget{
 
             //Append new active caes to the list
             cases_per_state.push(active)
-            console.log(active)
 
             //Change the max if a new max is found
             if (max_active < active){
@@ -385,7 +366,6 @@ JarvisWidget{
 
                     var state_dict = corona.get_data_for_state(state)
                     var cases = state_dict['Confirmed'][state]
-                    console.log(cases)
                     var deathes = state_dict['Deaths'][state]
                     var active = state_dict['Active'][state]
                     covidInfo.text = "              " + state + "\nTotal Cases: " + Number(cases).toLocaleString(Qt.locale("en"),'f', 0) + "\nTotal Deathes: " + Number(deathes).toLocaleString(Qt.locale("en"),'f', 0) + "\nActive Cases: " + Number(active).toLocaleString(Qt.locale("en"),'f', 0)                   

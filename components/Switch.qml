@@ -15,8 +15,10 @@ Picture{
     property var picWidth: sourceWidth 
     property var picHeight: sourceHeight
     property bool isOn: false
+    property bool doTint: true
     property url iconOn: ""
     property url iconOff: ""
+    property alias rad: mask.radius
 
     state: "OFF"
 
@@ -43,6 +45,15 @@ Picture{
         }
     ]
 
+    Rectangle{
+        id: mask
+        visible: false
+        anchors.fill: parent
+        color: "#202044"
+        opacity: 0.5
+        radius: rad
+    }
+
     //Defines mouse interatcions with the switch
     MouseArea{
         id: mou
@@ -51,15 +62,25 @@ Picture{
 
         // Darken the icon when moving over it
         onEntered: {
-            console.log("Entered")
-            back.tint = "#80800000"
-            //entered.connect(inside)
+            //the flag for tinting is set
+            if(doTint){
+                back.tint = "#80800000"
+            }
+            //the flag for a black rectangle is set
+            else{
+                mask.visible = true
+            }
         }
 
         onExited: {
-            console.log("Exited")
-            back.tint = "transparent"
+            if(doTint){
+                back.tint = "transparent"
+            }
+            else{
+                mask.visible = false
+            }
         }
+
         onClicked: {
 
             //Change the on/off status of the switch

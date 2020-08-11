@@ -42,8 +42,7 @@ class GmailModule(qtc.QObject):
         self.time_elapsed = 0
         self.currentEmailList = ListModel(GmailModule.EmailObject)
         self.threadMessages = ListModel(GmailModule.EmailObject)
-        #self.get_preview_message_info(50)
-        print("Gmail finished")
+        #print("Gmail finished")
 
     # Initializes the gmail widget in the qml file
     @qtc.Slot(int)
@@ -372,13 +371,15 @@ class GmailModule(qtc.QObject):
         return
 
     def get_messages_from_a_thread(self,thread_id):
-        response = self.service.users().threads().get(userId='me', id=thread_id).execute()
+        try:
+            response = self.service.users().threads().get(userId='me', id=thread_id).execute()
+        except:
+            return
         all_messages = response['messages']
         result = []
         for message in range(0, len(all_messages)):
             try:
                 raw_msg = (all_messages[message]['payload']['parts'][0]['body']['data'])
-                print(type(raw_msg))
             except KeyError:
                 raw_msg = all_messages[message]['payload']['body']['data']
                 msg_str = self.GetSender(all_messages[message]) + "\n" + base64.urlsafe_b64decode(raw_msg.encode('ASCII')).decode('utf-8')

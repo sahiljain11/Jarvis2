@@ -135,6 +135,7 @@ JarvisWidget{
             topMargin: parent.height/50
             right: threads.right
         }
+
         width: 50
         height: 50
         scale: threads.scale
@@ -153,8 +154,6 @@ JarvisWidget{
             compbox.references = gmail.get_current_references(index)
             compbox.readOnlySubj = true
             compbox.readOnlySend = true
-            console.log(compbox.references)
-            console.log(compbox.subj)
 
             //We are now replying to the same thread
             compbox.replying = true
@@ -182,7 +181,6 @@ JarvisWidget{
         focus: true
 
         onCurrentItemChanged:{
-            console.log("The current item changed")
             
             //Avoids the issue where the current item changes automatically when the app opens
             if(!parent.justStarted){
@@ -281,7 +279,6 @@ JarvisWidget{
         height: parent.height/1.5
 
         onBumped:{
-            console.log("Bumped")
             threads.scale = 1
             compbox.readOnlySubj = false
             compbox.readOnlySend = false

@@ -23,6 +23,8 @@ Item{
     height: 1080
     property double newX: 0
     property double newY: 0
+    property int maxZ: 5
+    property double iconRad: 49
 
     /*background
     Image{
@@ -43,6 +45,7 @@ Item{
         Component.onCompleted:{
             focus = true
         }
+        z: -20
         //flushMode: VideoOutput.FirstFrame
     }
 
@@ -57,6 +60,7 @@ Item{
             left: parent.left
             leftMargin: parent.width/11
         }
+        
         spacing: 2
 
         Switch{
@@ -65,8 +69,11 @@ Item{
             iconOff: "./images/Weather_Icon.png"
             Layout.preferredWidth:250
             Layout.preferredHeight:200
+            doTint: false
+            rad: window.iconRad
             onTouched: {
                 if (state == "ON"){
+                   window.maxZ += 1
                    weather_widget.state = "opened"
                 }
                 else {
@@ -81,8 +88,11 @@ Item{
             iconOff: "./images/Gmail_Icon.png"
             Layout.preferredWidth:250
             Layout.preferredHeight:200
+            doTint: false
+            rad: window.iconRad
             onTouched: {
                 if (state == "ON"){
+                    window.maxZ += 1
                     gmail_widget.state = "opened"
                 }
                 else {
@@ -97,9 +107,12 @@ Item{
             iconOff: "./images/Calandar_Icon.png"
             Layout.preferredWidth:250
             Layout.preferredHeight:200
+            doTint: false
+            rad: window.iconRad
 
             onTouched: {
                 if (state == "ON"){
+                    window.maxZ += 1
                     calendar_widget.state = "opened"
                 }
                 else {
@@ -114,8 +127,11 @@ Item{
             iconOff: "./images/Time_Icon.png"
             Layout.preferredWidth:250
             Layout.preferredHeight:200
+            doTint: false
+            rad: window.iconRad
             onTouched: {
                 if (state == "ON"){
+                    window.maxZ += 1
                     clock_widget.state = "opened"
                 }
                 else {
@@ -130,8 +146,11 @@ Item{
             iconOff: "./images/Corona_Icon.png"
             Layout.preferredWidth:250
             Layout.preferredHeight:200
+            doTint: false
+            rad: window.iconRad
             onTouched: {
                 if (state == "ON"){
+                    window.maxZ += 1
                     covid_widget.state = "opened"
                 }
                 else {
@@ -146,8 +165,11 @@ Item{
             iconOff: "./images/Spotify_Icon.png"
             Layout.preferredWidth:250
             Layout.preferredHeight:200
+            doTint: false
+            rad: window.iconRad
             onTouched: {
                 if (state == "ON"){
+                    window.maxZ += 1
                     spotify_widget.state = "opened"
                 }
                 else {
@@ -167,6 +189,8 @@ Item{
             hand.setMouse()
         }
     }*/
+
+
 
     Covid{
         id: covid_widget
@@ -207,16 +231,18 @@ Item{
         x: parent.width/2 - width/2
         y: parent.height/2.6 - height/2
     }
-    
+
     Clockwindow{
         id: clock_widget
-        width: 2000/2.5
-        height: 1200/2.5
+        width: 400
+        height: 200
         x: parent.width/2 - width/2
         y: parent.height/2.6 - height/2
     }
     
-    /* MouseArea{
+
+    
+    /*MouseArea{
         id: mouseArea
         anchors.fill: parent
         propagateComposedEvents: true
@@ -227,13 +253,14 @@ Item{
         }
 
         onPressed:{
+            console.log("pressed")
             mouse.accepted = false
         }
 
         onReleased:{
             mouse.accepted = false
         }
-    } */
+    }*/
     
     // Slider to adjust size of widgets
     /*Slider{

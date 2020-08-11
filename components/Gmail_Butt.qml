@@ -21,13 +21,6 @@ Item{
     FontLoader { id: nidsans; source: "../fonts/Nidsans.ttf"}
     FontLoader { id: astro; source: "../fonts/AstroSpace.ttf"}
     
-    /*Rectangle{
-        id: back
-        anchors.fill: parent
-        border.color: "#FFA54C"
-        opacity: 0.7
-    }*/
-
     Picture{
         id: back
         anchors.fill: parent

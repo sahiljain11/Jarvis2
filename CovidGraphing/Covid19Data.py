@@ -20,13 +20,15 @@ class Stats(qtc.QObject):
     def __init__(self):
         super(Stats, self).__init__()
         cols_to_use = [1, -1]
+        # International confirmed cases
         URL_DATASET1 = r'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv'
         df_confirm = pd.read_csv(URL_DATASET1)
         df_confirm = df_confirm[df_confirm.columns[cols_to_use]]
         df_confirm = df_confirm.groupby('Country/Region').agg('sum')
         df_confirm = df_confirm.reset_index()
         self.confirm_dict = dict(zip(df_confirm['Country/Region'], df_confirm.iloc[:, -1]))
-
+        
+        # International deathes
         URL_DATASET2 = r'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv'
         df_deaths = pd.read_csv(URL_DATASET2)
         df_deaths = df_deaths[df_deaths.columns[cols_to_use]]
@@ -34,22 +36,7 @@ class Stats(qtc.QObject):
         df_deaths = df_deaths.reset_index()
         self.deaths_dict = dict(zip(df_deaths['Country/Region'], df_deaths.iloc[:, -1]))
 
-        cols_to_use = [6, -1]
-        URL_DATASET3 = r'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv'
-        df_usconfirm = pd.read_csv(URL_DATASET3)
-        df_usconfirm = df_usconfirm[df_usconfirm.columns[cols_to_use]]
-        df_usconfirm = df_usconfirm.groupby('Province_State').agg('sum')
-        df_usconfirm = df_usconfirm.reset_index()
-        self.usconfirm_dict = dict(zip(df_usconfirm['Province_State'], df_usconfirm.iloc[:, -1]))
-
-        URL_DATASET4 = r'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_US.csv'
-        df_usdeaths = pd.read_csv(URL_DATASET4)
-        df_usdeaths = df_usdeaths[df_usdeaths.columns[cols_to_use]]
-        df_usdeaths = df_usdeaths.groupby('Province_State').agg('sum')
-        df_usdeaths = df_usdeaths.reset_index()
-        self.usdeaths_dict = dict(zip(df_usdeaths['Province_State'], df_usdeaths.iloc[:, -1]))
-
-        #Aggregate ecountry data
+        #Aggregate country data
         URL_DATASET5 = r'https://raw.githubusercontent.com/datasets/covid-19/master/data/countries-aggregated.csv'
         # dates days since day 1
         df1 = pd.read_csv(URL_DATASET5, parse_dates=['Date'])
@@ -59,15 +46,6 @@ class Stats(qtc.QObject):
         df1.set_index(keys=["Country"], inplace=True)
         self._data = df1
 
-        # Aggregate state data
-        URL_DATASET6 = r'https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv'
-        # dates days since day 1
-        self.covid_states = pd.read_csv(URL_DATASET6, parse_dates=['date'])
-        first_date = self.covid_states.loc[0, 'date']
-        self.covid_states['date'] = (self.covid_states['date'] - first_date).dt.days
-        self.covid_states.sort_values(by=["state", "date"], inplace=True)
-        self.covid_states.set_index(keys=["state"], inplace=True)
-
         # Aggregate county data
         URL_DATASET7 = r'https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv'
         self.covid_counties = pd.read_csv(URL_DATASET7, parse_dates=['date'])
@@ -76,7 +54,7 @@ class Stats(qtc.QObject):
         self.covid_counties.sort_values(by=["county", "state", "date"], inplace=True)
         self.covid_counties.set_index(keys=["county"], inplace=True)
 
-
+        # State Data
         yesterday = (datetime.datetime.now() -  datetime.timedelta(days=1)).strftime('%m-%d-%Y')
         url = r'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports_us/' + yesterday + ".csv"
         URL_DATASET8 = url
@@ -103,28 +81,8 @@ class Stats(qtc.QObject):
                 print (self.deaths_dict)
             elif i == 'confirm':
                 print (self.confirm_dict)
-            elif i == 'usdeath':
-                print(self.usdeaths_dict)
-            elif i == 'usconfirm':
-                print(self.usconfirm_dict)
             else:
                 print ("that's not even a dictionary bruh")
-
-    # latest date confirmed cases for given state
-    @qtc.Slot(str, result=int)
-    def confirmus(self, state):
-        query = self.usconfirm_dict.get(state)
-        if query is None:
-            return 0
-        return query
-
-    # latest date confirmed cases for given state
-    @qtc.Slot(str, result=int)
-    def deathus(self, state):
-        query = self.usdeaths_dict.get(state)
-        if query is None:
-            return 0
-        return query
 
     #Get the time data for a county
     @qtc.Slot(str, str, result='QVariant')       
@@ -260,6 +218,7 @@ class Stats(qtc.QObject):
         return date.strftime("%Y-%m-%d")
 
     #Autocorrects Users input query
+    @qtc.Slot(str, result=str)
     def auto_correct_state_query(self,input_message):
         #
         if input_message.lower() in [state.lower() for state in self.states_names]:
@@ -311,20 +270,5 @@ if __name__ == '__main__':
     my_stats = Stats()
     root_context.setContextProperty('corona', my_stats)
     engine.load(qtc.QUrl.fromLocalFile('Covid.qml'))
-
-    #print(my_stats.confirmus('Texas'))
-    #print(my_stats.confirmglobal('Albania'))
-    #print(my_stats.deathglobal('Albania'))
-    #my_stats.show('death')
-    #my_stats.show('usdeath')
-    #my_stats.show('confirm', 'death')
-
-    #METHOD BETA
-    #print(my_stats.get_data_for_country("Russia"))
-    #print(my_stats.countryallconfirmed("Russia"))
-    #print(my_stats.countryalldeath("Russia"))
-
-    #METHOD ALPHA
-    #print(my_stats.countryallconfirmed("Canada")[:50])
     
     sys.exit(app.exec_())

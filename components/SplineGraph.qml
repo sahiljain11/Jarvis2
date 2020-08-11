@@ -71,7 +71,6 @@ ChartView {
 
     function addNewSeries(country, type){
         graphData.removePoints(0, graphData.count)
-        console.log(graphData.count)
 
         var data = null
         
@@ -89,8 +88,6 @@ ChartView {
         }
 
         else if (type == "countycases"){
-            console.log(country)
-            console.log(sta)
             data = corona.countyallconfirmed(country, sta)
         }
 
@@ -102,7 +99,6 @@ ChartView {
             return -1
         }
 
-        console.log(data)
 
         var max = 0
         var i = 0
