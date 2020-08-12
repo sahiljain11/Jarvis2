@@ -6,8 +6,13 @@ import MyCalendar 1.0
 import "../components"
 
 
-JarvisWidget {
-
+ApplicationWindow {
+    visible: true
+    width: 700
+    height: 400
+    minimumWidth: 400
+    minimumHeight: 300
+        // create frame and background
         Image{
             id: back
             source: "frame2.png"
@@ -15,7 +20,6 @@ JarvisWidget {
             smooth: true
             opacity: 1
             focus: true
-
 
             Rectangle{
                 z: -2
@@ -25,6 +29,7 @@ JarvisWidget {
             }
         }
 
+    title: "My Calendar"
     SystemPalette {
         id: systemPalette
     }
@@ -239,14 +244,14 @@ JarvisWidget {
                         anchors.bottom: parent.bottom
                         anchors.right: parent.right
                         anchors.left: parent.left
-                        height: rect.height
+                        height: 25
 
                         Rectangle {
                             id: rect
-                            implicitWidth: rectone.width
-                            implicitHeight: 25
+                            anchors.fill: parent
                             color: "#282828"
                             radius: 10
+
                         }
 
                         Text {
