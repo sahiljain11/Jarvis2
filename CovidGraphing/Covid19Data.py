@@ -225,7 +225,7 @@ class Stats(qtc.QObject):
             return input_message
         else:
             #corrects the input message to a state
-            return self.spell.correction(input_message)
+            return self.spell.correction(input_message).capitalize()
 
     @qtc.Slot(str, result=str)
     def auto_correct_country_query(self, input_message):
@@ -234,7 +234,7 @@ class Stats(qtc.QObject):
             return input_message
         #corrects the input message to country
         else:
-            return self.spell.correction(input_message)
+            return self.spell.correction(input_message).capitalize()
 
     @qtc.Slot(str, result=str)
     def auto_correct_county_query(self,input_message):
@@ -243,7 +243,7 @@ class Stats(qtc.QObject):
             return input_message
         #corrects the input message to a county
         else:
-            return self.spell.correction(input_message)
+            return self.spell.correction(input_message).capitalize()
 
     def initspeller(self):
         spell = SpellChecker(language=None, case_sensitive=False)
