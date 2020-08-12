@@ -81,7 +81,7 @@ def convert_to_reply(func):
 
     return wrapper
 
-#
+
 class CalendarBackend(QtCore.QObject):
     eventsChanged = QtCore.Signal(list)
 

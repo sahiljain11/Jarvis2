@@ -8,8 +8,7 @@ from PySide2 import QtGui
 from PySide2 import QtQml
 
 import logging
-from pytz import timezone
-import datetime
+
 
 #logging.basicConfig(level=logging.DEBUG)
 

@@ -155,6 +155,7 @@ JarvisWidget {
                 height: (parent.height > parent.width ? parent.height * 0.4 - parent.spacing : parent.height)
                 border.color: Qt.darker(color, 1.2)
                 anchors.margins: 30
+                id: rectone
                 ListView {
                     id: eventsListView
                     spacing: 4
@@ -234,7 +235,7 @@ JarvisWidget {
                     }
                     Butt{
                         id: buttonn
-                        width: rect.width
+                        width: rectone.width
                         anchors.bottom: parent.bottom
                         anchors.right: parent.right
                         anchors.left: parent.left
@@ -242,7 +243,7 @@ JarvisWidget {
 
                         Rectangle {
                             id: rect
-                            implicitWidth: rect.width
+                            implicitWidth: rectone.width
                             implicitHeight: 25
                             color: "#282828"
                             radius: 10
