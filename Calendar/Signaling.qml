@@ -6,13 +6,8 @@ import MyCalendar 1.0
 import "../components"
 
 
-ApplicationWindow {
-    visible: true
-    width: 700
-    height: 400
-    minimumWidth: 400
-    minimumHeight: 300
-        // create frame and background
+JarvisWidget {
+
         Image{
             id: back
             source: "frame2.png"
@@ -20,6 +15,7 @@ ApplicationWindow {
             smooth: true
             opacity: 1
             focus: true
+
 
             Rectangle{
                 z: -2
@@ -29,7 +25,6 @@ ApplicationWindow {
             }
         }
 
-    title: "My Calendar"
     SystemPalette {
         id: systemPalette
     }
