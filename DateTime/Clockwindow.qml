@@ -17,9 +17,11 @@ JarvisWidget {
         color: "white"
         x: 10
         y: 10
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.verticalCenter: parent.verticalCenter
-        font.pointSize: 24
+        anchors.fill: parent
+        horizontalAlignment: Text.AlignHCenter
+        verticalAlignment: Text.AlignVCenter
+        font.pointSize: 500
+        fontSizeMode: Text.Fit
         font.family: techFont.name
         text: Qt.formatTime(new Date(),"hh:mm:ss")
     }

@@ -307,8 +307,6 @@ JarvisWidget{
 
                     // Auto Correct for the country
                     country = corona.auto_correct_country_query(country)
-
-                    console.log(country)
                     
                     //Clear the graphs
                     corona_graphs.clear()

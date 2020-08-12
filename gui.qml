@@ -58,17 +58,20 @@ Item{
             bottom: parent.bottom
             bottomMargin: parent.height/10
             left: parent.left
-            leftMargin: parent.width/11
+            leftMargin: parent.width/9.8
+            right: parent.right
+            rightMargin: parent.width/7.7
         }
         
-        spacing: 2
+        spacing: 30
 
         Switch{
             id: weather_Icon
             iconOn: "./images/Weather_Icon.png"
             iconOff: "./images/Weather_Icon.png"
-            Layout.preferredWidth:250
-            Layout.preferredHeight:200
+            Layout.preferredWidth:180
+            Layout.preferredHeight:180
+            Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
             doTint: false
             rad: window.iconRad
             onTouched: {
@@ -86,8 +89,9 @@ Item{
             id: gmail_Icon
             iconOn: "./images/Gmail_Icon.png"
             iconOff: "./images/Gmail_Icon.png"
-            Layout.preferredWidth:250
-            Layout.preferredHeight:200
+            Layout.preferredWidth:180
+            Layout.preferredHeight:180
+            Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
             doTint: false
             rad: window.iconRad
             onTouched: {
@@ -105,8 +109,9 @@ Item{
             id: calandar_Icon
             iconOn: "./images/Calandar_Icon.png"
             iconOff: "./images/Calandar_Icon.png"
-            Layout.preferredWidth:250
-            Layout.preferredHeight:200
+            Layout.preferredWidth:180
+            Layout.preferredHeight:180
+            Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
             doTint: false
             rad: window.iconRad
 
@@ -125,8 +130,9 @@ Item{
             id: time_Icon
             iconOn: "./images/Time_Icon.png"
             iconOff: "./images/Time_Icon.png"
-            Layout.preferredWidth:250
-            Layout.preferredHeight:200
+            Layout.preferredWidth:180
+            Layout.preferredHeight:180
+            Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
             doTint: false
             rad: window.iconRad
             onTouched: {
@@ -144,8 +150,9 @@ Item{
             id: corona_Icon
             iconOn: "./images/Corona_Icon.png"
             iconOff: "./images/Corona_Icon.png"
-            Layout.preferredWidth:250
-            Layout.preferredHeight:200
+            Layout.preferredWidth:180
+            Layout.preferredHeight:180
+            Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
             doTint: false
             rad: window.iconRad
             onTouched: {
@@ -163,8 +170,9 @@ Item{
             id: spotify_Icon
             iconOn: "./images/Spotify_Icon.png"
             iconOff: "./images/Spotify_Icon.png"
-            Layout.preferredWidth:250
-            Layout.preferredHeight:200
+            Layout.preferredWidth:180
+            Layout.preferredHeight:180
+            Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
             doTint: false
             rad: window.iconRad
             onTouched: {
@@ -189,8 +197,6 @@ Item{
             hand.setMouse()
         }
     }*/
-
-
 
     Covid{
         id: covid_widget
@@ -235,7 +241,7 @@ Item{
     Clockwindow{
         id: clock_widget
         width: 400
-        height: 200
+        height: 100
         x: parent.width/2 - width/2
         y: parent.height/2.6 - height/2
     }
