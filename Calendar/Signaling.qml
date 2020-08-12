@@ -239,14 +239,14 @@ JarvisWidget {
                         anchors.bottom: parent.bottom
                         anchors.right: parent.right
                         anchors.left: parent.left
-                        height: rect.height
+                        height: 25
 
                         Rectangle {
                             id: rect
-                            implicitWidth: rectone.width
-                            implicitHeight: 25
+                            anchors.fill: parent
                             color: "#282828"
                             radius: 10
+
                         }
 
                         Text {
