@@ -305,39 +305,39 @@ JarvisWidget{
                         country = "Korea, South"
                     }
 
+                    // Auto Correct for the country
                     country = corona.auto_correct_country_query(country)
+
+                    console.log(country)
                     
                     //Clear the graphs
                     corona_graphs.clear()
 
-                    //Return early if there is no match
-                    if(corona.get_data_for_country(country) == null){
-                        return
-                    }
-
+                    //Only update the graph if there is a match
+                        
                     //Set new covid graphs for the query                    
                     corona_graphs.append({coun: country, stat: "", graph_type: "countrycases"})
                     corona_graphs.append({coun: country, stat: "", graph_type: "countrydeathes"})
                     corona_graphs.append({coun: country, stat: "", graph_type: "countryrecovered"})
-
-                    //Correct the country names so that they are more mainstream
-                    if(country = "Korea, South"){
-                        country = "South Korea"
-                    }
-                    else if (country = "Taiwan*"){
-                        country = "Taiwan"
-                    }
-                    else if (country = "US"){
-                        country = 'United States'
-                    }
 
                     //Set the words
                     var cases = corona.confirmglobal(country)
                     var deathes = corona.deathglobal(country)
                     var recovered = corona.recoverglobal(country)
                     var active = cases - deathes - recovered
+
+                    //Correct the country names so that they are more mainstream
+                    if(country == "Korea, South"){
+                        country = "South Korea"
+                    }
+                    else if (country == "Taiwan*"){
+                        country = "Taiwan"
+                    }
+                    else if (country == "US"){
+                        country = 'United States'
+                    }
+
                     covidInfo.text = "              " + country + "\nTotal Cases: " + Number(cases).toLocaleString(Qt.locale("en"),'f', 0) + "\nTotal Deathes: " + Number(deathes).toLocaleString(Qt.locale("en"),'f', 0) + "\nActive Cases: " + Number(active).toLocaleString(Qt.locale("en"),'f', 0)
-                    
                    
                     // Query for the location and center the camera in it
                     parent.findLocation(chart_search.text)
