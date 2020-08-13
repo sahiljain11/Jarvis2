@@ -51,6 +51,8 @@ if __name__ == '__main__':
     qtm.qmlRegisterType(CalendarProvider, "MyCalendar", 1, 0, "CalendarProvider")
     qtm.qmlRegisterType(GmailModule, "GmailMod", 1, 0, "GmailModule")
     view = QQuickView()
+    view.setVisibility(qtg.QWindow.FullScreen)
+    view.setResizeMode(QQuickView.SizeRootObjectToView)
     root_context = view.rootContext()
     #engine = qtm.QQmlApplicationEngine()
     #root_context = engine.rootContext()
@@ -89,14 +91,18 @@ if __name__ == '__main__':
     CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
     filename = os.path.join(CURRENT_DIR, "gui.qml")
     view.setSource(qtc.QUrl.fromLocalFile(filename))
-    view.show()
+    view.showFullScreen()
+    #view.show() 
     
 
     # Load specific widgets
     #engine.load(qtc.QUrl.fromLocalFile('./Gmail/Gmail.qml'))
     #engine.load(qtc.QUrl.fromLocalFile('./Spotify/Spotify.qml'))
+
     
     # Exit if we have no classes
     #if not engine.rootObjects():
-     #   sys.exit(-1)
-    sys.exit(app.exec_())
+        #   sys.exit(-1)
+    exit_code = app.exec_()
+    spotify.destroyer()
+    sys.exit(exit_code)
