@@ -13,6 +13,15 @@ import os, inspect
 #arch_dir = '../lib/x64' if sys.maxsize > 2**32 else '../lib/x86'
 #sys.path.insert(0, os.path.abspath(os.path.join(src_dir, arch_dir)))
 
+# 0 - no gesture
+# 1 - peace
+# 2 - fist
+# 3 - pointing
+# 4 - swipe up
+# 5 - swipe left
+# 6 - swipe right
+# 7 - swipe down
+
 import Leap, thread, time
 
 class SampleListener(Leap.Listener):
@@ -22,10 +31,8 @@ class SampleListener(Leap.Listener):
 
     def on_init(self, controller):
         # determine what file number to write to
-        file_to_write = "new_fist"
+        file_to_write = "test_pointing"
         count = 0
-        file_to_write = "peace"
-        count = 102
 
         # get all the files within the data directory
         basedir = os.path.abspath(os.path.dirname(__file__))

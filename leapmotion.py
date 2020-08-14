@@ -21,7 +21,6 @@ class SampleListener(Leap.Listener):
         print("Connected")
         print("Click enter once to start recording. Click enter twice to stop.")
         sys.stdin.readline()
-        print("Recording: " + str(self.file_count))
 
     def on_disconnect(self, controller):
         # Note: not dispatched when running in a debugger.
@@ -224,15 +223,34 @@ class SampleListener(Leap.Listener):
                 for i in range(0, 20):
                     send[str(i)] = self.json_data[i]
 
-                send["x"] = raw_data["hand_x"]
-                send["y"] = raw_data["hand_y"]
-                send["z"] = raw_data["hand_z"]
+                app_width = 1920
+                app_height = 1017
+    
+                pointable = frame.pointables.frontmost
+                if pointable.is_valid:
+                    
+                    iBox = frame.interaction_box
+                    #leapPoint = pointable.stabilized_tip_position
+                    leapPoint = Leap.Vector(raw_data["hand_x"], raw_data["hand_y"], 0)
+                    normalizedPoint = iBox.normalize_point(leapPoint, False)
+    
+                    app_x = normalizedPoint.x * app_width
+                    app_y = (1 - normalizedPoint.y) * app_height
+                    send["x"] = app_x
+                    send["y"] = app_y
+
+                else:
+                    send["x"] = 0
+                    send["y"] = 0
+
                 #send = dict()
                 #for i in range(0, 20):
                 #    send[str(i)] = self.json_data[i]
 
+
                 send = json.dumps(send)
-                res = requests.post("http://127.0.0.1:5000/determine-gesture/", json=send).json()
+                res = requests.post("http://127.0.0.1:5000/determine-gesture/", json=send)
+                res = res.json()
                 curr_gesture = res['gesture']
 
                 print(curr_gesture)
@@ -255,21 +273,32 @@ def main():
     listener = SampleListener()
     controller = Leap.Controller()
 
+    controller.set_policy(Leap.Controller.POLICY_BACKGROUND_FRAMES)
+
     # Have the sample listener receive events from the controller
     controller.add_listener(listener)
 
     # Keep this process running until Enter is pressed
     print("Press Enter to quit...")
+    
     try:
-        sys.stdin.readline()
-        sys.stdin.readline()
-    except KeyboardInterrupt:
-        listener.f.close()
-        pass
+        while True:
+            time.sleep(1)
+    except:
+        print("Quiting")
     finally:
         # Remove the sample listener when done
-        listener.f.close()
         controller.remove_listener(listener)
+
+    #try:
+    #    sys.stdin.readline()
+    #except KeyboardInterrupt:
+    #    listener.f.close()
+    #    pass
+    #finally:
+    #    # Remove the sample listener when done
+    #    listener.f.close()
+    #    controller.remove_listener(listener)
 
 
 if __name__ == "__main__":

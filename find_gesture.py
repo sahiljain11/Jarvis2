@@ -15,14 +15,34 @@ import random
 app = Flask(__name__)
 
 number_of_features = 31   # input size
-number_of_features = 28   # input size
 number_of_hidden   = 32   # size of hidden layer
-number_of_gestures = 12   # output size
+number_of_gestures = 4   # output size
 sequence_length    = 20   # refers to the amount of timeframes to check
-folder_name = ["none", "pinch_in", "pinch_out", "swipe_up", "swipe_down",
-               "swipe_left", "swipe_right", "grab2fist", "fist2grab", "peace",
-               "2fingers", "pointing"]
+#folder_name = ["none", "pinch_in", "pinch_out", "swipe_up", "swipe_down",
+#               "swipe_left", "swipe_right", "grab2fist", "fist2grab", "peace",
+#               "2fingers", "pointing"]
+#folder_name = ["new_none", "new_peace", "new_fist", "new_pointing", "new_swipe_up", "new_swipe_left", "new_swipe_right", "new_swipe_down"]
 
+# third
+# 0 - no gesture
+# 1 - peace
+# 2 - fist
+# 3 - swipe up
+# 4 - swipe down
+# 5 - swipe left
+# 6 - swipe right
+
+# second
+# 0 - no gesture
+# 1 - peace
+# 2 - fist
+# 3 - pointing
+# 4 - swipe up
+# 5 - swipe left
+# 6 - swipe right
+# 7 - swipe down
+
+# first
 # 0 - No gesture
 # 1 - Pinch zoom in
 # 2 - Pinch zoom out
@@ -79,8 +99,9 @@ class JarvisLSTM(nn.Module):
         return gesture_out
 
 lstm_model = JarvisLSTM(number_of_hidden, number_of_features, number_of_gestures, sequence_length)
-lstm_model.load_state_dict(torch.load("atan.model"))
-lstm_model.load_state_dict(torch.load("state_dict_model_wrist_features30epoch.pt"))
+#lstm_model.load_state_dict(torch.load("number_of_fingers.model"))
+#lstm_model.load_state_dict(torch.load("final.model"))
+lstm_model.load_state_dict(torch.load("final.model"))
 
 lstm_model.eval()
 
@@ -92,12 +113,11 @@ feature_order = ["pitch", "roll", "yaw", "thumb2index", "thumb2middle", "thumb2r
 
 qml_data = [0, 0, 0, 0]
 
-@app.route("/get-gesture/", methods=['POST'])
+@app.route("/get-gesture/", methods=['GET'])
 def get_gesture():
     ret = {"gesture" : qml_data[0],
            "x" : qml_data[1],
-           "y" : qml_data[2],
-           "z" : qml_data[3]}
+           "y" : qml_data[2]}
     return jsonify(ret)
 
 # Flask Server stuff
@@ -127,7 +147,6 @@ def determine_gesture():
     qml_data[0] = result.item()
     qml_data[1] = json_data["x"]
     qml_data[2] = json_data["y"]
-    qml_data[3] = json_data["z"]
 
     # send that information back properly
     result = {"gesture" : result.item()}

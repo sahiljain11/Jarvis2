@@ -26,15 +26,17 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 #number_of_features = 209  # input size
 number_of_hidden   = 32   # size of hidden layer
-number_of_gestures = 12   # output size
+number_of_gestures = 8   # output size
 sequence_length    = 20   # refers to the amount of timeframes to check
 batch_size         = 1    # how many different files to compute
 learning_rate      = 0.001
-num_epoch          = 20
-num_epoch          = 5
-folder_name = ["none", "pinch_in", "pinch_out", "swipe_up", "swipe_down", "swipe_left", "swipe_right",
-               "grab2fist", "fist2grab", "peace", "2fingers", "pointing"]
-STORAGE_PATH = "all_files.model"
+num_epoch          = 30
+folder_name = ["new_none", "new_peace", "new_fist", "new_pointing"]
+#folder_name = ["none", "test_peace", "test_fist", "test_pointing", "swipe_up", "swipe_left", "swipe_right", "swipe_down"]
+#folder_name = ["new_none", "new_peace", "new_fist", "new_pointing", "new_swipe_up", "new_swipe_left", "new_swipe_right", "new_swipe_down"]
+#folder_name = ["none", "pinch_in", "pinch_out", "swipe_up", "swipe_down", "swipe_left", "swipe_right",
+#               "grab2fist", "fist2grab", "peace", "2fingers", "pointing"]
+STORAGE_PATH = "final.model"
 
 def create_training_tensor(data_file, number_of_features, feature_columns):
 
@@ -43,7 +45,7 @@ def create_training_tensor(data_file, number_of_features, feature_columns):
     f = open(data_file, "r")
     file_data = f.readlines()
 
-    portion_of_data = 0.65
+    portion_of_data = 0.9
     number_of_lines = len(file_data)
 
     # ADDED TO ONLY LIKE THE MIDDLE PORTION OF EACH FILE
@@ -126,7 +128,6 @@ with IncrementalBar("Determining Tensor Counts...", max=number_of_gestures) as i
                     break
 
                 count += 1
-<<<<<<< HEAD
 
         # determine max_count
         if count > max_count:
@@ -142,9 +143,8 @@ with IncrementalBar("Preprocessing...", max=number_of_gestures) as increment_bar
 
         count = 0
 
-        #j = 0
-        #while True:
-        for j in range(0, len(files)):
+        j = 0
+        while True:
             # traverse through each file in each sub folder
             test_string = name + str(j) + ".csv"
             training_file = os.path.join(data_dir, test_string)
@@ -158,27 +158,21 @@ with IncrementalBar("Preprocessing...", max=number_of_gestures) as increment_bar
                     break
                 count += 1
 
-                #if count > max_count:
-=======
-                #if count > 1322:
->>>>>>> d0ed84358e57e32bc20eb9866a1e19ce88635f3d
-                #    break
+                if count > max_count:
+                    break
 
                 portion_tensor = training_tensor[k - sequence_length:k, :]
 
                 file_tensors.append(portion_tensor)
                 file_hash[portion_tensor] = i
                 num_files += 1
-<<<<<<< HEAD
 
             # increment j and see if enough tensors for this gesture have been made
-            #j = (j + 1) % len(files)
-            #if count > max_count:
-            #    break
+            j = (j + 1) % len(files)
+            if count > max_count:
+                break
 
-=======
         #print("  " + str(count))
->>>>>>> d0ed84358e57e32bc20eb9866a1e19ce88635f3d
         increment_bar.next()
 
 random.shuffle(file_tensors)
@@ -309,7 +303,7 @@ def epoch(folder_name, number_of_gestures, batch_size, lstm_model, loss_function
 # create loss function, model, and optimizer
 loss_function = nn.CrossEntropyLoss()
 lstm_model = JarvisLSTM(number_of_hidden, number_of_features, number_of_gestures, sequence_length)
-lstm_model.load_state_dict(torch.load(STORAGE_PATH))
+#lstm_model.load_state_dict(torch.load(STORAGE_PATH))
 optimizer = optim.Adam(lstm_model.parameters(), lr=learning_rate)
 start_time = time.time()
 

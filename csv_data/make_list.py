@@ -28,7 +28,8 @@ for i in range(0, len(first_row)):
 finger_names = ['thumb', 'index', 'middle', 'ring', 'pinky']
 
 # add more relevant features to the csvs
-folder_name = ["new_peace", "new_none", "new_fist", "new_pointing", "new_swipe_right", "new_swipe_left", "new_swipe_right", "new_swipe_down"]
+#folder_name = ["new_peace", "new_none", "new_fist", "new_pointing", "new_swipe_right", "new_swipe_left", "new_swipe_right", "new_swipe_down"]
+folder_name = ["test_peace", "test_pointing", "test_fist"]
 #folder_name = ["none", "pinch_in", "pinch_out", "swipe_up", "swipe_down",
 #               "swipe_left", "swipe_right", "grab2fist", "fist2grab", "peace",
 #               "2fingers", "pointing"]
