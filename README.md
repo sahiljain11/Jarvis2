@@ -1,7 +1,7 @@
 # YouTube Video
 <a align="center" href="http://www.youtube.com/watch?feature=player_embedded&v=msXS-9NGt0I
 " target="_blank"><img align="center" src="http://img.youtube.com/vi/msXS-9NGt0I/0.jpg" 
-alt="Jarvis 2.0" width="960" height="720"/></a>
+alt="Jarvis 2.0" width="960" height="640"/></a>
 
 [Devpost Link](https://devpost.com/software/jarvis-2-0-i1b8vo)
 
